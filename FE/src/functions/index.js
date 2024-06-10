@@ -5,3 +5,10 @@ export const handleCheckAllCheckBox = (check) => {
         treeNodeCheckAll.click()
     }
 }
+
+export const formatNumber = number=>{
+    
+    return (number > 0 ? number : 0).toLocaleString("en-EN")
+    return new Intl.NumberFormat("en-EN").format(number > 0 ? number : 0) || 0
+
+}

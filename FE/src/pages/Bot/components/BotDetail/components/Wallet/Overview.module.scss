@@ -16,23 +16,28 @@
 
         &List {
             flex-basis: 48%;
-
             &Item {
                 display: flex;
                 margin-top: 24px;
                 word-break: break-word;
-
+                align-items: flex-end;
                 .label {
                     color: var(--blueColor);
                     min-width: 150px;
-                    opacity: .7;
+                    opacity: 0.7;
                     font-weight: 600;
                 }
 
                 .icon {
                     margin-left: 3px;
                     font-size: 1rem;
-                    opacity: .6;
+                    opacity: 0.6;
+                    cursor: pointer;
+                }
+                .spotSavingEditIcon {
+                    font-size: 1.3rem;
+                    margin-left: 12px;
+                    color: var(--blueLightColor);
                     cursor: pointer;
                 }
             }
@@ -42,7 +47,7 @@
     &BtnAction {
         margin-top: 24px;
 
-        .btn:nth-child(n+2) {
+        .btn:nth-child(n + 2) {
             margin-left: 6px;
         }
     }
@@ -52,9 +57,8 @@
     }
 }
 
-@media (max-width:740px) {
+@media (max-width: 740px) {
     .overview {
-
         &Info {
             flex-direction: column;
 
@@ -68,7 +72,7 @@
             flex-direction: column;
             align-items: flex-start;
 
-            .btn:nth-child(n+2) {
+            .btn:nth-child(n + 2) {
                 margin-top: 6px;
                 margin-left: 0;
             }

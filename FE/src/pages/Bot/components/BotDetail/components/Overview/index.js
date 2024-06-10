@@ -1,5 +1,4 @@
 
-import DeleteIcon from '@mui/icons-material/Delete';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import OpenWithIcon from '@mui/icons-material/OpenWith';
 import EditIcon from '@mui/icons-material/Edit';
@@ -11,11 +10,16 @@ import EditBot from './conmponents/EditBot';
 import MoveBot from './conmponents/MoveBot';
 import DeleteBot from './conmponents/DeleteBot';
 import { getBotByID, updateBot } from '../../../../../../services/botService';
-import { useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../../../../../store/slices/Toast';
+import { useParams } from 'react-router-dom';
 
 function Overview() {
+
+    const dispatch = useDispatch();
+
+    const {botID}  = useParams()
+    
     const [toolTipText, setToolTipText] = useState("Copy to clipboard");
     const [openEditBot, setOpenEditBot] = useState({
         isOpen: false,
@@ -24,12 +28,6 @@ function Overview() {
     const [openMoveBot, setOpenMoveBot] = useState(false);
     const [openDeleteBot, setOpenDeleteBot] = useState(false);
     const [botData, setBotData] = useState();
-
-
-    const { botID } = useParams()
-
-    const dispatch = useDispatch();
-
 
     async function copyToClipboard(text) {
         try {
@@ -42,23 +40,6 @@ function Overview() {
 
     const setToolTipDefault = () => {
         setToolTipText("Copy to clipboard")
-    }
-
-    const getBotData = () => {
-        getBotByID(botID)
-            .then(res => {
-                const data = res.data.data;
-                data && setBotData(
-                    {
-                        ...data,
-                        id: data?._id,
-                        Created: data?.Created && new Date(data?.Created).toLocaleDateString(),
-                    })
-            }
-
-            )
-            .catch(error => {
-            })
     }
 
     const handleRequestSetup = async data => {
@@ -84,6 +65,28 @@ function Overview() {
             }))
         }
     }
+  
+    const getBotData = () => {
+        getBotByID(botID)
+            .then(res => {
+                const data = res.data.data;
+                data && setBotData(
+                    {
+                        ...data,
+                        id: data?._id,
+                        Created: data?.Created && new Date(data?.Created).toLocaleDateString(),
+                    })
+            }
+
+            )
+            .catch(error => {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Get Bot Detail Error",
+                }))
+            })
+    }
+
     useEffect(() => {
         getBotData()
     }, []);

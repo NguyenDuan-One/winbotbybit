@@ -20,7 +20,10 @@ function BotDetail() {
     const handleTabContent = () => {
         switch (tabNumber) {
             case "Overview":
-                return <Overview />
+                return (
+                    <Overview />
+                )
+
             case "Wallet":
                 return <Wallet />
             case "Api":
@@ -30,9 +33,10 @@ function BotDetail() {
         }
     }
 
+
     return (
         <div className={styles.botDetail}>
-            <AddBreadcrumbs list = {["Bots","Detail"]}/>
+            <AddBreadcrumbs list={["Bots", "Detail"]} />
 
             <Tabs value={tabNumber} onChange={handleChangeTab}>
                 <Tab label="Overview" value="Overview" ></Tab>
