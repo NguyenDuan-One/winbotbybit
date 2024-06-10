@@ -1,0 +1,444 @@
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { useEffect, useState } from "react";
+import DialogCustom from "../../../../components/DialogCustom";
+import { Checkbox, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
+import { handleCheckAllCheckBox } from '../../../../functions';
+
+function FilterDialog({
+    onClose,
+    filterQuantityRef,
+    dataCheckTreeDefaultRef,
+    setDataCheckTree
+}) {
+
+    const compareFilterListDefault = [
+        "=",
+        ">",
+        "<",
+        ">=",
+        "<=",
+    ]
+
+    const candlestickValueList = [
+        {
+            name: "Min1",
+            value: "Min1"
+        },
+        {
+            name: "Min3",
+            value: "Min3"
+        },
+        {
+            name: "Min5",
+            value: "Min5"
+        },
+        {
+            name: "Min15",
+            value: "Min15"
+        },
+        {
+            name: "Min30",
+            value: "Min30"
+        },
+        {
+            name: "Min60",
+            value: "Min60"
+        },
+
+    ]
+
+    const positionValueList = [
+        {
+            name: "Long",
+            value: "Long"
+        },
+        {
+            name: "Short",
+            value: "Short"
+        }
+    ]
+    const fieldFilterList = [
+
+        {
+            data: {
+                compare: "=",
+                value: "Long"
+            },
+            name: "Position",
+            value: "PositionSide",
+            compareFilterList: ["="],
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "Amount",
+            value: "Amount",
+            compareFilterList: compareFilterListDefault,
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "OC",
+            value: "OrderChange",
+            compareFilterList: compareFilterListDefault,
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "Extended",
+            value: "ExtendedOCPercent",
+            compareFilterList: compareFilterListDefault,
+
+        },
+
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "TP",
+            value: "TakeProfit",
+            compareFilterList: compareFilterListDefault,
+
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "Reduce",
+            value: "ReduceTakeProfit",
+            compareFilterList: compareFilterListDefault,
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "Ignore",
+            value: "Ignore",
+            compareFilterList: compareFilterListDefault,
+        },
+        {
+            data: {
+                compare: "=",
+                value: "Min1"
+            },
+            name: "Candlestick",
+            value: "Candlestick",
+            compareFilterList: ["="],
+        },
+        {
+            data: {
+                compare: "=",
+                value: false
+            },
+            name: "Active",
+            value: "IsActive",
+            compareFilterList: ["="],
+
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "EntryTrailing",
+            value: "EntryTrailing",
+            compareFilterList: compareFilterListDefault,
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "StopLose",
+            value: "StopLose",
+            compareFilterList: compareFilterListDefault,
+        },
+    ]
+
+    const [filterDataRowList, setFilterDataRowList] = useState([]);
+
+
+    const addFilterRow = () => {
+        setFilterDataRowList(filterRowList => [
+            ...filterRowList,
+            fieldFilterList[2]
+        ])
+    }
+
+    const deleteFilterRow = (indexRow) => {
+        setFilterDataRowList(filterRowList => filterRowList.filter((value, index) => index !== indexRow))
+    }
+
+    const handleChangeValue = (value, indexInput) => {
+
+        setFilterDataRowList(filterDataRowList => filterDataRowList.map((item, index) => {
+            if (index === indexInput) {
+                return {
+                    ...item,
+                    data: {
+                        ...item.data,
+                        value: value
+                    }
+                }
+            }
+            return item
+        }))
+    }
+
+    const handleCompare = (value1, compareValue, value2) => {
+        switch (compareValue) {
+            case "=":
+                return value1 == value2
+
+            case ">":
+                return value1 > value2
+
+            case "<":
+                return value1 < value2
+
+            case ">=":
+                return value1 >= value2
+
+            case "<=":
+                return value1 <= value2
+            default:
+                return false
+
+        }
+    }
+
+    const handleFiledValueElement = (item, indexRow) => {
+        switch (item.value) {
+            case "PositionSide":
+                return <Select
+                    value={item.data.value}
+                    defaultValue=""
+                    size="small"
+                    style={{
+                        width: "100%"
+                    }}
+                >
+                    {
+                        positionValueList.map(item => (
+                            <MenuItem value={item.value} key={item.value}
+                                onClick={() => { handleChangeValue(item.value, indexRow) }}
+                            >{item.name}</MenuItem>
+                        ))
+                    }
+                </Select>
+            case "Candlestick":
+                return <Select
+                    value={item.data.value}
+                    defaultValue=""
+                    size="small"
+                    style={{
+                        width: "100%"
+                    }}
+                >
+                    {
+                        candlestickValueList.map(item => (
+                            <MenuItem value={item.value} key={item.value}
+                                onClick={() => { handleChangeValue(item.value, indexRow) }}
+
+                            >{item.name}</MenuItem>
+                        ))
+                    }
+                </Select>
+            case "IsActive":
+                return <Checkbox
+                    checked={item.data.value}
+                    onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
+                />
+            default:
+                return <TextField
+                    type='number'
+                    value={item.data.value}
+                    onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
+                    size="small"
+                    style={{
+                        width: "100%"
+                    }}
+                >
+                </TextField>
+        }
+    }
+
+    const handleChangeField = (itemInput, indexInput) => {
+
+        setFilterDataRowList(filterDataRowList => filterDataRowList.map((item, index) => {
+            if (index === indexInput) {
+                return itemInput
+            }
+            return item
+        }))
+    }
+
+
+    const handleChangeCompare = (compareValue, indexInput) => {
+
+        setFilterDataRowList(filterDataRowList => filterDataRowList.map((item, index) => {
+            if (index === indexInput) {
+                return {
+                    ...item,
+                    data: {
+                        ...item.data,
+                        compare: compareValue
+                    }
+                }
+            }
+            return item
+        }))
+    }
+
+    const handleFilterExpression = (compareItem) => {
+        return {
+            ...compareItem,
+            children: compareItem.children.filter((item, index) => {
+                if (index !== 0) {
+                    return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
+                }
+                return true
+            }
+            )
+        }
+    }
+
+
+    const handleFilter = () => {
+
+        filterQuantityRef.current = filterDataRowList
+        setDataCheckTree(filterDataRowList.length > 0
+            ? dataCheckTreeDefaultRef.current.map(dataItem => handleFilterExpression(dataItem)).filter(dataItem => dataItem.children.length > 1)
+            : dataCheckTreeDefaultRef.current)
+        handleCheckAllCheckBox(false)
+        onClose()
+    }
+
+    useEffect(() => {
+        const filterLength = filterQuantityRef.current.length
+        if (filterLength > 0) {
+            setFilterDataRowList(filterQuantityRef.current)
+        } else {
+            setFilterDataRowList([fieldFilterList[2]])
+        }
+    }, [filterQuantityRef]);
+
+
+    return (
+        <DialogCustom
+            open={true}
+            onClose={onClose}
+            dialogTitle='Bulk'
+            submitBtnText='Apply'
+            maxWidth='sm'
+            onSubmit={handleFilter}
+            hideCloseBtn
+        >
+            <Table
+
+                sx={{
+                    ".css-1ex1afd-MuiTableCell-root, .css-1ygcj2i-MuiTableCell-root": {
+                        border: "none",
+                        padding: "10px",
+                        fontSize: '1rem'
+                    },
+                }}>
+                <TableHead >
+                    <TableRow>
+                        <TableCell style={{ width: "16px" }}>
+                            <AddCircleOutlineIcon
+                                style={{
+                                    cursor: "pointer"
+                                }}
+                                onClick={addFilterRow}
+                            />
+                        </TableCell>
+                        <TableCell>Field</TableCell>
+                        <TableCell>Compare</TableCell>
+                        <TableCell>Value</TableCell>
+                    </TableRow>
+
+                </TableHead>
+
+                <TableBody>
+                    {
+                        filterDataRowList.map((filterRow, indexRow) => (
+                            <TableRow
+                                key={`${filterRow.value}-${indexRow}`}
+                            >
+                                <TableCell
+                                >
+                                    <DeleteOutlineIcon
+                                        style={{
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => { deleteFilterRow(indexRow) }}
+                                    />
+                                </TableCell>
+                                <TableCell
+                                >
+                                    <Select
+                                        value={filterRow.value}
+                                        size="small"
+                                        style={{
+                                            width: "100%"
+                                        }}
+                                    >
+                                        {
+                                            fieldFilterList.map((item) => (
+                                                <MenuItem
+                                                    value={item.value}
+                                                    key={item.value}
+                                                    onClick={() => { handleChangeField(item, indexRow) }}
+                                                >{item.name}</MenuItem>
+                                            ))
+                                        }
+                                    </Select>
+                                </TableCell>
+                                <TableCell >
+                                    {
+                                        <Select
+                                            size="small"
+                                            style={{
+                                                width: "100%"
+                                            }}
+                                            value={filterRow.data.compare}
+                                        >
+                                            {
+                                                filterRow.compareFilterList.map(item => (
+                                                    <MenuItem
+                                                        value={item}
+                                                        key={item}
+                                                        onClick={() => { handleChangeCompare(item, indexRow) }}
+
+                                                    >{item}</MenuItem>
+                                                ))
+                                            }
+                                        </Select>
+                                    }
+                                </TableCell>
+                                <TableCell >
+                                    {
+                                        handleFiledValueElement(filterRow, indexRow)
+                                    }
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    }
+                </TableBody>
+            </Table>
+
+        </DialogCustom>);
+}
+
+export default FilterDialog;

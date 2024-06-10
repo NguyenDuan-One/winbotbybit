@@ -1,0 +1,118 @@
+.heading {
+    display: flex;
+    align-items: center;
+    padding: 12px 0 12px 20px;
+
+
+    &Logo {
+        display: flex;
+        align-items: center;
+        width: 300px;
+        text-decoration: none;
+        cursor: pointer;
+
+        img {
+            max-height: 26px;
+            margin-right: 12px;
+        }
+
+        .text {
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--blueColor);
+            font-family: "Nunito", sans-serif;
+        }
+    }
+
+    .navbar {
+        cursor: pointer;
+    }
+
+    &Infor {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+        margin-right: 6px;
+
+
+        .avatar {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            cursor: pointer;
+
+            .name {
+                font-size: 14px;
+                font-weight: 600;
+                margin-left: 10px;
+                display: flex;
+                align-items: center;
+                text-transform: capitalize;
+
+            }
+        }
+    }
+
+}
+
+.avatarDetail {
+    min-width: 250px;
+
+    .name {
+        text-align: center;
+        padding: 16px 12px;
+
+        .main {
+            font-size: 18px;
+            margin-bottom: 3px;
+            font-weight: 600;
+            color: #444444;
+            text-transform: capitalize;
+        }
+
+        .subMain {
+            font-size: 14px;
+            opacity: .8;
+        }
+    }
+
+    .list {
+        &Item {
+            display: flex;
+            font-size: 14px;
+            padding: 10px 15px;
+            align-items: center;
+            border-top: 1px solid #0000002b;
+            transition: .3s;
+            cursor: pointer;
+
+            &:hover {
+                background-color: #f6f9ff;
+            }
+
+            &:active {
+                color: white;
+                text-decoration: none;
+                background-color: #0d6efd;
+            }
+
+            &Name {
+                margin-left: 6px;
+            }
+        }
+    }
+}
+
+@media (max-width:740px) {
+    .heading {
+
+        &Logo {
+            margin-right: 16px;
+            width: fit-content;
+
+            .text {
+                display: none;
+            }
+        }
+    }
+}

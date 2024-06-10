@@ -1,0 +1,24 @@
+const express = require('express');
+const router = express.Router();
+
+const MiddlewareController = require('../controllers/middleware');
+const BotController = require('../controllers/bot');
+
+router.get('/getAllBot', MiddlewareController.verifyToken, BotController.getAllBot);
+
+router.get('/getAllBotByUserID/:id', MiddlewareController.verifyToken, BotController.getAllBotByUserID);
+
+router.get('/getAllBotBySameGroup/:id', MiddlewareController.verifyToken, BotController.getAllBotBySameGroup);
+
+router.get('/:id', MiddlewareController.verifyToken, BotController.getByID);
+
+router.post('/', MiddlewareController.verifyToken, BotController.createBot);
+
+router.put('/:id', MiddlewareController.verifyToken, BotController.updateBot);
+
+router.delete('/:id', MiddlewareController.verifyToken, BotController.deleteBot);
+
+router.post('/deleteMultipleBot', MiddlewareController.verifyToken, BotController.deleteMultipleBot);
+
+
+module.exports = router;

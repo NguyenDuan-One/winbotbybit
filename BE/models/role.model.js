@@ -1,0 +1,15 @@
+const mongoose = require('../index');
+
+const roleSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  roleList: [String],
+});
+
+
+const Role = mongoose.model('Role', roleSchema);
+
+module.exports = Role;

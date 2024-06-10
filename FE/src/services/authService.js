@@ -1,0 +1,26 @@
+import api from "../utils/api"
+
+export const verifyLogin = async () => {
+  return await api.get("/auth")
+}
+export const signUp = async (data) => {
+  return await api.post("/auth/signup", data)
+}
+export const login = async (data) => {
+  return await api.post("/auth/login", data)
+}
+
+
+api.interceptors.response.use(
+  (response) => {
+    const { status } = response.data
+    if (status === 401 || status === 403) {
+      localStorage.removeItem("token");
+      window.location.href = "/login"
+    }
+    return response
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
