@@ -9,6 +9,7 @@ const botSchema = new mongoose.Schema({
   Version: String,
   note: String,
   telegramID: String,
+  spotSavings: Number,
   Created: Date,
   userID: {
     type: mongoose.Types.ObjectId,

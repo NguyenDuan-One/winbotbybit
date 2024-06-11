@@ -6,12 +6,19 @@ const dataCoinByBitController = require('../controllers/dataCoinByBit');
 
 router.get('/', MiddlewareController.verifyToken, dataCoinByBitController.getAllStrategies);
 router.get('/getAllSymbol', MiddlewareController.verifyToken, dataCoinByBitController.getAllSymbol);
-router.get('/syncSymbol', MiddlewareController.verifyToken, dataCoinByBitController.syncSymbol)
+router.get('/getFutureAvailable/:id', MiddlewareController.verifyToken, dataCoinByBitController.getFutureAvailable)
+router.get('/getSpotTotal/:id', MiddlewareController.verifyToken, dataCoinByBitController.getSpotTotal)
+
 router.post('/createStrategies', MiddlewareController.verifyToken, dataCoinByBitController.createStrategies)
+
 router.put('/updateStrategies/:id', MiddlewareController.verifyToken, dataCoinByBitController.updateStrategiesByID)
 router.post('/updateStrategiesMultiple', MiddlewareController.verifyToken, dataCoinByBitController.updateStrategiesMultiple)
+
 router.post('/deleteStrategiesItem', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategiesItem)
 router.delete('/deleteStrategies/:id', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategies)
 router.post('/deleteStrategiesMultiple', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategiesMultiple)
+
+router.get('/syncSymbol', MiddlewareController.verifyToken, dataCoinByBitController.syncSymbol)
+
 
 module.exports = router;

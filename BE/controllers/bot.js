@@ -1,5 +1,6 @@
 // const { ObjectId } = require('mongodb');
 const BotModel = require('../models/bot.model');
+const BotApiModel = require('../models/botApi.model');
 const UserModel = require('../models/user.model');
 
 const BotController = {
@@ -92,9 +93,12 @@ const BotController = {
         try {
             const botID = req.params.id;
 
-            const result = await BotModel.deleteOne({ _id: botID })
+            const result = BotModel.deleteOne({ _id: botID })
+            const resultApi = BotApiModel.deleteOne({ botID })
 
-            if (result.deletedCount !== 0) {
+            const resultAll = await Promise.all([result, resultApi])
+
+            if (resultAll.every(item => item.deletedCount !== 0)) {
                 res.customResponse(200, "Delete Bot Successful");
             }
             else {
@@ -110,8 +114,11 @@ const BotController = {
             const botIDList = req.body
 
             const result = await BotModel.deleteMany({ _id: { $in: botIDList } })
+            const resultApi = await BotApiModel.deleteMany({ botID: { $in: botIDList } })
 
-            if (result.deletedCount !== 0) {
+            const resultAll = await Promise.all([result, resultApi])
+
+            if (resultAll.every(item => item.deletedCount !== 0)) {
                 res.customResponse(200, "Delete Bot Successful");
             }
             else {

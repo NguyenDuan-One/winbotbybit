@@ -1,24 +1,19 @@
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 const StrategiesModel = require('../models/strategies')
 const BotApiModel = require('../models/botApi.model')
+const { v4: uuidv4 } = require('uuid');
 
 
 const dataCoinByBitController = {
+    // GET
     getSymbolFromCloud: async (userID) => {
         try {
-            const resultApi = await BotApiModel.findOne({ userID })
-
-            if (!resultApi) {
-                return []
-            }
-            const API_KEY = resultApi.ApiKey
-            const PRIVATE_KEY = resultApi.SecretKey
 
             let ListCoin1m = []
 
             let wsConfig = {
-                key: API_KEY,
-                secret: PRIVATE_KEY,
+                // key: API_KEY,
+                // secret: PRIVATE_KEY,
                 market: 'v5'
             }
             let wsInfo = {
@@ -75,38 +70,7 @@ const dataCoinByBitController = {
         }
     },
 
-    syncSymbol: async (req, res) => {
-        try {
-            const userID = req.user._id
-
-            const listSymbol = await dataCoinByBitController.getSymbolFromCloud(userID)
-
-            if (listSymbol?.length) {
-                const existingDocs = await StrategiesModel.find({ value: { $in: listSymbol } });
-
-                const existingValues = existingDocs.map(doc => doc.value);
-
-                const valuesToAdd = listSymbol.filter(value => !existingValues.includes(value));
-
-                await StrategiesModel.insertMany(valuesToAdd.map(value => ({
-                    label: value,
-                    value: value,
-                    children: []
-                })))
-                res.customResponse(200, "Sync Successful", []);
-            }
-            else {
-                res.customResponse(400, "Sync Failed", []);
-
-            }
-
-
-
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    },
-
+    // CREATE
     createStrategies: async (req, res) => {
 
         try {
@@ -149,6 +113,8 @@ const dataCoinByBitController = {
         }
 
     },
+
+    // UPDATE
     updateStrategiesByID: async (req, res) => {
         try {
 
@@ -200,6 +166,8 @@ const dataCoinByBitController = {
             res.status(500).json({ message: "Update Strategies Error" });
         }
     },
+
+    // DELETE
     deleteStrategies: async (req, res) => {
         try {
 
@@ -222,7 +190,6 @@ const dataCoinByBitController = {
             res.status(500).json({ message: "Delete Strategies Error" });
         }
     },
-
     deleteStrategiesItem: async (req, res) => {
         try {
 
@@ -265,6 +232,168 @@ const dataCoinByBitController = {
         }
     },
 
+    // OTHER
+    syncSymbol: async (req, res) => {
+        try {
+            const userID = req.user._id
+
+            const listSymbol = await dataCoinByBitController.getSymbolFromCloud(userID)
+
+            if (listSymbol?.length) {
+                const existingDocs = await StrategiesModel.find({ value: { $in: listSymbol } });
+
+                const existingValues = existingDocs.map(doc => doc.value);
+
+                const valuesToAdd = listSymbol.filter(value => !existingValues.includes(value));
+
+                await StrategiesModel.insertMany(valuesToAdd.map(value => ({
+                    label: value,
+                    value: value,
+                    children: []
+                })))
+                res.customResponse(200, "Sync Successful", []);
+            }
+            else {
+                res.customResponse(400, "Sync Failed", []);
+
+            }
+
+
+
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    transferFunds: async (acc, amount, FromWallet, ToWallet) => {
+        let myUUID = uuidv4();
+        client[acc].createInternalTransfer(
+            myUUID,
+            'USDT',
+            amount,
+            FromWallet,
+            ToWallet,
+        )
+            .then((response) => {
+                console.log(response);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    },
+
+    myScheduledFunction: async () => {
+        this.fetchWalletBalanceForClient(0);
+        this.getfund(0);
+        for (let i = 0; i < totalWalletBalance.length; i++) {
+            let fundingBalance = balances[i];// funding
+            let unifiedBalance = totalWalletBalance[i];// unidified
+
+            let totalBalance = Number(fundingBalance) + Number(unifiedBalance);
+            let targetBalance = totalBalance / 2;
+
+            if (fundingBalance > targetBalance) {
+                let amountToTransfer = fundingBalance - targetBalance;
+                amountToTransfer = amountToTransfer.toFixed(2);
+                if (amountToTransfer >= 1) {
+                    logger.info(`API ${i}: Transfer Spot => Future: ${amountToTransfer} $ `);
+                    await this.transferFunds(i, amountToTransfer, 'FUND', 'UNIFIED');
+                }
+            } else if (unifiedBalance > targetBalance) {
+                let amountToTransfer = unifiedBalance - targetBalance;
+                amountToTransfer = amountToTransfer.toFixed(2);
+                if (amountToTransfer >= 1) {
+                    logger.info(`API ${i}: Transfer Future => Spot: ${amountToTransfer} $ `);
+                    await this.transferFunds(i, amountToTransfer, 'UNIFIED', 'FUND');
+                }
+            } else {
+                console.log(`API ${i}: Balances are already equal.`);
+            }
+        }
+        await this.showbl()
+    },
+
+    getApiKeyByBot: async (botID) => {
+
+        const resultApi = await BotApiModel.findOne({ botID })
+
+        if (!resultApi) {
+            return ""
+        }
+        return {
+            API_KEY: resultApi.ApiKey,
+            SECRET_KEY: resultApi.SecretKey
+        }
+    },
+
+    getFutureAvailable: async (req, res) => {
+
+        try {
+            const botID = req.params.id
+
+            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+
+            if (resultApiKey) {
+                const client = new RestClientV5({
+                    key: resultApiKey.API_KEY,
+                    secret: resultApiKey.SECRET_KEY,
+                });
+
+                // get field totalWalletBalance
+                await client.getWalletBalance({
+                    accountType: 'UNIFIED',
+                    coin: 'USDT',
+                }).then((result) => {
+                    res.customResponse(200, "Get Future Available Successful", result);
+                })
+                    .catch((error) => {
+                        res.customResponse(error.code, error.message, "");
+                    });
+            }
+            else {
+                res.customResponse(400, "Get Future Available Failed", "");
+            }
+
+        } catch (error) {
+            res.customResponse(500, "Get Future Available Error", "");
+
+        }
+
+    },
+
+    getSpotTotal: async (req, res) => {
+
+        try {
+            const botID = req.params.id
+
+            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+
+            if (resultApiKey) {
+                const client = new RestClientV5({
+                    key: resultApiKey.API_KEY,
+                    secret: resultApiKey.SECRET_KEY,
+                });
+
+                await client.getAllCoinsBalance({
+                    accountType: 'FUND',
+                    coin: 'USDT'
+                }).then((result) => {
+                    res.customResponse(200, "Get Spot Total Successful", result);
+                })
+                    .catch((error) => {
+                        res.customResponse(error.code, error.message, "");
+                    });
+            }
+            else {
+                res.customResponse(400, "Get Spot Total Failed", "");
+            }
+
+        } catch (error) {
+            res.customResponse(500, "Get Spot Total Error", "");
+
+        }
+
+    }
 }
 
 module.exports = dataCoinByBitController 
