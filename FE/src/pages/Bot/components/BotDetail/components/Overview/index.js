@@ -248,12 +248,12 @@ function Overview() {
                 }}
             />}
 
-            {openDeleteBot && <DeleteBot
+            {/* {openDeleteBot && <DeleteBot
                 open={openDeleteBot}
                 onClose={() => {
                     setOpenDeleteBot(false)
                 }}
-            />}
+            />} */}
         </div>
     );
 }

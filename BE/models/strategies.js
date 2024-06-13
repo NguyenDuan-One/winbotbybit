@@ -14,10 +14,14 @@ const childrenStrategiesSchema = new mongoose.Schema({
   StopLose: Number,
   IsActive: Boolean,
   Remember: Boolean,
-  botID:{
-    type:mongoose.Types.ObjectId,
-    ref:'Bot',
-  }
+  botID: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Bot',
+  },
+  userID: {
+    type: mongoose.Types.ObjectId,
+    ref: 'User',
+  },
 });
 
 const strategiesSchema = new mongoose.Schema({
@@ -29,10 +33,13 @@ const strategiesSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
+  volume24h: String,
   children: [childrenStrategiesSchema]
 })
 
 
 const Strategies = mongoose.model('Strategies', strategiesSchema);
+Strategies.createIndexes(); 
+
 
 module.exports = Strategies;

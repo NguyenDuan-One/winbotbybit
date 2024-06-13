@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getAllUserByUserIDList } from "../../../../services/userService";
 import DialogCustom from "../../../../components/DialogCustom";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import styles from "./MemberDetail.module.scss"
 
 function MemberDetail({
     onClose,
@@ -55,7 +56,7 @@ function MemberDetail({
             backdrop
             maxWidth="sm"
         >
-            <Table>
+            <Table className={styles.addMember}>
                 <TableHead>
                     <TableRow>
 

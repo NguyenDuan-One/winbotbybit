@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import { MenuItem, Select, TextField, Avatar, Checkbox, CircularProgress } from '@mui/material';
+import { MenuItem, Select, TextField, Avatar, Checkbox, CircularProgress, FormLabel, FormControl } from '@mui/material';
 import AddBreadcrumbs from '../../components/BreadcrumbsCutom';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -35,6 +35,52 @@ function Strategies() {
         }
     ]
 
+    const positionSideList = [
+        {
+            name: "All",
+            value: "All",
+        },
+        {
+            name: "Long",
+            value: "Long",
+        },
+        {
+            name: "Short",
+            value: "Short",
+        },
+    ]
+
+    const candlestickList = [
+        {
+            name: "All",
+            value: "All",
+        },
+        {
+            name: "1m",
+            value: "1m",
+        },
+        {
+            name: "3m",
+            value: "3m",
+        },
+        {
+            name: "5m",
+            value: "5m",
+        },
+        {
+            name: "15m",
+            value: "15m",
+        },
+        {
+            name: "30m",
+            value: "30m",
+        },
+        {
+            name: "60m",
+            value: "60m",
+        },
+    ]
+
 
     const [openFilterDialog, setOpenFilterDialog] = useState(false);
     const [openEditTreeItemMultipleDialog, setOpenEditTreeItemMultipleDialog] = useState({
@@ -58,6 +104,13 @@ function Strategies() {
     const [dataCheckTree, setDataCheckTree] = useState([]);
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
     const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX);
+
+    // Filter
+    const [botTypeSelected, setBotTypeSelected] = useState("All");
+    const [botSelected, setBotSelected] = useState("All");
+    const [positionSideSelected, setPositionSideSelected] = useState(positionSideList[0].value);
+    const [candlestickSelected, setCandlestickSelected] = useState(candlestickList[0].value);
+
     const filterQuantityRef = useRef([])
     const searchRef = useRef("")
 
@@ -89,13 +142,14 @@ function Strategies() {
                         value: item?._id,
                     }
                 ))
-                setBotList([
+                const newMain = [
                     {
                         name: "All",
                         value: "All"
                     },
                     ...newData
-                ])
+                ]
+                setBotList(newMain)
             })
             .catch(error => {
             }
@@ -113,10 +167,7 @@ function Strategies() {
     }
 
     const handleGetAllStrategies = async () => {
-        dataCheckTreeSelectedRef.current = []
-        setDataTreeViewIndex(SCROLL_INDEX)
-
-        handleCheckAllCheckBox(false)
+        resetAfterSuccess(true)
         try {
             const res = await getAllStrategies()
             const { status, message, data: resData } = res.data
@@ -163,10 +214,9 @@ function Strategies() {
                 message: "Get All Strategies Error",
             }))
         }
-
     }
 
- 
+
     const handleSyncSymbol = async () => {
         if (!loadingUploadSymbol) {
             try {
@@ -178,7 +228,7 @@ function Strategies() {
                     status: status,
                     message: message,
                 }))
-                status === 200 && handleGetAllStrategies()
+                // status === 200 && handleGetAllStrategies()
 
                 setLoadingUploadSymbol(false)
             }
@@ -192,20 +242,46 @@ function Strategies() {
         }
     }
 
-    const handleFilterWithBot = e => {
-        setDataTreeViewIndex(SCROLL_INDEX)
-        searchRef.current = ""
-        handleCheckAllCheckBox(false)
+    const handleFilterAll = (filterInput = {}) => {
 
-        const botID = e.target.value
+        const filterListDefault = [
+            // {
+            //     name: "botType",
+            //     value: botTypeSelected
+            // },
+            {
+                name: "botID",
+                value: botSelected
+            },
+            {
+                name: "PositionSide",
+                value: positionSideSelected
+            },
+            {
+                name: "Candlestick",
+                value: candlestickSelected
+            }
+        ]
 
-        const listData = botID !== "All" ? dataCheckTreeDefaultRef.current.map(data => {
+        const filterList = filterListDefault.map(filterItem => {
+            if (filterItem.name === filterInput.name) {
+                return filterInput
+            }
+            return filterItem
+        }).filter(item => item.value !== "All")
+        const listData = filterList.length > 0 ? dataCheckTreeDefaultRef.current.map(data => {
             return {
                 ...data,
-                children: data?.children?.filter(item => item.botID?._id === botID)
+                children: data?.children?.filter(item => filterList.every(filterItem => {
+                    if (filterItem.name === "botID") {
+                        return item[filterItem.name]._id === filterItem.value
+                    }
+                    return item[filterItem.name] === filterItem.value
+                }))
             }
         }).filter(data => data?.children?.length > 0) : dataCheckTreeDefaultRef.current
 
+        resetAfterSuccess()
         setDataCheckTree(listData)
     }
 
@@ -217,7 +293,6 @@ function Strategies() {
         const scrollHeight = document.documentElement.scrollHeight;
         const windowHeight = window.innerHeight;
         const scrollPercentage = (scrollY / (scrollHeight - windowHeight)) * 100;
-        console.log(scrollPercentage);
 
         if (dataTreeViewIndexTemp <= dataCheckTree.length) {
             scrollPercentage >= 80 && setDataTreeViewIndex(dataTreeViewIndex + SCROLL_INDEX)
@@ -228,12 +303,26 @@ function Strategies() {
         }
     }
 
+    const resetAfterSuccess = (setFilterBox = false, filter = false) => {
+        dataCheckTreeSelectedRef.current = []
+        setDataTreeViewIndex(SCROLL_INDEX)
+        searchRef.current = ""
+        handleCheckAllCheckBox(false)
+        openCreateStrategy.dataChange = false
+        openEditTreeItemMultipleDialog.dataChange = false
+        !filter && (filterQuantityRef.current = [])
+        if (setFilterBox) {
+            setBotSelected('All')
+            setBotTypeSelected("All")
+            setPositionSideSelected(positionSideList[0].value)
+            setCandlestickSelected(candlestickList[0].value)
+        }
+    }
+
     useEffect(() => {
 
         handleGetAllBotByUserID()
-
         handleGetAllStrategies()
-
 
     }, []);
 
@@ -246,6 +335,7 @@ function Strategies() {
 
     useEffect(() => {
         dataCheckTreeRef.current = dataCheckTree
+        resetAfterSuccess(filterQuantityRef.current.length ? true : false, true)
     }, [filterQuantityRef.current]);
 
     useEffect(() => {
@@ -260,9 +350,9 @@ function Strategies() {
                 style={{
                     display: "flex",
                     flexWrap: "wrap-reverse",
+                    alignItems: "flex-start",
                     borderBottom: "1px solid var(--borderColor)",
                     paddingBottom: "24px",
-                    paddingTop: "12px",
                 }}>
 
                 <div className={styles.strategiesFilter}>
@@ -271,19 +361,19 @@ function Strategies() {
                         size="small"
                         placeholder="Search"
                         onChange={(e) => {
-                            setDataTreeViewIndex(SCROLL_INDEX)
+                            resetAfterSuccess(true)
                             setDataCheckTree(() => {
                                 const key = e.target.value
                                 searchRef.current = key
                                 let listFilter = filterQuantityRef.current.length ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
                                 if (key) {
-                                    const newList = listFilter.filter(item => item.label.toUpperCase().startsWith(key.toUpperCase().trim()))
+                                    const newList = listFilter.filter(item => item.label.toUpperCase().includes(key.toUpperCase().trim()))
                                     return newList.length > 0 ? newList : []
                                 }
                                 return listFilter
                             })
-                            handleCheckAllCheckBox(false)
                         }}
+                        className={styles.strategiesFilterInput}
                     />
                     <FilterListIcon
                         style={{
@@ -300,29 +390,87 @@ function Strategies() {
                 </div>
 
                 <div className={styles.strategiesHeader}>
-                    <Select
-                        className={styles.strategiesHeaderItem}
-                        defaultValue={botTypeList[0].value}
-                        size="small"
-                    >
-                        {
-                            botTypeList.map(item => (
-                                <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                            ))
-                        }
-                    </Select>
-                    <Select
-                        className={styles.strategiesHeaderItem}
-                        defaultValue={botList[0]?.value}
-                        size="small"
-                        onChange={handleFilterWithBot}
-                    >
-                        {
-                            botList.map(item => (
-                                <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                            ))
-                        }
-                    </Select>
+                    <FormControl className={styles.strategiesHeaderItem}>
+                        <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
+                        <Select
+                            value={botTypeSelected}
+                            size="small"
+                        >
+                            {
+                                botTypeList.map(item => (
+                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+
+                    <FormControl className={styles.strategiesHeaderItem}>
+                        <FormLabel className={styles.formLabel}>Bot</FormLabel>
+                        <Select
+                            value={botSelected}
+                            size="small"
+                            onChange={e => {
+                                const value = e.target.value;
+                                setBotSelected(value);
+                                handleFilterAll({
+                                    name: "botID",
+                                    value
+                                })
+                            }}
+                        >
+                            {
+                                botList.map(item => (
+                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+
+                    <FormControl className={styles.strategiesHeaderItem}>
+                        <FormLabel className={styles.formLabel}>Position</FormLabel>
+                        <Select
+                            value={positionSideSelected}
+                            size="small"
+                            onChange={e => {
+                                const value = e.target.value;
+                                setPositionSideSelected(value);
+
+                                handleFilterAll({
+                                    name: "PositionSide",
+                                    value
+                                })
+                            }}
+                        >
+                            {
+                                positionSideList.map(item => (
+                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+
+                    <FormControl className={styles.strategiesHeaderItem}>
+                        <FormLabel className={styles.formLabel}>Candle</FormLabel>
+                        <Select
+                            value={candlestickSelected}
+                            size="small"
+                            onChange={e => {
+                                const value = e.target.value;
+                                setCandlestickSelected(value);
+                                handleFilterAll({
+                                    name: "Candlestick",
+                                    value
+                                })
+                            }}
+                        >
+                            {
+                                candlestickList.map(item => (
+                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+
                 </div>
 
 
@@ -472,8 +620,8 @@ function Strategies() {
 
                 <EditMulTreeItem
                     // setDataCheckTree={setDataCheckTreeWithAll}
-                    dataCheckTreeSelected={dataCheckTreeSelectedRef.current}
-                    botList={botList.slice(1)}
+                    dataCheckTreeSelected={[...new Set(dataCheckTreeSelectedRef.current)]}
+                    botListInput={botList.slice(1)}
                     onClose={(data) => {
                         setOpenEditTreeItemMultipleDialog(data)
                     }}

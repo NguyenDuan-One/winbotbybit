@@ -207,7 +207,7 @@ function TreeParent({
                     }}
                 />
                 <p className={styles.label}>
-                    {treeData.label}
+                    {treeData.label.split("USDT")[0]}
                     <span style={{
                         fontWeight: "600",
                         marginLeft: "3px"
@@ -223,7 +223,12 @@ function TreeParent({
                                     <TableCell className={styles.tableHeadCell} style={{
                                         minWidth: "fit-content"
                                     }}></TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Action</TableCell>
+                                    <TableCell className={styles.tableHeadCell} style={
+                                        {
+                                            padding: "3px 10px !important",
+                                            textAlign: "left"
+                                        }
+                                    }>Action</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Bot</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Position</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Amount</TableCell>

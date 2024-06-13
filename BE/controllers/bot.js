@@ -2,6 +2,7 @@
 const BotModel = require('../models/bot.model');
 const BotApiModel = require('../models/botApi.model');
 const UserModel = require('../models/user.model');
+const StrategiesModel = require('../models/strategies')
 
 const BotController = {
     getAllBot: async (req, res) => {
@@ -95,6 +96,7 @@ const BotController = {
 
             const result = BotModel.deleteOne({ _id: botID })
             const resultApi = BotApiModel.deleteOne({ botID })
+            // const resultStrategies = StrategiesModel.deleteOne({ botID })
 
             const resultAll = await Promise.all([result, resultApi])
 
@@ -115,10 +117,14 @@ const BotController = {
 
             const result = await BotModel.deleteMany({ _id: { $in: botIDList } })
             const resultApi = await BotApiModel.deleteMany({ botID: { $in: botIDList } })
+            const resultStrategies = await StrategiesModel.updateMany(
+                { "children.botID": { $in: botIDList } }, 
+                { $pull: { children: { botID: { $in: botIDList } } } }
+            );
 
-            const resultAll = await Promise.all([result, resultApi])
+            const resultAll = await Promise.all([result, resultApi, resultStrategies])
 
-            if (resultAll.every(item => item.deletedCount !== 0)) {
+            if (resultAll.some(item => item.deletedCount !== 0)) {
                 res.customResponse(200, "Delete Bot Successful");
             }
             else {

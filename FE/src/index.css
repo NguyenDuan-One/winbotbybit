@@ -19,7 +19,7 @@ code {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  user-select: none;
+  /* user-select: none; */
   
   --bgColor: #f6f9ff;
   --blueColor: #012970;
@@ -57,7 +57,7 @@ input[type=number]::-webkit-outer-spin-button {
   padding-bottom: 6px !important;
 }
 
-.rs-check-tree-group {
+/* .rs-check-tree-group {
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -66,10 +66,10 @@ input[type=number]::-webkit-outer-spin-button {
   overflow: hidden !important;
   max-height: fit-content !important;
   height: auto !important;
-}
+} */
 
 @media (max-width: 740px) {
   * {
-    font-size: 15px;
+    font-size: 17px;
   }
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getAllUserByUserIDList, getAllUserLowerGroup, getAllUserWithoutGroup } from "../../../../services/userService";
 import DialogCustom from "../../../../components/DialogCustom";
 import { Checkbox, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import styles from "./AddMember.module.scss"
 
 function AddMember({
     onClose,
@@ -59,10 +60,11 @@ function AddMember({
             onSubmit={closeDialog}
             maxWidth="sm"
         >
-            <Table>
+
+            <Table className={styles.addMember}>
                 <TableHead>
                     <TableRow>
-                        <TableCell style={{ width: 0 }}>
+                        <TableCell style={{ padding: 0, width: "60px" }}>
                             <Checkbox
                                 checked={userList.length !== 0 && dataTableSelected.length === userList.length}
                                 onClick={(e) => {
@@ -101,7 +103,7 @@ function AddMember({
                         ?
                         userList.map((user, index) => (
                             <TableRow key={user._id}>
-                                <TableCell>
+                                <TableCell style={{ padding: 0, }}>
                                     <Checkbox
                                         checked={dataTableSelected.findIndex(item => item.userID === user._id) > -1}
                                         onClick={(e) => {

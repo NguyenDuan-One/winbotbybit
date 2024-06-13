@@ -2,14 +2,12 @@
     
 
     &TableContainer {
-        border-top: 1px solid var(--borderColor);
-        margin-top: 16px;
+       
 
         &Title {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-top: 16px;
             .filterList {
                 display: flex;
                 flex-wrap: wrap;

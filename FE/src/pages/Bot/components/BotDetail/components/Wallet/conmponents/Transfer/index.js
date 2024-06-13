@@ -3,21 +3,27 @@ import styles from "./Transfer.module.scss"
 import { useForm } from "react-hook-form";
 import { memo } from "react";
 import DialogCustom from "../../../../../../../../components/DialogCustom";
+import { balanceWallet } from "../../../../../../../../services/dataCoinByBitService";
+import { useDispatch } from "react-redux";
+import { addMessageToast } from "../../../../../../../../store/slices/Toast";
+import { formatNumber } from "../../../../../../../../functions";
 
 const botTypeList = [
     {
-        name: "Forbid",
-        value: "Forbid"
+        name: "Spot->Future",
+        value: false
     },
     {
-        name: "Frozen",
-        value: "Frozen"
+        name: "Future->Spot",
+        value: true
     }
 ]
 
 function Transfer({
     open,
-    onClose
+    botID,
+    onClose,
+    limitMaxSpotAvailable
 }, ref) {
 
     const {
@@ -26,18 +32,55 @@ function Transfer({
         reset,
         formState: { errors }
     } = useForm();
-    const handleSubmitTransfer = data => {
+
+    const dispatch = useDispatch()
+
+    const handleSubmitTransfer = async data => {
+        try {
+
+            const res = await balanceWallet({
+                amount: +data.TransferAmount,
+                futureLarger: data.TransferFrom === true ? true : false,
+                botID
+            })
+            const { status, message, data: resData } = res.data
+
+            if (status === 200) {
+                dispatch(addMessageToast({
+                    status: 200,
+                    message: "Transfer Successful",
+                }))
+                status === 200 && closeDialog(true)
+            }
+
+            else {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Transfer Error",
+                }))
+            }
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Transfer Error",
+            }))
+        }
     }
 
-    const closeDialog = ()=>{
-        onClose()
+    const closeDialog = (dataChange = false) => {
+        onClose({
+            isOpen: false,
+            dataChange
+        })
         reset()
     }
 
     return (
         <DialogCustom
             open={open}
-            onClose={closeDialog}
+            onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitTransfer)}
             dialogTitle="Transfer"
         >
@@ -60,11 +103,12 @@ function Transfer({
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>TransferAmount</FormLabel>
                     <TextField
-                        {...register("TransferAmount", { required: true })}
-                         
+                        {...register("TransferAmount", { required: true, max: limitMaxSpotAvailable })}
+                        type="number"
                         size="small"
                     />
                     {errors.TransferAmount?.type === 'required' && <p className="formControlErrorLabel">The TransferAmount field is required.</p>}
+                    {errors.TransferAmount?.type === 'max' && <p className="formControlErrorLabel">The TransferAmount field is not bigger {formatNumber(limitMaxSpotAvailable)}.</p>}
 
                 </FormControl>
 

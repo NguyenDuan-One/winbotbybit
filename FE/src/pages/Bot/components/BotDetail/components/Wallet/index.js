@@ -9,11 +9,14 @@ import { getBotByID, updateBot } from '../../../../../../services/botService';
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../../../../../store/slices/Toast';
 import { formatNumber } from '../../../../../../functions';
-import { getFutureAvailable, getSpotTotal } from '../../../../../../services/dataCoinByBitService';
+import { balanceWallet, getFutureAvailable, getSpotTotal } from '../../../../../../services/dataCoinByBitService';
 import CurrencyFormat from 'react-currency-format';
 
 function Wallet() {
-    const [openTransfer, setOpenTransfer] = useState(false);
+    const [openTransfer, setOpenTransfer] = useState({
+        isOpen: false,
+        dataChange: false,
+    });
     const [spotSaving, setSpotSaving] = useState(0);
     const [spotTotal, setSpotTotal] = useState(0);
     const [futureAvailable, setFutureAvailable] = useState(0);
@@ -38,7 +41,7 @@ function Wallet() {
             const { status, data } = res.data
 
             if (status === 200) {
-                const value = +data.result.list[0].totalWalletBalance
+                const value = +data.result?.list?.[0]?.totalWalletBalance || 0
                 setFutureAvailable(value)
                 futureAvailableDefault.current = value
             }
@@ -53,12 +56,12 @@ function Wallet() {
 
     const handleGetSpotTotal = async () => {
 
+        // const newSpotTotal = 50000
         try {
             const res = await getSpotTotal(botID)
             const { status, data } = res.data
 
-            const newSpotTotal = 50000
-            // const newSpotTotal = +data.result.balance[0].walletBalance
+            const newSpotTotal = +data.result?.balance?.[0]?.walletBalance || 0
             spotAvailable.current = {
                 dataBalance: 0,
                 dataFirst: {
@@ -77,6 +80,7 @@ function Wallet() {
                 message: "Get Spot Total Error",
             }))
         }
+        // setSpotTotal(newSpotTotal)
     }
 
     const handleGetBotSaving = () => {
@@ -94,7 +98,7 @@ function Wallet() {
                         }
                     }
 
-                    setSpotSaving(newSpotSavings)
+                    setSpotSaving(newSpotSavings || 0)
                 }
             }
 
@@ -107,56 +111,76 @@ function Wallet() {
             })
     }
 
-    const handleChangeSpotSaving = async data => {
-
-        try {
-            const res = await updateBot({
-                id: botID,
-                data
-            })
-            const { status, message } = res.data
-
-            dispatch(addMessageToast({
-                status: status,
-                message: message,
-            }))
-
-            if (status === 200) {
-                setSpotSaving(data?.spotSavings)
-            }
-
-        } catch (error) {
-            dispatch(addMessageToast({
-                status: 500,
-                message: "Update Spot Saving Error",
-            }))
-        }
-    }
-
     // Cân ví
     const handleWalletBalance = async () => {
-        await handleChangeSpotSaving({
-            spotSavings: spotSaving
-        })
+
         const newSpotAvailable = spotTotal - spotSaving
         const average = (newSpotAvailable + futureAvailableDefault.current) / 2
-        console.log(spotSaving);
-        console.log(spotTotal);
-        console.log(futureAvailableDefault.current);
-        console.log(average);
-        setFutureAvailable(average)
-        spotAvailable.current = {
-            ...spotAvailable.current,
-            dataBalance: average,
+
+        if (Math.abs(futureAvailableDefault.current - newSpotAvailable) >= 1) {
+            try {
+                const saveSpotSaving = updateBot({
+                    id: botID,
+                    data: {
+                        spotSavings: spotSaving
+                    }
+                })
+                setFutureAvailable(average)
+                spotAvailable.current = {
+                    ...spotAvailable.current,
+                    dataBalance: average,
+                }
+
+                const balance = balanceWallet({
+                    amount: Math.abs(newSpotAvailable - average),
+                    futureLarger: futureAvailableDefault.current - newSpotAvailable > 0,
+                    botID
+                })
+
+                const res = await Promise.all([saveSpotSaving, balance])
+
+                if (res.every(item => item.data.status === 200)) {
+                    dispatch(addMessageToast({
+                        status: 200,
+                        message: "Balance Wallet Successful",
+                    }))
+                }
+                else {
+                    dispatch(addMessageToast({
+                        status: 400,
+                        message: "Balance Wallet Failed",
+                    }))
+                }
+                getAll()
+
+            } catch (error) {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Balance Wallet Error",
+                }))
+            }
+        }
+        else {
+            dispatch(addMessageToast({
+                status: 400,
+                message: "Balance Wallet Failed",
+            }))
         }
     }
 
-
-    useEffect(() => {
+    const getAll = () => {
         handleGetFutureAvailable()
         handleGetSpotTotal()
         handleGetBotSaving()
+    }
+
+    useEffect(() => {
+        getAll()
     }, []);
+
+    useEffect(() => {
+        openTransfer.dataChange && getAll()
+    }, [openTransfer]);
 
     return (
         <div className={styles.overview}>
@@ -177,14 +201,22 @@ function Wallet() {
                         <p className={styles.label}>Spot Savings</p>
 
                         <CurrencyFormat
-                            value={+spotSaving <= spotTotal ? spotSaving : spotTotal}
+                            value={spotSaving}
                             thousandSeparator={true}
+                            isAllowed={({ floatValue }) => {
+                                if (floatValue) {
+
+                                    return formatNumber(floatValue) <= formatNumber(spotTotal) && floatValue > 0
+                                }
+                                return true
+                            }}
                             prefix={'$'}
                             style={{
                                 padding: "6px",
                                 borderRadius: "6px",
                                 outline: "none",
                                 border: "1px solid #cbcbcb",
+                                overflow: "hidden"
                             }}
                             onValueChange={values => {
                                 const { value } = values;
@@ -225,7 +257,10 @@ function Wallet() {
                     variant="contained"
                     startIcon={<AccountBalanceWalletIcon />}
                     onClick={() => {
-                        setOpenTransfer(true)
+                        setOpenTransfer({
+                            isOpen: true,
+                            dataChange: true,
+                        })
                     }}
                 >
                     Transfer
@@ -243,11 +278,13 @@ function Wallet() {
             </div>
 
 
-            {openTransfer && <Transfer
+            {openTransfer.isOpen && <Transfer
                 open={openTransfer}
-                onClose={() => {
-                    setOpenTransfer(false)
+                botID={botID}
+                onClose={(data) => {
+                    setOpenTransfer(data)
                 }}
+                limitMaxSpotAvailable={spotTotal - spotSaving}
             />}
             {/* 
             {openSavings && <Savings

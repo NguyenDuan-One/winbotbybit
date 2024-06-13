@@ -19,6 +19,10 @@ const routeList = [
         element: <MainLayout />,
         children: [
             {
+                path: "",
+                element: <p>Dashboard</p>,
+            },
+            {
                 path: "Users",
                 element: <User />,
             },

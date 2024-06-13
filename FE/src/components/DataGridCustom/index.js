@@ -33,6 +33,12 @@ function DataGridCustom({
                 ".MuiDataGrid-cell:focus": {
                     outline: "none"
                 },
+                ".MuiDataGrid-columnHeader--alignRight ,.MuiDataGrid-columnHeader--alignRight,.MuiDataGrid-columnHeaderTitleContainer,.MuiDataGrid-columnHeaderDraggableContainer": {
+                    flexDirection: "row !important"
+                },
+                ".MuiDataGrid-cell--textRight": {
+                    textAlign: "left"
+                }
                 // "& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-columnHeaderTitleContainer": {
                 //     display: "none"
                 // }

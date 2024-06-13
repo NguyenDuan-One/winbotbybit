@@ -29,7 +29,6 @@ function LoginPage() {
         try {
             const res = await login(data);
             const { message, data: resData, status } = res.data
-            console.log(resData);
             dispatch(addMessageToast({
                 status: status,
                 message: message,

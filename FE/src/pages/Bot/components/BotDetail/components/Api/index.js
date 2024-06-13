@@ -8,10 +8,35 @@ import { getBotApiByBotID } from "../../../../../../services/botApiService";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../../../store/slices/Toast";
 import { useParams } from "react-router-dom";
+import DataGridCustom from "../../../../../../components/DataGridCustom";
 
 function Api() {
 
-
+    const tableColumns = [
+        {
+            field: 'stt',
+            headerName: '#',
+            maxWidth: 50,
+            type: "actions",
+            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+        },
+        {
+            field: 'ApiKey',
+            headerName: 'ApiKey',
+            flex: window.innerWidth <= 740 ? undefined : 1,
+            renderCell:()=>{
+                return "ByBit"
+            }
+        },
+        {
+            field: 'SecretKey',
+            headerName: 'SecretKey',
+            flex: window.innerWidth <= 740 ? undefined : 1,
+            renderCell:()=>{
+                return "***** ***** *****"
+            }
+        },
+    ]
     const [openAddApi, setOpenAddApi] = useState({
         isOpen: false,
         dataChange: ""
@@ -20,7 +45,7 @@ function Api() {
         isOpen: false,
         dataChange: ""
     });
-    const [apiExist, setApiExist] = useState(false);
+    const [apiData, setApiData] = useState([]);
 
     const dispatch = useDispatch()
 
@@ -32,7 +57,7 @@ function Api() {
             const res = await getBotApiByBotID(botID)
             const { status, message, data: resData } = res.data
             if (status === 200) {
-                setApiExist(resData[0])
+                setApiData(resData.map(item => ({ ...item, id: item._id })))
             }
             else {
                 dispatch(addMessageToast({
@@ -60,13 +85,12 @@ function Api() {
         <div className={styles.api}>
             <div className={styles.apiHeader}>
                 {
-                    apiExist
+                    apiData.length > 0
                         ?
                         <Button
                             size="small"
                             variant="contained"
                             color="info"
-                            startIcon={<AddIcon />}
                             onClick={() => {
                                 setOpenEditApi({
                                     isOpen: true,
@@ -92,6 +116,11 @@ function Api() {
                         </Button>
                 }
             </div>
+            <DataGridCustom
+                tableRows={apiData}
+                tableColumns={tableColumns}
+                checkboxSelection={false}
+            />
 
             {openAddApi.isOpen && <AddApi
                 open={openAddApi}
@@ -102,7 +131,7 @@ function Api() {
 
             {openEditApi.isOpen && <EditApi
                 open={openEditApi}
-                botApiData={apiExist}
+                botApiData={apiData[0]}
                 onClose={(data) => {
                     setOpenEditApi(data)
                 }}

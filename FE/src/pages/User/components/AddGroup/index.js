@@ -21,6 +21,7 @@ function AddGroup({
         const userData = JSON.parse(localStorage.getItem("user"))
 
         const roleName = userData.roleName
+
         if (roleName === "SuperAdmin") {
             ROLE_LIST.push(
                 "Admin",
@@ -185,7 +186,7 @@ function AddGroup({
                             <Select
                                 size="small"
                                 className={styles.select}
-                                defaultValue={groupSelected}
+                                defaultValue={groupSelected !== "All" ? groupSelected : ""}
                                 {...register("groupID")}
                             >
 

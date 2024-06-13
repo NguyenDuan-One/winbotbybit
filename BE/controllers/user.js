@@ -17,8 +17,15 @@ const UserController = {
 
             const savedBot = await newUser.save();
 
-        } catch (error) {
+            if (savedBot) {
+                console.log("\nAdd Account SuperAdmin Successful");
+            }
+            else {
+                console.log("\nAdd Account SuperAdmin Failed");
+            }
 
+        } catch (error) {
+            console.error("\nERROR: ", error.message);
         }
     },
     changePassword: async (req, res) => {
@@ -138,6 +145,9 @@ const UserController = {
         try {
             const { password, roleName, ...data } = req.body;
 
+            if (roleName == "SuperAdmin") {
+                throw Error()
+            }
             const hashedPassword = await bcrypt.hash(password, 10);
             // Tạo người dùng mới
             const newUser = new UserModel({
@@ -186,6 +196,9 @@ const UserController = {
             const userID = req.params.id;
             const { newData } = req.body;
 
+            if (newData?.roleName == "SuperAdmin") {
+                throw Error()
+            }
             if (newData.password) {
                 const hashedPassword = await bcrypt.hash(newData.password, 10);
                 newData.password = hashedPassword

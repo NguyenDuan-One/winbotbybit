@@ -74,7 +74,7 @@ function CreateStrategy({
     const [botList, setBotList] = useState([])
 
     const [symbolGroupDataList, setSymbolGroupDataList] = useState({
-        label: "symbolList",
+        label: "Symbol",
         list: []
     });
 
@@ -96,12 +96,12 @@ function CreateStrategy({
             const res = await getAllSymbol()
             const { status, message, data: symbolListDataRes } = res.data
 
-            const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
+            const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
 
             symbolListRef.current = newSymbolList
 
             setSymbolGroupDataList({
-                label: "symbolList",
+                label: "Symbol",
                 list: newSymbolList
             })
         }
@@ -153,6 +153,7 @@ function CreateStrategy({
         })
         reset()
     }
+
     useEffect(() => {
         handleGetSymbolList()
     }, []);
@@ -162,7 +163,7 @@ function CreateStrategy({
         <DialogCustom
             dialogTitle="Create Strategy"
             open={true}
-            onClose={()=>{closeDialog()}}
+            onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitCreate)}
             maxWidth="sm"
         >
@@ -211,7 +212,7 @@ function CreateStrategy({
                                 )}
                                 <li {...props}>
                                     <Checkbox
-                                        checked={selected || botList.findIndex(item=>item.value === option.value) > -1}
+                                        checked={selected || botList.findIndex(item => item.value === option.value) > -1}
                                     />
                                     {option.name}
                                 </li>
@@ -231,14 +232,14 @@ function CreateStrategy({
 
                 <FormControl className={styles.formControl} >
                     <RadioGroup
-                        defaultValue="symbolList"
+                        defaultValue="Symbol"
                         onChange={handleChangeRatio}
                         style={{
                             display: "flex",
                             flexDirection: "row"
                         }}
                     >
-                        <FormControlLabel value="symbolList" control={<Radio />} label="Symbol" />
+                        <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
                         <FormControlLabel value="Group" control={<Radio />} label="Group" />
                     </RadioGroup>
                 </FormControl>
@@ -285,7 +286,7 @@ function CreateStrategy({
                                 )}
                                 <li {...props}>
                                     <Checkbox
-                                        checked={selected || symbolGroupData.findIndex(item=>item.value === option.value) > -1}
+                                        checked={selected || symbolGroupData.findIndex(item => item.value === option.value) > -1}
                                     />
                                     {option.name}
                                 </li>
@@ -307,13 +308,12 @@ function CreateStrategy({
                         className={clsx(styles.formControl, styles.formMainDataItem)}
                     >
                         <TextField
-                            type='number'
                             select
                             label="Position side"
                             variant="outlined"
                             defaultValue={positionSideList[0].value}
                             size="medium"
-                            {...register("PositionSide", { required: true })}
+                            {...register("PositionSide", { required: true,  })}
                         >
                             {
 
@@ -325,12 +325,11 @@ function CreateStrategy({
                     </FormControl>
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
-                            type='number'
                             select
                             label="Candlestick"
                             defaultValue={candlestickList[0].value}
                             size="medium"
-                            {...register("Candlestick", { required: true })}
+                            {...register("Candlestick", { required: true, })}
                         >
                             {
 
@@ -348,7 +347,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={4}
                             size="medium"
-                            {...register("OrderChange", { required: true })}
+                            {...register("OrderChange", { required: true, min: 0 })}
                         />
                         {errors.OrderChange?.type === 'required' && <p className="formControlErrorLabel">The Order Change field is required.</p>}
 
@@ -361,7 +360,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={80}
                             size="medium"
-                            {...register("ExtendedOCPercent", { required: true })}
+                            {...register("ExtendedOCPercent", { required: true, min: 0 })}
                         />
                         {errors.ExtendedOCPercent?.type === 'required' && <p className="formControlErrorLabel">The Extended OC percent field is required.</p>}
 
@@ -374,7 +373,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={50}
                             size="medium"
-                            {...register("TakeProfit", { required: true })}
+                            {...register("TakeProfit", { required: true, min: 0 })}
                         />
                         {errors.TakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Take profit field is required.</p>}
 
@@ -387,7 +386,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={45}
                             size="medium"
-                            {...register("ReduceTakeProfit", { required: true })}
+                            {...register("ReduceTakeProfit", { required: true, min: 0 })}
                         />
                         {errors.ReduceTakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Reduce take profit field is required.</p>}
 
@@ -400,7 +399,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={100}
                             size="medium"
-                            {...register("Amount", { required: true })}
+                            {...register("Amount", { required: true, min: 0 })}
                         />
                         {errors.Amount?.type === 'required' && <p className="formControlErrorLabel">The Amount field is required.</p>}
 
@@ -413,7 +412,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={85}
                             size="medium"
-                            {...register("Ignore", { required: true })}
+                            {...register("Ignore", { required: true, min: 0 })}
                         />
                         {errors.Ignore?.type === 'required' && <p className="formControlErrorLabel">The Ignore field is required.</p>}
 
@@ -425,9 +424,9 @@ function CreateStrategy({
                             label="Entry Trailing"
                             variant="outlined"
                             size="medium"
-                            {...register("EntryTrailing", { required: true })}
+                            {...register("EntryTrailing", { min: 0 })}
                         />
-                        {errors.EntryTrailing?.type === 'required' && <p className="formControlErrorLabel">The Entry Trailing field is required.</p>}
+                        {/* {errors.EntryTrailing?.type === 'required' && <p className="formControlErrorLabel">The Entry Trailing field is required.</p>} */}
 
                     </FormControl>
 
@@ -438,7 +437,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={50}
                             size="medium"
-                            {...register("StopLose", { required: true })}
+                            {...register("StopLose", { required: true, min: 0 })}
                         />
                         {errors.StopLose?.type === 'required' && <p className="formControlErrorLabel">The Stop Lose field is required.</p>}
 

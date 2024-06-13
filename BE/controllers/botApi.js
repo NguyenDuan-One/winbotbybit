@@ -6,6 +6,7 @@ const BotApiController = {
         try {
             const botID = req.params.id;
             const data = await BotApiModel.find({ botID }).select("_id, UTA")
+            // const data = await BotApiModel.find({ botID })
             res.customResponse(res.statusCode, "Get Api Successful", data);
 
         } catch (err) {

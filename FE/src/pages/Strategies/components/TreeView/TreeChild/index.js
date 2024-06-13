@@ -173,10 +173,11 @@ function TreeChild({
                     <div style={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "flex-start",
                         color: "#3277d5",
+                        margin: "0 -16px"
                     }}>
                         <Switch
+                        size='small'
                             checked={treeNode.IsActive}
                             onChange={(e) => { handleActiveStrategy(treeNode._id, treeData._id, { ...treeNode, IsActive: e.target.checked }) }}
                         />

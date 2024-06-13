@@ -208,7 +208,6 @@ function Bot() {
     }
 
     const handleChangeStatus = (value) => {
-        console.log(botListDefaultRef.current);
         setStatusBotSelected(value)
         if (value !== "All") {
             setBotList(botListDefaultRef.current.filter(bot => bot.Status === value))
@@ -231,7 +230,7 @@ function Bot() {
                 message: message,
             }))
             if (status === 200) {
-                setBotList(botList => botList.map(bot => {
+                const newData = botList.map(bot => {
                     if (botID === bot._id) {
                         return {
                             ...bot,
@@ -240,7 +239,9 @@ function Bot() {
                         }
                     }
                     return bot
-                }))
+                })
+                setBotList(newData)
+                botListDefaultRef.current = newData
             }
         }
         catch (err) {

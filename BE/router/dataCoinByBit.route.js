@@ -4,8 +4,9 @@ const router = express.Router();
 const MiddlewareController = require('../controllers/middleware');
 const dataCoinByBitController = require('../controllers/dataCoinByBit');
 
-router.get('/', MiddlewareController.verifyToken, dataCoinByBitController.getAllStrategies);
+router.get('/getAllStrategies', MiddlewareController.verifyToken, dataCoinByBitController.getAllStrategies);
 router.get('/getAllSymbol', MiddlewareController.verifyToken, dataCoinByBitController.getAllSymbol);
+router.get('/getAllSymbolWith24', MiddlewareController.verifyToken, dataCoinByBitController.getAllSymbolWith24);
 router.get('/getFutureAvailable/:id', MiddlewareController.verifyToken, dataCoinByBitController.getFutureAvailable)
 router.get('/getSpotTotal/:id', MiddlewareController.verifyToken, dataCoinByBitController.getSpotTotal)
 
@@ -19,6 +20,9 @@ router.delete('/deleteStrategies/:id', MiddlewareController.verifyToken, dataCoi
 router.post('/deleteStrategiesMultiple', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategiesMultiple)
 
 router.get('/syncSymbol', MiddlewareController.verifyToken, dataCoinByBitController.syncSymbol)
+router.post('/copyMultipleStrategiesToSymbol', MiddlewareController.verifyToken, dataCoinByBitController.copyMultipleStrategiesToSymbol)
+router.post('/copyMultipleStrategiesToBot', MiddlewareController.verifyToken, dataCoinByBitController.copyMultipleStrategiesToBot)
+router.post('/balanceWallet', MiddlewareController.verifyToken, dataCoinByBitController.balanceWallet)
 
 
 module.exports = router;

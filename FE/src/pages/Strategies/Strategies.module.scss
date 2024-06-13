@@ -1,25 +1,28 @@
 .strategies {
 
+    &Header {
+        flex-basis: 60%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+
+        &Item {
+            flex-basis: 15%;
+            margin: 8px !important;
+
+            .formLabel {
+                margin-bottom: 6px;
+                white-space: nowrap;
+            }
+        }
+    }
+
     &Filter {
         display: flex;
         align-items: center;
         flex: 1;
     }
 
-    &Header {
-        flex-basis: 60%;
-        display: flex;
-        justify-content: flex-end;
-
-        &Item {
-            flex-basis: 25%;
-            max-width: 25%;
-
-            &:nth-child(n + 2) {
-                margin-left: 12px;
-            }
-        }
-    }
 
 
 
@@ -70,11 +73,11 @@
     0% {
         transform: translateY(0);
     }
-    
+
     50% {
         transform: translateY(6px);
     }
-    
+
     100% {
         transform: translateY(0);
     }
@@ -84,20 +87,26 @@
 @media (max-width: 740px) {
     .strategies {
         &Header {
+            margin: 0 -2%;
             margin-bottom: 16px;
             flex-basis: 100%;
+            justify-content: space-between;
 
             &Item {
-                flex: 1;
+                flex-basis: 20%;
             }
+        }
+
+        &Filter {
+            flex-basis: 50%;
         }
 
         &BtnAction {
             bottom: 90px;
             right: 6%;
         }
-        .scrollDownIcon
-        {
+
+        .scrollDownIcon {
             bottom: 90px;
             left: 50%;
         }

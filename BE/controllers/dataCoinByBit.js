@@ -2,9 +2,11 @@ const { RestClientV5, WebsocketClient } = require('bybit-api');
 const StrategiesModel = require('../models/strategies')
 const BotApiModel = require('../models/botApi.model')
 const { v4: uuidv4 } = require('uuid');
+const { default: mongoose } = require('mongoose');
 
 
 const dataCoinByBitController = {
+
     // GET
     getSymbolFromCloud: async (userID) => {
         try {
@@ -32,7 +34,10 @@ const dataCoinByBitController = {
                 .then((rescoin) => {
                     rescoin.result.list.forEach((e) => {
                         if (e.symbol.indexOf("USDT") > 0) {
-                            data.push(e.symbol)
+                            data.push({
+                                symbol: e.symbol,
+                                volume24h: e.turnover24h,
+                            })
                         }
                     })
                 })
@@ -49,9 +54,35 @@ const dataCoinByBitController = {
             return []
         }
     },
+
     getAllStrategies: async (req, res) => {
         try {
-            const result = await StrategiesModel.find({ "children.0": { $exists: true } }).sort({ label: 1 }).populate("children.botID");
+            const userID = req.user._id
+
+            // const result = await StrategiesModel.find({ "children.userID": { "$in": [userID] } }).sort({ "label": 1 }).populate("children.botID")
+            const resultFilter = await StrategiesModel.aggregate([
+                {
+                    $match: { "children.userID": new mongoose.Types.ObjectId(userID) }
+                },
+                {
+                    $project: {
+                        label: 1,
+                        value: 1,
+                        volume24h: 1,
+                        children: {
+                            $filter: {
+                                input: "$children",
+                                as: "child",
+                                cond: { $eq: ["$$child.userID", new mongoose.Types.ObjectId(userID)] }
+                            }
+                        }
+                    }
+                }
+            ]);
+            const result = await StrategiesModel.populate(resultFilter, {
+                path: 'children.botID',
+            })
+
 
             res.customResponse(res.statusCode, "Get All Strategies Successful", result);
 
@@ -59,6 +90,7 @@ const dataCoinByBitController = {
             res.status(500).json({ message: err.message });
         }
     },
+
     getAllSymbol: async (req, res) => {
         try {
             const result = await StrategiesModel.find();
@@ -69,23 +101,38 @@ const dataCoinByBitController = {
             res.status(500).json({ message: err.message });
         }
     },
+    getAllSymbolWith24: async (req, res) => {
+        try {
+            const result = await StrategiesModel.find();
+
+            res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => ({
+                _id: item._id,
+                symbol: item.value,
+                volume24h: item.volume24h,
+            })))
+
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
 
     // CREATE
     createStrategies: async (req, res) => {
 
         try {
-            const { data: newData, botListId, symbolList } = req.body
+            const userID = req.user._id
 
+            const { data: newData, botListId, Symbol } = req.body
 
             let result
             if (newData.PositionSide === "Both") {
                 result = await StrategiesModel.updateMany(
-                    { "value": { "$in": symbolList } },
+                    { "value": { "$in": Symbol } },
                     {
                         "$push": {
                             "children": [
-                                ...botListId.map(botID => ({ ...newData, PositionSide: "Long", botID, Created: new Date() })),
-                                ...botListId.map(botID => ({ ...newData, PositionSide: "Short", botID, Created: new Date() }))
+                                ...botListId.map(botID => ({ ...newData, PositionSide: "Long", botID, userID })),
+                                ...botListId.map(botID => ({ ...newData, PositionSide: "Short", botID, userID }))
                             ]
                         }
                     }
@@ -93,8 +140,8 @@ const dataCoinByBitController = {
             }
             else {
                 result = await StrategiesModel.updateMany(
-                    { "value": { "$in": symbolList } },
-                    { "$push": { "children": botListId.map(botID => ({ ...newData, botID, Created: new Date() })) } }
+                    { "value": { "$in": Symbol } },
+                    { "$push": { "children": botListId.map(botID => ({ ...newData, botID, userID })) } }
                 );
             }
 
@@ -195,6 +242,7 @@ const dataCoinByBitController = {
 
             const { id, parentID } = req.body
 
+
             const result = await StrategiesModel.updateOne(
                 { _id: parentID },
                 { $pull: { children: { _id: id } } }
@@ -217,9 +265,18 @@ const dataCoinByBitController = {
 
             const strategiesIDList = req.body
 
-            const result = await StrategiesModel.deleteMany({ _id: { "$in": strategiesIDList } })
+            let resultAll = []
 
-            if (result.acknowledged && result.deletedCount !== 0) {
+            for (data of strategiesIDList) {
+                const result = await StrategiesModel.updateOne(
+                    { _id: data.parentID },
+                    { $pull: { children: { _id: data.id } } }
+                );
+                resultAll.push(result.acknowledged && result.matchedCount !== 0)
+            }
+
+            // if (result.acknowledged && result.deletedCount !== 0) {
+            if (resultAll.every(result => result === true)) {
 
                 res.customResponse(200, "Delete Strategies Successful");
             }
@@ -233,41 +290,126 @@ const dataCoinByBitController = {
     },
 
     // OTHER
+
+    copyMultipleStrategiesToSymbol: async (req, res) => {
+
+        try {
+            const { symbolListData, symbolList } = req.body
+
+            const newData = symbolListData.map(data => {
+                const newObj = { ...data };
+
+                delete newObj?._id
+                delete newObj?.value
+                return newObj
+            })
+
+            const result = await StrategiesModel.updateMany(
+                { "value": { "$in": symbolList } },
+                {
+                    "$push": {
+                        "children": newData
+                    }
+                }
+            );
+
+            if (result.acknowledged && result.matchedCount !== 0) {
+
+                res.customResponse(200, "Copy Strategies To Symbol Successful", []);
+            }
+            else {
+                res.customResponse(400, "Copy Strategies To Symbol Failed", "");
+            }
+        }
+
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+
+    },
+    copyMultipleStrategiesToBot: async (req, res) => {
+
+        try {
+            const { symbolListData, symbolList } = req.body
+
+
+            let resultAll = []
+
+            for (data of symbolListData) {
+                const newObj = { ...data };
+
+                delete newObj?._id
+                delete newObj?.value
+                const result = await StrategiesModel.updateOne(
+                    { "_id": newObj.parentID },
+                    {
+                        "$push": {
+                            "children": symbolList.map(item => ({
+                                ...newObj,
+                                botID: item
+                            }))
+                        }
+                    }
+                )
+                resultAll.push(result.acknowledged && result.matchedCount !== 0)
+            }
+
+            if (resultAll.every(result => result === true)) {
+                res.customResponse(200, "Copy Strategies To Bot Successful", "");
+            }
+            else {
+                res.customResponse(400, "Copy Strategies To Bot Failed", "");
+            }
+        }
+
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+
+    },
+
     syncSymbol: async (req, res) => {
         try {
             const userID = req.user._id
 
-            const listSymbol = await dataCoinByBitController.getSymbolFromCloud(userID)
+            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud(userID);
 
-            if (listSymbol?.length) {
-                const existingDocs = await StrategiesModel.find({ value: { $in: listSymbol } });
+            if (listSymbolObject?.length) {
+
+
+                const existingDocs = await StrategiesModel.find({ value: { $in: listSymbolObject.map(item => item.symbol) } });
 
                 const existingValues = existingDocs.map(doc => doc.value);
 
-                const valuesToAdd = listSymbol.filter(value => !existingValues.includes(value));
+                const valuesToAdd = listSymbolObject.filter(value => !existingValues.includes(value.symbol));
 
                 await StrategiesModel.insertMany(valuesToAdd.map(value => ({
-                    label: value,
-                    value: value,
+                    label: value.symbol,
+                    value: value.symbol,
+                    volume24h: value.volume24h,
                     children: []
                 })))
-                res.customResponse(200, "Sync Successful", []);
+                valuesToAdd.length > 0 ? res.customResponse(200, "Have New Sync Successful", []) : res.customResponse(200, "Sync Successful", []);
             }
             else {
                 res.customResponse(400, "Sync Failed", []);
 
             }
 
-
-
         } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
 
-    transferFunds: async (acc, amount, FromWallet, ToWallet) => {
+    transferFunds: async (amount, FromWallet, ToWallet) => {
+
+        const client = new RestClientV5({
+            key: API_KEY,
+            secret: SECRET_KEY,
+        });
+
         let myUUID = uuidv4();
-        client[acc].createInternalTransfer(
+        client.createInternalTransfer(
             myUUID,
             'USDT',
             amount,
@@ -282,35 +424,61 @@ const dataCoinByBitController = {
             });
     },
 
-    myScheduledFunction: async () => {
-        this.fetchWalletBalanceForClient(0);
-        this.getfund(0);
-        for (let i = 0; i < totalWalletBalance.length; i++) {
-            let fundingBalance = balances[i];// funding
-            let unifiedBalance = totalWalletBalance[i];// unidified
 
-            let totalBalance = Number(fundingBalance) + Number(unifiedBalance);
-            let targetBalance = totalBalance / 2;
 
-            if (fundingBalance > targetBalance) {
-                let amountToTransfer = fundingBalance - targetBalance;
-                amountToTransfer = amountToTransfer.toFixed(2);
-                if (amountToTransfer >= 1) {
-                    logger.info(`API ${i}: Transfer Spot => Future: ${amountToTransfer} $ `);
-                    await this.transferFunds(i, amountToTransfer, 'FUND', 'UNIFIED');
+
+    balanceWallet: async (req, res) => {
+
+        try {
+            // FUND: Spot
+            // UNIFIED: Future
+            const { amount, futureLarger, botID } = req.body
+
+            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+
+            if (resultApiKey) {
+
+                let FromWallet = "FUND"
+                let ToWallet = "UNIFIED"
+
+                if (futureLarger) {
+                    FromWallet = "UNIFIED"
+                    ToWallet = "FUND"
                 }
-            } else if (unifiedBalance > targetBalance) {
-                let amountToTransfer = unifiedBalance - targetBalance;
-                amountToTransfer = amountToTransfer.toFixed(2);
-                if (amountToTransfer >= 1) {
-                    logger.info(`API ${i}: Transfer Future => Spot: ${amountToTransfer} $ `);
-                    await this.transferFunds(i, amountToTransfer, 'UNIFIED', 'FUND');
-                }
-            } else {
-                console.log(`API ${i}: Balances are already equal.`);
+
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: resultApiKey.API_KEY,
+                    secret: resultApiKey.SECRET_KEY,
+                });
+
+                let myUUID = uuidv4();
+
+                // console.log(myUUID, FromWallet, ToWallet, amount, futureLarger);
+                client.createInternalTransfer(
+                    myUUID,
+                    'USDT',
+                    amount.toFixed(4),
+                    FromWallet,
+                    ToWallet,
+                )
+                    .then((response) => {
+                        const status = response.result.status == "SUCCESS"
+                        status ? res.customResponse(200, "Saving Successful", "") : res.customResponse(500, "Saving Error", "")
+
+                    })
+                    .catch((error) => {
+                        res.customResponse(500, "Saving Error", "");
+                    });
             }
+            else {
+                res.customResponse(500, "Saving Error", "");
+            }
+
         }
-        await this.showbl()
+        catch (error) {
+            res.customResponse(500, "Saving Error", "");
+        }
     },
 
     getApiKeyByBot: async (botID) => {
@@ -335,6 +503,7 @@ const dataCoinByBitController = {
 
             if (resultApiKey) {
                 const client = new RestClientV5({
+                    testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
                 });
@@ -347,7 +516,7 @@ const dataCoinByBitController = {
                     res.customResponse(200, "Get Future Available Successful", result);
                 })
                     .catch((error) => {
-                        res.customResponse(error.code, error.message, "");
+                        res.customResponse(400, error.message, "");
                     });
             }
             else {
@@ -381,7 +550,7 @@ const dataCoinByBitController = {
                     res.customResponse(200, "Get Spot Total Successful", result);
                 })
                     .catch((error) => {
-                        res.customResponse(error.code, error.message, "");
+                        res.customResponse(400, error.message, "");
                     });
             }
             else {

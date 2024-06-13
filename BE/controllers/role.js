@@ -76,14 +76,15 @@ const RoleController = {
             await RoleModel.insertMany(newData)
 
             if (res.statusCode === 200) {
-                console.log("Initialization Role Successful");
+                console.log("\nInitialization Role Successful");
             }
             else {
-                console.log("Initialization Role Error");
+                console.log("\nInitialization Role Error");
             }
 
         } catch (error) {
             // Xử lý lỗi nếu có
+            console.error("\nERROR: ",error.message);
         }
     },
 

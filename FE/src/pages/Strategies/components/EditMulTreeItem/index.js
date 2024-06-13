@@ -1,19 +1,19 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DialogCustom from "../../../../components/DialogCustom";
-import { Checkbox, FormControlLabel, MenuItem, Radio, RadioGroup, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
+import { Autocomplete, Button, Checkbox, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../../../store/slices/Toast';
-import { deleteStrategiesMultiple, updateStrategiesMultiple } from '../../../../services/dataCoinByBitService';
+import { copyMultipleStrategiesToBot, copyMultipleStrategiesToSymbol, deleteStrategiesMultiple, getAllSymbol, updateStrategiesMultiple } from '../../../../services/dataCoinByBitService';
+import { getAllBot } from '../../../../services/botService';
 
 function EditMulTreeItem({
     onClose,
+    botListInput,
     dataCheckTreeSelected,
-    botList
 }) {
 
-    // dataCheckTreeSelected = [...new Set(dataCheckTreeSelected)]
 
     const compareFilterListDefault = [
         "=",
@@ -112,13 +112,19 @@ function EditMulTreeItem({
         },
     ]
 
+    const dispatch = useDispatch()
+
+    const [copyType, setCopyType] = useState("Symbol");
+    const [symbolListData, setSymbolListData] = useState([]);
+    const [symbolListSelected, setSymbolListSelected] = useState([]);
+
+    // const [botListData, setBotListData] = useState([]);
+    const [botLisSelected, setBotLisSelected] = useState([]);
+
     const [filterDataRowList, setFilterDataRowList] = useState([fieldFilterList[2]]);
     const [radioValue, setRadioValue] = useState("Update");
     const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-    const toBotValueRef = useRef("")
-
-    const dispatch = useDispatch()
 
     const handleDataCheckTreeSelected = useMemo(() => {
         return dataCheckTreeSelected.map(item => JSON.parse(item))
@@ -129,6 +135,11 @@ function EditMulTreeItem({
             ...filterRowList,
             fieldFilterList[2]
         ])
+    }
+
+    const handleChangeRatioCopy = (e) => {
+        const value = e.target.value
+        setCopyType(value)
     }
 
     const deleteFilterRow = (indexRow) => {
@@ -245,13 +256,12 @@ function EditMulTreeItem({
                         if (typeof (valueHandle) === "number") {
                             valueHandle = parseFloat(valueHandle.toFixed(4))
                         }
-                        const { parentID, ...oldData } = dataCheckTreeItem
                         return {
-                            ...oldData,
                             [filterRow.value]: valueHandle
                         }
                     }).reduce((accumulator, currentObject) => {
-                        return { ...accumulator, ...currentObject };
+                        const { parentID, ...oldData } = dataCheckTreeItem
+                        return { ...oldData, ...accumulator, ...currentObject };
                     }, {})
 
                 }
@@ -280,12 +290,17 @@ function EditMulTreeItem({
     }
 
     const handleDelete = async () => {
+        setLoadingSubmit(true)
+
         let dataChange = false
 
         try {
-            const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => dataCheckTreeItem.parentID)
+            const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => ({
+                id: dataCheckTreeItem._id,
+                parentID: dataCheckTreeItem.parentID,
+            }))
 
-            const res = await deleteStrategiesMultiple([... new Set(newData)])
+            const res = await deleteStrategiesMultiple(newData)
 
             const { status, message } = res.data
 
@@ -314,11 +329,118 @@ function EditMulTreeItem({
         }))
     }
 
-    const handleCopy = () => {
-        dispatch(addMessageToast({
-            status: 1,
-            message: "Copy"
-        }))
+    const handleCopy = async () => {
+
+        if (symbolListSelected.length > 0 || botLisSelected.length > 0) {
+            try {
+                let res
+                if (copyType === "Symbol") {
+                    res = await copyMultipleStrategiesToSymbol({
+                        symbolListData: handleDataCheckTreeSelected,
+                        symbolList: symbolListSelected.map(item => item.value)
+                    })
+                }
+                else {
+                    res = await copyMultipleStrategiesToBot({
+                        symbolListData: handleDataCheckTreeSelected,
+                        symbolList: botLisSelected.map(item => item.value)
+                    })
+                }
+                const { status, message } = res.data
+
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message
+                }))
+                if (status === 200) {
+                    closeDialog(true)
+                }
+            }
+            catch (err) {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Copy Strategies Error",
+                }))
+            }
+        }
+    }
+
+    const handleOnALL = async () => {
+        setLoadingSubmit(true)
+        let dataChange = false
+
+        try {
+            const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => (
+                {
+                    id: dataCheckTreeItem._id,
+                    parentID: dataCheckTreeItem.parentID,
+                    UpdatedFields: {
+                        ...dataCheckTreeItem,
+                        IsActive: true
+                    }
+
+                }
+            ))
+
+            const res = await updateStrategiesMultiple(newData)
+
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message,
+            }))
+            if (status === 200) {
+                dataChange = true
+            }
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Update All Error",
+            }))
+        }
+        closeDialog(dataChange)
+    }
+
+    const handleOffALL = async () => {
+        setLoadingSubmit(true)
+        let dataChange = false
+
+        try {
+            const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => (
+                {
+                    id: dataCheckTreeItem._id,
+                    parentID: dataCheckTreeItem.parentID,
+                    UpdatedFields: {
+                        ...dataCheckTreeItem,
+                        IsActive: false
+                    }
+
+                }
+            ))
+
+            const res = await updateStrategiesMultiple(newData)
+
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message,
+            }))
+            if (status === 200) {
+                dataChange = true
+            }
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Update All Error",
+            }))
+        }
+        closeDialog(dataChange)
     }
 
     const handleEdit = () => {
@@ -335,6 +457,12 @@ function EditMulTreeItem({
             case "Copy":
                 handleCopy()
                 break
+            case "ON":
+                handleOnALL()
+                break
+            case "OFF":
+                handleOffALL()
+                break
 
         }
     }
@@ -344,6 +472,55 @@ function EditMulTreeItem({
 
     }
 
+
+    const handleGetSymbolList = async () => {
+        try {
+            const res = await getAllSymbol()
+            const { status, message, data: symbolListDataRes } = res.data
+
+            if (status === 200) {
+                const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
+                setSymbolListData(newSymbolList)
+            }
+            else {
+                dispatch(addMessageToast({
+                    status,
+                    message
+                }))
+            }
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get All Symbol Error",
+            }))
+        }
+    }
+
+    // const handleGetAllBot = async () => {
+    //     try {
+    //         const res = await getAllBot()
+    //         const { status, message, data: botListDataRes } = res.data
+
+    //         if (status === 200) {
+    //             const newSymbolList = botListDataRes.map(item => ({ name: item.botName, value: item._id }))
+    //             setBotListData(newSymbolList)
+    //         }
+    //         else {
+    //             dispatch(addMessageToast({
+    //                 status,
+    //                 message
+    //             }))
+    //         }
+    //     }
+    //     catch (err) {
+    //         dispatch(addMessageToast({
+    //             status: 500,
+    //             message: "Get All Bot Error",
+    //         }))
+    //     }
+    // }
+
     const handleElementWhenChangeRatio = () => {
         switch (radioValue) {
             case "Update":
@@ -352,8 +529,8 @@ function EditMulTreeItem({
                     sx={{
                         ".css-1ex1afd-MuiTableCell-root, .css-1ygcj2i-MuiTableCell-root": {
                             border: "none",
-                            padding: "10px",
-                            fontSize: '1rem'
+                            padding: "6px",
+                            fontSize: '1.2rem'
                         },
                     }}>
                     <TableHead >
@@ -367,7 +544,7 @@ function EditMulTreeItem({
                                 />
                             </TableCell>
                             <TableCell>Field</TableCell>
-                            <TableCell>Compare</TableCell>
+                            <TableCell>Com</TableCell>
                             <TableCell>Value</TableCell>
                         </TableRow>
 
@@ -389,12 +566,17 @@ function EditMulTreeItem({
                                         />
                                     </TableCell>
                                     <TableCell
+                                        style={{
+                                            width: "100%",
+                                            maxWidth: "100px",
+                                        }}
                                     >
                                         <Select
                                             value={filterRow.value}
                                             size="small"
                                             style={{
-                                                width: "100%"
+                                                width: "100%",
+                                                maxWidth: "100px",
                                             }}
                                         >
                                             {
@@ -408,12 +590,15 @@ function EditMulTreeItem({
                                             }
                                         </Select>
                                     </TableCell>
-                                    <TableCell >
+                                    <TableCell style={{
+                                        maxWidth: "80px"
+                                    }}>
                                         {
                                             <Select
                                                 size="small"
                                                 style={{
-                                                    width: "100%"
+                                                    width: "100%",
+                                                    maxWidth: "60px"
                                                 }}
                                                 value={filterRow.data.compare}
                                             >
@@ -430,7 +615,9 @@ function EditMulTreeItem({
                                             </Select>
                                         }
                                     </TableCell>
-                                    <TableCell >
+                                    <TableCell style={{
+                                        minWidth: "100px",
+                                    }}>
                                         {
                                             handleFiledValueElement(filterRow, indexRow)
                                         }
@@ -445,28 +632,138 @@ function EditMulTreeItem({
             case "Export":
                 return <></>
             case "Copy":
-                return <div style={{ display: "flex", alignItems: "center" }}>
-                    <label style={{ marginRight: "24px", whiteSpace: "nowrap" }}>To bot</label>
-                    <Select
-                        size="small"
-                        style={{
-                            width: "100%"
-                        }}
-                        defaultValue={botList[0].value}
-                        onChange={e => {
-                            toBotValueRef.current = e.target.value
-                        }}
-                    >
+                return (
+                    <div>
+                        <FormControl style={{ marginBottom: "6px" }} >
+                            <RadioGroup
+                                defaultValue="Symbol"
+                                onChange={handleChangeRatioCopy}
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "row"
+                                }}
+                            >
+                                <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
+                                <FormControlLabel value="Bot" control={<Radio />} label="Bot" />
+                            </RadioGroup>
+                        </FormControl>
                         {
-                            botList.map(item => (
-                                <MenuItem
-                                    value={item.value}
-                                    key={item}
-                                >{item.name}</MenuItem>
-                            ))
+                            copyType === "Symbol"
+                                ? (
+                                    <div>
+                                        <Autocomplete
+                                            multiple
+                                            limitTags={1}
+                                            value={symbolListSelected}
+                                            disableCloseOnSelect
+                                            options={symbolListData}
+                                            size="small"
+                                            getOptionLabel={(option) => option.name}
+                                            onChange={(e, value) => {
+                                                setSymbolListSelected(value)
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField {...params} placeholder="Select..." />
+                                            )}
+                                            renderOption={(props, option, { selected, index }) => (
+                                                <>
+                                                    {index === 0 && (
+                                                        <>
+                                                            <Button
+                                                                color="inherit"
+                                                                style={{ width: '50%' }}
+                                                                onClick={() => {
+                                                                    setSymbolListSelected(symbolListData)
+                                                                }}
+                                                            >
+                                                                Select All
+                                                            </Button>
+                                                            <Button
+                                                                color="inherit"
+                                                                style={{ width: '50%' }}
+                                                                onClick={() => {
+                                                                    setSymbolListSelected([])
+                                                                }}
+                                                            >
+                                                                Deselect All
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    <li {...props}>
+                                                        <Checkbox
+                                                            checked={selected || symbolListSelected.findIndex(item => item.value === option.value) > -1}
+                                                        />
+                                                        {option.name}
+                                                    </li>
+                                                </>
+                                            )}
+                                            renderTags={(value) => {
+                                                return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                                            }}
+                                        >
+                                        </Autocomplete>
+                                        {!symbolListSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                                    </div>
+                                )
+                                : (
+                                    <div>
+                                        <Autocomplete
+                                            multiple
+                                            limitTags={1}
+                                            value={botLisSelected}
+                                            disableCloseOnSelect
+                                            options={botListInput}
+                                            size="small"
+                                            getOptionLabel={(option) => option.name}
+                                            onChange={(e, value) => {
+                                                setBotLisSelected(value)
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField {...params} placeholder="Select..." />
+                                            )}
+                                            renderOption={(props, option, { selected, index }) => (
+                                                <>
+                                                    {index === 0 && (
+                                                        <>
+                                                            <Button
+                                                                color="inherit"
+                                                                style={{ width: '50%' }}
+                                                                onClick={() => {
+                                                                    setBotLisSelected(botListInput)
+                                                                }}
+                                                            >
+                                                                Select All
+                                                            </Button>
+                                                            <Button
+                                                                color="inherit"
+                                                                style={{ width: '50%' }}
+                                                                onClick={() => {
+                                                                    setBotLisSelected([])
+                                                                }}
+                                                            >
+                                                                Deselect All
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    <li {...props}>
+                                                        <Checkbox
+                                                            checked={selected || botLisSelected.findIndex(item => item.value === option.value) > -1}
+                                                        />
+                                                        {option.name}
+                                                    </li>
+                                                </>
+                                            )}
+                                            renderTags={(value) => {
+                                                return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                                            }}
+                                        >
+                                        </Autocomplete>
+                                        {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                                    </div>
+                                )
                         }
-                    </Select>
-                </div>
+                    </div>
+                )
             default:
                 return <></>
 
@@ -480,6 +777,12 @@ function EditMulTreeItem({
         })
         setLoadingSubmit(false)
     }
+
+    useEffect(() => {
+        radioValue === "Copy" && handleGetSymbolList()
+        // handleGetAllBot()
+    }, [radioValue]);
+
     return (
         <DialogCustom
             open={true}
@@ -488,7 +791,7 @@ function EditMulTreeItem({
             submitBtnText='Apply'
             maxWidth='sm'
             onSubmit={handleEdit}
-            loading = {loadingSubmit}
+            loading={loadingSubmit}
             hideCloseBtn
         >
             <p style={{
@@ -506,15 +809,25 @@ function EditMulTreeItem({
                     onChange={handleChangeRatio}
                     style={{
                         display: "flex",
-                        flexDirection: "row"
+                        flexWrap: "nowrap",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        margin: "0 -6px"
                     }}
                 >
-                    <FormControlLabel value="Update" control={<Radio />} label="Update" />
-                    <FormControlLabel value="Delete" control={<Radio />} label="Delete" />
-                    <FormControlLabel value="Export" control={<Radio />} label="Export" />
-                    <FormControlLabel value="Copy" control={<Radio />} label="Copy" />
+                    <div  >
+                        <FormControlLabel value="Update" control={<Radio />} label="Update" />
+                        <FormControlLabel value="Delete" control={<Radio />} label="Delete" />
+                        <FormControlLabel value="Copy" control={<Radio />} label="Copy" />
+                    </div>
+                    <div >
+                        <FormControlLabel value="ON" control={<Radio />} label="ON" />
+                        <FormControlLabel value="OFF" control={<Radio />} label="OFF" />
+                    </div>
+                    {/* <FormControlLabel value="Export" control={<Radio />} label="Export" /> */}
                 </RadioGroup>
             </div>
+
             {
                 handleElementWhenChangeRatio()
             }

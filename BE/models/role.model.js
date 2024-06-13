@@ -11,5 +11,6 @@ const roleSchema = new mongoose.Schema({
 
 
 const Role = mongoose.model('Role', roleSchema);
+Role.createIndexes(); 
 
 module.exports = Role;

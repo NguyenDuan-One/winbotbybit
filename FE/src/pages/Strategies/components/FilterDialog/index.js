@@ -167,7 +167,6 @@ function FilterDialog({
 
     const [filterDataRowList, setFilterDataRowList] = useState([]);
 
-
     const addFilterRow = () => {
         setFilterDataRowList(filterRowList => [
             ...filterRowList,
@@ -221,11 +220,12 @@ function FilterDialog({
         switch (item.value) {
             case "PositionSide":
                 return <Select
+
                     value={item.data.value}
                     defaultValue=""
                     size="small"
                     style={{
-                        width: "100%"
+                        width: "100%",
                     }}
                 >
                     {
@@ -242,7 +242,7 @@ function FilterDialog({
                     defaultValue=""
                     size="small"
                     style={{
-                        width: "100%"
+                        width: "100%",
                     }}
                 >
                     {
@@ -349,8 +349,8 @@ function FilterDialog({
                 sx={{
                     ".css-1ex1afd-MuiTableCell-root, .css-1ygcj2i-MuiTableCell-root": {
                         border: "none",
-                        padding: "10px",
-                        fontSize: '1rem'
+                        padding: "6px",
+                        fontSize: '1.2rem'
                     },
                 }}>
                 <TableHead >
@@ -364,7 +364,7 @@ function FilterDialog({
                             />
                         </TableCell>
                         <TableCell>Field</TableCell>
-                        <TableCell>Compare</TableCell>
+                        <TableCell>Com</TableCell>
                         <TableCell>Value</TableCell>
                     </TableRow>
 
@@ -386,12 +386,17 @@ function FilterDialog({
                                     />
                                 </TableCell>
                                 <TableCell
+                                    style={{
+                                        width: "100px",
+                                        maxWidth: "100px",
+                                    }}
                                 >
                                     <Select
                                         value={filterRow.value}
                                         size="small"
                                         style={{
-                                            width: "100%"
+                                            width: "100%",
+                                            maxWidth: "100px",
                                         }}
                                     >
                                         {
@@ -405,12 +410,15 @@ function FilterDialog({
                                         }
                                     </Select>
                                 </TableCell>
-                                <TableCell >
+                                <TableCell style={{
+                                    maxWidth: "80px"
+                                }}>
                                     {
                                         <Select
                                             size="small"
                                             style={{
-                                                width: "100%"
+                                                width: "100%",
+                                                maxWidth: "60px"
                                             }}
                                             value={filterRow.data.compare}
                                         >

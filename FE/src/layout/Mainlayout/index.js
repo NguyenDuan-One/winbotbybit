@@ -191,7 +191,7 @@ function MainLayout({ children }) {
                         </div>
                         <div style={{
                             backgroundColor: "white",
-                            padding: "16px 16px 24px 16px",
+                            padding: "12px",
                             borderRadius: "5px",
                             boxShadow: "0px 0 30px rgba(1, 41, 112, 0.1)"
                         }}>

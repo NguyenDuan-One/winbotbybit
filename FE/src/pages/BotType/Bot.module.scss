@@ -22,14 +22,12 @@
     }
 
     &TableContainer {
-        border-top: 1px solid var(--borderColor);
-        margin-top: 16px;
+       
 
         &Title {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 16px;
         }
 
         &Data {

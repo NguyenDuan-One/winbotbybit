@@ -5,7 +5,7 @@ const UserModel = require('../models/user.model');
 const GroupController = {
     getAll: async (req, res) => {
         try {
-            const data = await GroupModel.find({}, { password: 0 }).populate("userID")
+            const data = await GroupModel.find({}, ).populate("userID",{ password: 0 })
             res.customResponse(res.statusCode, "Get All Group Successful", data);
 
         } catch (err) {
