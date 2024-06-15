@@ -23,3 +23,9 @@ export const formatNumberString = number => {
         return number.toString();
     }
 }
+
+export const removeLocalStorage = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("roleList");
+}

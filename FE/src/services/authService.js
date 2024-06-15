@@ -1,3 +1,4 @@
+import { removeLocalStorage } from "../functions"
 import api from "../utils/api"
 
 export const verifyLogin = async () => {
@@ -15,7 +16,7 @@ api.interceptors.response.use(
   (response) => {
     const { status } = response.data
     if (status === 401 || status === 403) {
-      localStorage.removeItem("token");
+      removeLocalStorage()
       window.location.href = "/login"
     }
     return response

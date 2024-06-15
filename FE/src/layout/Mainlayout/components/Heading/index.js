@@ -10,6 +10,7 @@ import { Popover } from "@mui/material";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import styles from "./Heading.module.scss"
+import { removeLocalStorage } from "../../../../functions";
 
 function Heading({
     toggleSidebar,
@@ -20,7 +21,7 @@ function Heading({
 
     const navigate = useNavigate()
     const handleSignOut = () => {
-        localStorage.removeItem("token");
+        removeLocalStorage()
         navigate("/login")
     }
 

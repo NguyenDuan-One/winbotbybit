@@ -23,7 +23,7 @@ const dataCoinByBitController = {
                 // secret: PRIVATE_KEY,
                 testnet: false,
                 enable_time_sync: true,
-                timestamp: new Date().toISOString(),
+                timestamp: new Date().toLocaleString(),
                 recvWindow: 200000,
             }
             let wsSymbol = new WebsocketClient(wsConfig);

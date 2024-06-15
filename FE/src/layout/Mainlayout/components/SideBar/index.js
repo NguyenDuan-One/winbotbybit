@@ -85,19 +85,18 @@ function SideBar({
             {
                 linkList.map(item => (
 
-                    <>
+                    <div key={item.linK}>
 
                         {
                             roleList.includes(item.name) && <NavLink
                                 className={({ isActive }) => clsx(styles.sidebarItem, isActive ? styles.active : undefined)}
                                 to={item.linK}
-                                key={item.linK}
                             >
                                 {item.icon}
                                 <p className={styles.sidebarItemName}>{item.name}</p>
                             </NavLink>
                         }
-                    </>
+                    </div>
                 ))
             }
 
