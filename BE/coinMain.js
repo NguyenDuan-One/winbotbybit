@@ -1,8 +1,12 @@
 require('dotenv').config();
+
 const { Telegraf } = require('telegraf');
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
+var cron = require('node-cron');
+const { getAllBotActive } = require('./controllers/bot');
+const {  getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const CHANNEL_ID = process.env.CHANNEL_ID
@@ -19,13 +23,13 @@ let digit = []
 let OpenTimem1 = []
 
 let wsConfig = {
-    key: API_KEY,
-    secret: PRIVATE_KEY,
+    // key: API_KEY,
+    // secret: PRIVATE_KEY,
     market: 'v5'
 }
 let wsInfo = {
-    key: API_KEY,
-    secret: PRIVATE_KEY,
+    // key: API_KEY,
+    // secret: PRIVATE_KEY,
     testnet: false,
     enable_time_sync: true,
     timestamp: new Date().toISOString(),
@@ -131,8 +135,6 @@ const formatNumberString = number => {
 }
 
 async function tinhOC(symbol, data, messageList) {
-
-
 
     const interval = data.interval
     const Close = data.close
@@ -312,7 +314,7 @@ async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coi
                                                 winCountLong++
                                             }
                                             else {
-                                                if (candles[i - 3].open) {
+                                                if (candles[i - 3]?.open) {
                                                     const hieu = Math.abs((candles[i - 3].open - TPTemp) * TPDownPercent2 / 100)
                                                     const TPNew = TPTemp - hieu
                                                     if (TPNew >= OCDefault) {
@@ -364,15 +366,18 @@ async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coi
                 let messageText = `${symbol} ( OC: ${percentDefault}% ):\n`
                 if (shortPercent > 80) {
 
-                    messageText += `short: ${winShort} - `
+                    messageText += `Short: ${winShort} - `
                 }
                 if (shortPercent > 80) {
-                    messageText += `long: ${winLong} - `
+                    messageText += `Long: ${winLong} - `
                 }
                 console.log(messageText);
                 coinListWin50.push(messageText.slice(0, -2))
                 // bot.telegram.sendMessage(CHANNEL_ID, messageText.slice(0, -2));
             }
+            // else{
+            //     console.log("Not Coin Win > 80%");
+            // }
 
         })
         .catch((error) => {
@@ -401,9 +406,80 @@ async function processCoinsWithDelay(coinList, delayTime, percentDefault, nenCou
 }
 
 
+const handleStatistic = (statisticLabel) => {
 
+
+    const delayTime = 10;
+    const percentDefault2 = 2
+    const percentDefault25 = 2.5
+    const percentDefault3 = 3
+    const percentDefault35 = 3.5
+    // Số cây nến
+    const nenCount = 100;
+
+    setInterval(async () => {
+        console.log(statisticLabel);
+
+        const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
+        sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
+        await delay(1000)
+
+        const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
+        sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
+        await delay(1000)
+
+        const get3 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault3, nenCount)
+        sendMessageWithRetry(get3.flatMap(item => item.value).join("\n"))
+        await delay(1000)
+
+        const get35 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault35, nenCount)
+        sendMessageWithRetry(get35.flatMap(item => item.value).join("\n"))
+        await delay(1000)
+    }, 3 * 60 * 60 * 1000)
+}
+
+
+const handleWalletBalance = async () => {
+
+    const botListDataActiveRes = await getAllBotActive()
+    if (botListDataActiveRes.length > 0) {
+        const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
+            const result = await getFutureSpotBE(item._id)
+
+            // Trả về đối tượng mới cho mỗi item trong mảng
+            return {
+                id: item._id,
+                spotSavings: item?.spotSavings || 0,
+                future: result.future || 0,
+                spotTotal: result.spotTotal || 0,
+                API_KEY: result.API_KEY,
+                SECRET_KEY: result.SECRET_KEY,
+            };
+
+        }))
+        botListDataActive = botListDataActiveObject.map(item => item.value)
+
+        const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
+            const newSpotAvailable = botData.spotTotal - botData.spotSavings
+            const average = (newSpotAvailable + botData.future) / 2
+
+            if (Math.abs(botData.future - newSpotAvailable) >= 1) {
+                await balanceWalletBE({
+                    amount: Math.abs(newSpotAvailable - average),
+                    futureLarger: botData.future - newSpotAvailable > 0,
+                    API_KEY: botData.API_KEY,
+                    SECRET_KEY: botData.SECRET_KEY,
+                })
+            }
+        }))
+        if (resultBalance.some(item => item.status === "fulfilled")) {
+            console.log("-> Saving Successful");
+        }
+    }
+}
 
 let Main = async () => {
+
     CoinFT = await ListCoinFT()
 
     //sub allcoin
@@ -411,40 +487,73 @@ let Main = async () => {
     wsSymbol.subscribeV5(ListCoin3m, 'linear').catch((err) => { console.log(err) });
     wsSymbol.subscribeV5(ListCoin5m, 'linear').catch((err) => { console.log(err) });
 
-    //nếu thay đổi thì sẽ update dữ liệu
+    let statistic1 = false
+
+    let statistic3 = false
+
+    let statistic5 = false
+
+    const statisticTimeLoop1 = [
+        {
+            hour: 6,
+            minute: 0
+        },
+        {
+            hour: 15,
+            minute: 0
+        },
+        {
+            hour: 22,
+            minute: 0
+        },
+    ]
+    const statisticTimeLoop3 = [
+        {
+            hour: 6,
+            minute: 5
+        },
+        {
+            hour: 15,
+            minute: 5
+        },
+        {
+            hour: 22,
+            minute: 5
+        },
+    ]
+    const statisticTimeLoop5 = [
+        {
+            hour: 6,
+            minute: 10
+        },
+        {
+            hour: 15,
+            minute: 10
+        },
+        {
+            hour: 22,
+            minute: 10
+        },
+    ]
+
+
+
     wsSymbol.on('update', async (dataCoin) => {
         const messageList = []
         if (dataCoin.wsKey === "v5LinearPublic") {
 
             if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    //OpenTimem1 = dataCoin.data[0].start
 
-                    const delayTime = 10;
-                    const percentDefault2 = 2
-                    const percentDefault25 = 2.5
-                    const percentDefault3 = 3
-                    const percentDefault35 = 3.5
-                    const nenCount = 100;
+                    console.log("Trade 1 Closed");
+                    !statistic1 && statisticTimeLoop1.map(item => {
+                        cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
+                            handleStatistic("Statistic 1...")
 
-                    console.log("GETTING...");
 
-                    const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
-                    sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
-                    await delay(1000)
-
-                    const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
-                    sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
-                    await delay(1000)
-
-                    const get3 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault3, nenCount)
-                    sendMessageWithRetry(get3.flatMap(item => item.value).join("\n"))
-                    await delay(1000)
-
-                    const get35 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault35, nenCount)
-                    sendMessageWithRetry(get35.flatMap(item => item.value).join("\n"))
-                    await delay(1000)
-
+                        });
+                    })
+                    statistic1 = true
                 }
             }
 
@@ -459,37 +568,17 @@ let Main = async () => {
 
             // 3M
 
-            // if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
-            //     if (dataCoin.data[0].confirm == true) {
-            //         //OpenTimem1 = dataCoin.data[0].start
-
-            //         const delayTime = 10;
-            //         const percentDefault2 = 2
-            //         const percentDefault25 = 2.5
-            //         const percentDefault3 = 3
-            //         const percentDefault35 = 3.5
-            //         const nenCount = 100;
-
-            //         console.log("GETTING...");
-
-            //         const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
-            //         sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //         const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
-            //         sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //         const get3 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault3, nenCount)
-            //         sendMessageWithRetry(get3.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //         const get35 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault35, nenCount)
-            //         sendMessageWithRetry(get35.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //     }
-            // }
+            if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
+                if (dataCoin.data[0].confirm == true) {
+                    console.log("Trade 3 Closed");
+                    !statistic3 && statisticTimeLoop3.map(item => {
+                        cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
+                            handleStatistic("Statistic 3...")
+                        });
+                    })
+                    statistic3 = true
+                }
+            }
 
             if (dataCoin.topic.indexOf("kline.3.") !== -1) {
                 let symbol = dataCoin.topic.replace("kline.3.", "")
@@ -502,37 +591,17 @@ let Main = async () => {
 
             // 5M
 
-            // if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
-            //     if (dataCoin.data[0].confirm == true) {
-            //         //OpenTimem1 = dataCoin.data[0].start
-
-            //         const delayTime = 10;
-            //         const percentDefault2 = 2
-            //         const percentDefault25 = 2.5
-            //         const percentDefault3 = 3
-            //         const percentDefault35 = 3.5
-            //         const nenCount = 100;
-
-            //         console.log("GETTING...");
-
-            //         const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
-            //         sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //         const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
-            //         sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //         const get3 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault3, nenCount)
-            //         sendMessageWithRetry(get3.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //         const get35 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault35, nenCount)
-            //         sendMessageWithRetry(get35.flatMap(item => item.value).join("\n"))
-            //         await delay(1000)
-
-            //     }
-            // }
+            if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
+                if (dataCoin.data[0].confirm == true) {
+                    console.log("Trade 5 Closed");
+                    !statistic5 && statisticTimeLoop5.map(item => {
+                        cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
+                            handleStatistic("Statistic 5...")
+                        });
+                    })
+                    statistic5 = true
+                }
+            }
 
             if (dataCoin.topic.indexOf("kline.5.") !== -1) {
                 let symbol = dataCoin.topic.replace("kline.5.", "")
@@ -548,8 +617,6 @@ let Main = async () => {
     });
 
 
-
-
     //Báo lỗi socket
     wsSymbol.on('error', (err) => {
         console.error('error', err);
@@ -558,18 +625,6 @@ let Main = async () => {
 };
 
 
+// Main()
 
-
-// const sendMessageToChannel = async (messageText) => {
-
-//     try {
-//         await bot.telegram.sendMessage(CHANNEL_ID, messageText);
-//         console.log('Send message to channel successful');
-//     } catch (error) {
-//         await bot.telegram.sendMessage(CHANNEL_ID, `ERROR: ${error}`);
-//     }
-
-// }
-
-
-Main()
+handleWalletBalance()

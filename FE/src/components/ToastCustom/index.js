@@ -38,7 +38,7 @@ function ToastCustom({
                 severity={handleErrorType()}
                 variant="standard"
             >
-                {message}
+                {message || "Error"}
             </Alert>
         </Snackbar>
     );

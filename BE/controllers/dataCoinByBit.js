@@ -562,7 +562,111 @@ const dataCoinByBitController = {
 
         }
 
-    }
+    },
+
+    // OTHER
+
+    getFutureSpotBE: async (botID) => {
+
+        try {
+
+            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+
+            if (resultApiKey) {
+                const API_KEY = resultApiKey.API_KEY;
+                const SECRET_KEY = resultApiKey.SECRET_KEY;
+
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: API_KEY,
+                    secret: SECRET_KEY,
+                });
+
+                // get field totalWalletBalance
+                const getFuture = client.getWalletBalance({
+                    accountType: 'UNIFIED',
+                    coin: 'USDT',
+                })
+                const getSpot = client.getAllCoinsBalance({
+                    accountType: 'FUND',
+                    coin: 'USDT'
+                })
+                const result = await Promise.all([getFuture, getSpot])
+                if (result.every(item => item.retCode === 0)) {
+                    return {
+                        future: result[0]?.result?.list?.[0]?.totalWalletBalance || 0,
+                        spotTotal: result[1]?.result?.balance?.[0]?.walletBalance || 0,
+                        API_KEY,
+                        SECRET_KEY
+                    }
+                }
+                return {}
+            }
+            else {
+                return {}
+            }
+
+        } catch (error) {
+            return {}
+
+        }
+    },
+
+    balanceWalletBE: async ({ amount, futureLarger, API_KEY, SECRET_KEY }) => {
+        try {
+            // FUND: Spot
+            // UNIFIED: Future
+
+            if (API_KEY && SECRET_KEY) {
+
+                let FromWallet = "FUND"
+                let ToWallet = "UNIFIED"
+
+                if (futureLarger) {
+                    FromWallet = "UNIFIED"
+                    ToWallet = "FUND"
+                }
+
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: API_KEY,
+                    secret: SECRET_KEY,
+                });
+
+                let myUUID = uuidv4();
+
+                client.createInternalTransfer(
+                    myUUID,
+                    'USDT',
+                    amount.toFixed(4),
+                    FromWallet,
+                    ToWallet,
+                )
+                    .then((response) => {
+                        const status = response.result.status == "SUCCESS"
+                        if (status) {
+                            // console.log("-> Saving Successful");
+                        }
+                        else {
+                            console.log("-> Saving Error");
+                        }
+
+                    })
+                    .catch((error) => {
+                        console.log("-> Saving Error");
+                    });
+            }
+            else {
+                console.log("-> Saving Error");
+            }
+
+        }
+        catch (error) {
+            console.log("-> Saving Error");
+        }
+    },
+
+
 }
 
 module.exports = dataCoinByBitController 

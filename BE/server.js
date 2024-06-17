@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const routes = require('./router');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 
 const app = express();
 // const PORT = process.env.PORT || 3000;
@@ -24,7 +25,11 @@ app.use((req, res, next) => {
   next();
 })
 app.use('/', routes); // Sử dụng route chung
-// app.use(express.static(path.join(__dirname, '../FE/build')));
+app.use(express.static(path.join(__dirname, '../FE/build')));
+
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, '../FE/build'));
+});
 
 
 app.listen(PORT, process.env.BASE_URL, () => {

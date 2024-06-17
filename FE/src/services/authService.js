@@ -15,6 +15,7 @@ export const login = async (data) => {
 api.interceptors.response.use(
   (response) => {
     const { status } = response.data
+    console.log(status);
     if (status === 401 || status === 403) {
       removeLocalStorage()
       window.location.href = "/login"
@@ -22,6 +23,8 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
+    removeLocalStorage()
+    window.location.href = "/login"
     return Promise.reject(error);
   }
 );

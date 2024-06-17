@@ -15,6 +15,7 @@ const BotController = {
             res.status(500).json({ message: err.message });
         }
     },
+
     getAllBotByUserID: async (req, res) => {
         try {
             const userID = req.params.id;
@@ -118,7 +119,7 @@ const BotController = {
             const result = await BotModel.deleteMany({ _id: { $in: botIDList } })
             const resultApi = await BotApiModel.deleteMany({ botID: { $in: botIDList } })
             const resultStrategies = await StrategiesModel.updateMany(
-                { "children.botID": { $in: botIDList } }, 
+                { "children.botID": { $in: botIDList } },
                 { $pull: { children: { botID: { $in: botIDList } } } }
             );
 
@@ -136,6 +137,17 @@ const BotController = {
         }
     },
 
+    // OTHER 
+
+    getAllBotActive: async () => {
+        try {
+            // ref: .populate({ path: "coinID", models: "Coin" })
+            const data = await BotModel.find({ Status: "Running" }).sort({ Created: -1 })
+            return data
+        } catch (err) {
+            return []
+        }
+    },
 
 }
 
