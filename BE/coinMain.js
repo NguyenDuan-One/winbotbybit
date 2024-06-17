@@ -408,7 +408,7 @@ async function processCoinsWithDelay(coinList, delayTime, percentDefault, nenCou
 
 const handleStatistic = (statisticLabel) => {
 
-
+ 
     const delayTime = 10;
     const percentDefault2 = 2
     const percentDefault25 = 2.5
