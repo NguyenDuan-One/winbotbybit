@@ -25,11 +25,11 @@ app.use((req, res, next) => {
   next();
 })
 app.use('/', routes); // Sử dụng route chung
-app.use(express.static(path.join(__dirname, '../FE/build')));
+// app.use(express.static(path.join(__dirname, '../FE/build')));
 
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, '../FE/build'));
-});
+// app.get('/', function (req, res) {
+//   res.sendFile(path.join(__dirname, '../FE/build'));
+// });
 
 
 app.listen(PORT, process.env.BASE_URL, () => {

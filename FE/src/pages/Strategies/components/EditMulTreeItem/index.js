@@ -121,7 +121,7 @@ function EditMulTreeItem({
     // const [botListData, setBotListData] = useState([]);
     const [botLisSelected, setBotLisSelected] = useState([]);
 
-    const [filterDataRowList, setFilterDataRowList] = useState([fieldFilterList[2]]);
+    const [filterDataRowList, setFilterDataRowList] = useState([fieldFilterList[1]]);
     const [radioValue, setRadioValue] = useState("Update");
     const [loadingSubmit, setLoadingSubmit] = useState(false);
 
@@ -538,7 +538,8 @@ function EditMulTreeItem({
                             <TableCell style={{ width: "16px" }}>
                                 <AddCircleOutlineIcon
                                     style={{
-                                        cursor: "pointer"
+                                        cursor: "pointer",
+                                        verticalAlign: "bottom"
                                     }}
                                     onClick={addFilterRow}
                                 />
@@ -560,15 +561,16 @@ function EditMulTreeItem({
                                     >
                                         <DeleteOutlineIcon
                                             style={{
-                                                cursor: "pointer"
+                                                cursor: "pointer",
+                                                verticalAlign: "bottom"
                                             }}
                                             onClick={() => { deleteFilterRow(indexRow) }}
                                         />
                                     </TableCell>
                                     <TableCell
                                         style={{
-                                            width: "100%",
-                                            maxWidth: "100px",
+                                            maxWidth: "130px",
+                                            width: "130px"
                                         }}
                                     >
                                         <Select
@@ -576,7 +578,6 @@ function EditMulTreeItem({
                                             size="small"
                                             style={{
                                                 width: "100%",
-                                                maxWidth: "100px",
                                             }}
                                         >
                                             {
@@ -590,15 +591,17 @@ function EditMulTreeItem({
                                             }
                                         </Select>
                                     </TableCell>
-                                    <TableCell style={{
-                                        maxWidth: "80px"
-                                    }}>
+                                    <TableCell
+                                        style={{
+                                            maxWidth: "80px",
+                                            width: "80px"
+                                        }}
+                                    >
                                         {
                                             <Select
                                                 size="small"
                                                 style={{
-                                                    width: "100%",
-                                                    maxWidth: "60px"
+                                                    width: "100%"
                                                 }}
                                                 value={filterRow.data.compare}
                                             >
@@ -615,9 +618,7 @@ function EditMulTreeItem({
                                             </Select>
                                         }
                                     </TableCell>
-                                    <TableCell style={{
-                                        minWidth: "100px",
-                                    }}>
+                                    <TableCell >
                                         {
                                             handleFiledValueElement(filterRow, indexRow)
                                         }

@@ -163,6 +163,15 @@ function FilterDialog({
             value: "StopLose",
             compareFilterList: compareFilterListDefault,
         },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "Volume24h",
+            value: "volume24h",
+            compareFilterList: compareFilterListDefault,
+        },
     ]
 
     const [filterDataRowList, setFilterDataRowList] = useState([]);
@@ -195,6 +204,12 @@ function FilterDialog({
     }
 
     const handleCompare = (value1, compareValue, value2) => {
+        if (typeof (value1) === "string") {
+            value1 = +value1
+        }
+        if (typeof (value2) === "string") {
+            value2 = +value2
+        }
         switch (compareValue) {
             case "=":
                 return value1 == value2
@@ -224,8 +239,8 @@ function FilterDialog({
                     value={item.data.value}
                     defaultValue=""
                     size="small"
-                    style={{
-                        width: "100%",
+                    style = {{
+                        width:"100%"
                     }}
                 >
                     {
@@ -241,8 +256,8 @@ function FilterDialog({
                     value={item.data.value}
                     defaultValue=""
                     size="small"
-                    style={{
-                        width: "100%",
+                    style = {{
+                        width:"100%"
                     }}
                 >
                     {
@@ -265,8 +280,8 @@ function FilterDialog({
                     value={item.data.value}
                     onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
                     size="small"
-                    style={{
-                        width: "100%"
+                    style = {{
+                        width:"100%"
                     }}
                 >
                 </TextField>
@@ -338,7 +353,7 @@ function FilterDialog({
         <DialogCustom
             open={true}
             onClose={onClose}
-            dialogTitle='Bulk'
+            dialogTitle='Filter'
             submitBtnText='Apply'
             maxWidth='sm'
             onSubmit={handleFilter}
@@ -358,7 +373,8 @@ function FilterDialog({
                         <TableCell style={{ width: "16px" }}>
                             <AddCircleOutlineIcon
                                 style={{
-                                    cursor: "pointer"
+                                    cursor: "pointer",
+                                    verticalAlign: "bottom"
                                 }}
                                 onClick={addFilterRow}
                             />
@@ -380,23 +396,23 @@ function FilterDialog({
                                 >
                                     <DeleteOutlineIcon
                                         style={{
-                                            cursor: "pointer"
+                                            cursor: "pointer",
+                                            verticalAlign: "bottom"
                                         }}
                                         onClick={() => { deleteFilterRow(indexRow) }}
                                     />
                                 </TableCell>
                                 <TableCell
                                     style={{
-                                        width: "100px",
-                                        maxWidth: "100px",
+                                        maxWidth: "130px",
+                                        width: "130px"
                                     }}
                                 >
                                     <Select
                                         value={filterRow.value}
                                         size="small"
                                         style={{
-                                            width: "100%",
-                                            maxWidth: "100px",
+                                            width: "100%"
                                         }}
                                     >
                                         {
@@ -410,17 +426,19 @@ function FilterDialog({
                                         }
                                     </Select>
                                 </TableCell>
-                                <TableCell style={{
-                                    maxWidth: "80px"
-                                }}>
+                                <TableCell
+                                    style={{
+                                        maxWidth: "80px",
+                                        width: "80px"
+                                    }}
+                                >
                                     {
                                         <Select
                                             size="small"
-                                            style={{
-                                                width: "100%",
-                                                maxWidth: "60px"
-                                            }}
                                             value={filterRow.data.compare}
+                                            style={{
+                                                width: "100%"
+                                            }}
                                         >
                                             {
                                                 filterRow.compareFilterList.map(item => (
@@ -446,7 +464,7 @@ function FilterDialog({
                 </TableBody>
             </Table>
 
-        </DialogCustom>);
+        </DialogCustom >);
 }
 
 export default FilterDialog;

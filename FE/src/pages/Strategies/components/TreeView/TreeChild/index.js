@@ -9,7 +9,7 @@ import { memo, useCallback, useState } from 'react';
 import { TableRow, TableCell, Switch } from '@mui/material';
 import UpdateStrategy from '../../UpdateStrategy';
 import clsx from 'clsx';
-import { handleCheckAllCheckBox } from '../../../../../functions';
+import { formatNumberString, handleCheckAllCheckBox } from '../../../../../functions';
 
 function TreeChild({
     treeData,
@@ -230,6 +230,7 @@ function TreeChild({
                 <TableCell className={styles.tableBodyCell}>{treeNode.Ignore}</TableCell>
                 <TableCell className={styles.tableBodyCell}>{treeNode.EntryTrailing}</TableCell>
                 <TableCell className={styles.tableBodyCell}>{treeNode.StopLose}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
             </TableRow>
             {openDeleteTreeItem.isOpen &&
 

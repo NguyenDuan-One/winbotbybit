@@ -6,7 +6,7 @@ const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
 var cron = require('node-cron');
 const { getAllBotActive } = require('./controllers/bot');
-const {  getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
+const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const CHANNEL_ID = process.env.CHANNEL_ID
@@ -406,9 +406,9 @@ async function processCoinsWithDelay(coinList, delayTime, percentDefault, nenCou
 }
 
 
-const handleStatistic = (statisticLabel) => {
+const handleStatistic = async (statisticLabel) => {
 
- 
+
     const delayTime = 10;
     const percentDefault2 = 2
     const percentDefault25 = 2.5
@@ -417,25 +417,23 @@ const handleStatistic = (statisticLabel) => {
     // Số cây nến
     const nenCount = 100;
 
-    setInterval(async () => {
-        console.log(statisticLabel);
+    console.log(statisticLabel);
 
-        const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
-        sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
-        await delay(1000)
+    const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
+    sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
+    await delay(1000)
 
-        const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
-        sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
-        await delay(1000)
+    const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
+    sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
+    await delay(1000)
 
-        const get3 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault3, nenCount)
-        sendMessageWithRetry(get3.flatMap(item => item.value).join("\n"))
-        await delay(1000)
+    const get3 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault3, nenCount)
+    sendMessageWithRetry(get3.flatMap(item => item.value).join("\n"))
+    await delay(1000)
 
-        const get35 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault35, nenCount)
-        sendMessageWithRetry(get35.flatMap(item => item.value).join("\n"))
-        await delay(1000)
-    }, 3 * 60 * 60 * 1000)
+    const get35 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault35, nenCount)
+    sendMessageWithRetry(get35.flatMap(item => item.value).join("\n"))
+    await delay(1000)
 }
 
 
@@ -549,8 +547,7 @@ let Main = async () => {
                     !statistic1 && statisticTimeLoop1.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 1...")
-
-
+                            handleWalletBalance()
                         });
                     })
                     statistic1 = true
@@ -617,14 +614,12 @@ let Main = async () => {
     });
 
 
-    //Báo lỗi socket
+    //Báo lỗi socket$ pm2 start app.js
     wsSymbol.on('error', (err) => {
-        console.error('error', err);
+        process.exit(1);
     });
-
 };
 
 
-// Main()
+Main()
 
-handleWalletBalance()

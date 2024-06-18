@@ -160,7 +160,13 @@ function Strategies() {
         const newDataCheckTree = data.map(item => (
             {
                 ...item,
-                children: item?.children.length > 0 ? item?.children.map(itemChild => ({ ...itemChild, value: `${item._id}-${itemChild._id}` })) : item?.children
+                children: item?.children.length > 0 ? item?.children.map(itemChild => (
+                    {
+                        ...itemChild,
+                        value: `${item._id}-${itemChild._id}`,
+                        volume24h:item?.volume24h
+                    }
+                )) : item?.children
             }
         ))
         return newDataCheckTree
