@@ -506,6 +506,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
+                    enable_time_sync:true,
                 });
 
                 // get field totalWalletBalance
@@ -539,8 +540,10 @@ const dataCoinByBitController = {
 
             if (resultApiKey) {
                 const client = new RestClientV5({
+                    testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
+                    enable_time_sync:true,
                 });
 
                 await client.getAllCoinsBalance({
@@ -612,6 +615,39 @@ const dataCoinByBitController = {
         }
     },
 
+    getFutureBE: async (botID) => {
+
+        try {
+
+            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+
+            if (resultApiKey) {
+                const API_KEY = resultApiKey.API_KEY;
+                const SECRET_KEY = resultApiKey.SECRET_KEY;
+
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: API_KEY,
+                    secret: SECRET_KEY,
+                });
+
+                // get field totalWalletBalance
+                const result = await client.getWalletBalance({
+                    accountType: 'UNIFIED',
+                    coin: 'USDT',
+                })
+
+                if (result.retCode === 0) {
+                    return result[0]?.result?.list?.[0]?.totalWalletBalance || 0
+                }
+                return {}
+
+            }
+        } catch (error) {
+            return {}
+
+        }
+    },
     balanceWalletBE: async ({ amount, futureLarger, API_KEY, SECRET_KEY }) => {
         try {
             // FUND: Spot
