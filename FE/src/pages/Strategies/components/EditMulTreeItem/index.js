@@ -527,7 +527,7 @@ function EditMulTreeItem({
                 return <Table
 
                     sx={{
-                        ".css-1ex1afd-MuiTableCell-root, .css-1ygcj2i-MuiTableCell-root": {
+                        ".MuiTableCell-root": {
                             border: "none",
                             padding: "6px",
                             fontSize: '1.2rem'

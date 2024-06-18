@@ -618,8 +618,12 @@ let Main = async () => {
     wsSymbol.on('error', (err) => {
         process.exit(1);
     });
+
 };
 
 
 Main()
+// cron.schedule(`*/1 * * * * *`, () => {
+//     console.log('schedule');
+// });
 
