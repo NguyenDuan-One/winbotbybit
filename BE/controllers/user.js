@@ -82,7 +82,7 @@ const UserController = {
     getUserByID: async (req, res) => {
         try {
             const userID = req.params.userID;
-            const data = await UserModel.findById(userID, { password: 0 }).populate("groupID")
+            const data = await UserModel.findById(userID, { password: 0 })
             res.customResponse(res.statusCode, "Get UserData Successful", data);
 
         } catch (err) {

@@ -2,12 +2,12 @@ require('dotenv').config();
 
 const { Telegraf } = require('telegraf');
 const { RestClientV5, WebsocketClient } = require('bybit-api');
-const API_KEY = 'foRfrB7L1GgXt1Ly5O';
-const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
 var cron = require('node-cron');
 const { getAllBotActive } = require('./controllers/bot');
 const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
 
+const API_KEY = 'foRfrB7L1GgXt1Ly5O';
+const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const CHANNEL_ID = process.env.CHANNEL_ID
 

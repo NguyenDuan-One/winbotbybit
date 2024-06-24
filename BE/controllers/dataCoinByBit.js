@@ -91,6 +91,7 @@ const dataCoinByBitController = {
         }
     },
 
+
     getAllSymbol: async (req, res) => {
         try {
             const result = await StrategiesModel.find();
@@ -699,6 +700,41 @@ const dataCoinByBitController = {
         }
         catch (error) {
             console.log("-> Saving Error");
+        }
+    },
+
+    getAllStrategiesActive: async () => {
+        try {
+            // require("../models/bot.model")
+
+            console.log('call get all ');
+            const resultFilter = await StrategiesModel.aggregate([
+                {
+                    $match: { "children.IsActive": true }
+                },
+                {
+                    $project: {
+                        label: 1,
+                        value: 1,
+                        volume24h: 1,
+                        children: {
+                            $filter: {
+                                input: "$children",
+                                as: "child",
+                                cond: { $eq: ["$$child.IsActive", true] }
+                            }
+                        }
+                    }
+                }
+            ]);
+            // const result = await StrategiesModel.populate(resultFilter, {
+            //     path: 'children.botID',
+            // })
+            console.log(resultFilter);
+            return resultFilter || []
+
+        } catch (err) {
+            return []
         }
     },
 
