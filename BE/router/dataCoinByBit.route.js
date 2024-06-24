@@ -23,6 +23,7 @@ router.get('/syncSymbol', MiddlewareController.verifyToken, dataCoinByBitControl
 router.post('/copyMultipleStrategiesToSymbol', MiddlewareController.verifyToken, dataCoinByBitController.copyMultipleStrategiesToSymbol)
 router.post('/copyMultipleStrategiesToBot', MiddlewareController.verifyToken, dataCoinByBitController.copyMultipleStrategiesToBot)
 router.post('/balanceWallet', MiddlewareController.verifyToken, dataCoinByBitController.balanceWallet)
+router.get('/getAllStrategiesActive', MiddlewareController.verifyToken, dataCoinByBitController.getAllStrategiesActive)
 
 
 module.exports = router;

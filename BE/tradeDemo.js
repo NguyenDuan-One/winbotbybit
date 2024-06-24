@@ -1,5 +1,6 @@
 const { RestClientV5, WebsocketClient } = require('bybit-api');
-const { getAllStrategiesActive } = require('./controllers/dataCoinByBit');
+const { getAllStrategiesActive, getAllSymbolBE } = require('./controllers/dataCoinByBit');
+
 
 const client = new RestClientV5({
     testnet: false,
@@ -8,129 +9,13 @@ const client = new RestClientV5({
     enable_time_sync: true,
 });
 
-const wsConfig = {
-    key: 'foRfrB7L1GgXt1Ly5O',
-    secret: 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp',
-    market: 'v5',
-    enable_time_sync: true,
-
-}
-
-const wsSymbol = new WebsocketClient(wsConfig);
-
-const strategiesList = [
-    {
-        id: "id1",
-        PositionSide: "Long",
-        Amount: 100,
-        OrderChange: 0.3,
-        Candlestick: "1M",
-        TakeProfit: 80,
-        ReduceTakeProfit: 45,
-        ExtendedOCPercent: 80,
-        Ignore: 85,
-        EntryTrailing: null,
-        StopLose: 50,
-        IsActive: true,
-        // new Data
-        symbol: "1000BEERUSDT",
-        digit: 0,
-        coinOpen: 0
-    },
-    {
-        id: "id2",
-        PositionSide: "Short",
-        Amount: 100,
-        OrderChange: 0.3,
-        Candlestick: "1M",
-        TakeProfit: 80,
-        ReduceTakeProfit: 45,
-        ExtendedOCPercent: 80,
-        Ignore: 85,
-        EntryTrailing: null,
-        StopLose: 50,
-        IsActive: true,
-        // new Data
-        symbol: "1000BEERUSDT",
-        digit: 0,
-    },
-    // {
-    //     id: "id3",
-    //     PositionSide: "Long",
-    //     Amount: 100,
-    //     OrderChange: 0.3,
-    //     Candlestick: "1M",
-    //     TakeProfit: 80,
-    //     ReduceTakeProfit: 45,
-    //     ExtendedOCPercent: 80,
-    //     Ignore: 85,
-    //     EntryTrailing: null,
-    //     StopLose: 50,
-    //     IsActive: true,
-    //     // new Data
-    //     symbol: "LISTAUSDT",
-    //     digit: 0,
-    //     coinOpen: 0
-    // },
-    // {
-    //     id: "id4",
-    //     PositionSide: "Short",
-    //     Amount: 100,
-    //     OrderChange: 0.3,
-    //     Candlestick: "1M",
-    //     TakeProfit: 80,
-    //     ReduceTakeProfit: 45,
-    //     ExtendedOCPercent: 80,
-    //     Ignore: 85,
-    //     EntryTrailing: null,
-    //     StopLose: 50,
-    //     IsActive: true,
-    //     // new Data
-    //     symbol: "LISTAUSDT",
-    //     digit: 0,
-    // }
-]
-
-const tradeCoinItemDataDefault = {
-    "OC": {
-        orderID: "",
-        orderingStatus: false,
-        orderFilled: false
-    },
-    "TP": {
-        orderID: "",
-        orderFilled: false,
-        orderingStatus: false,
-        price: 0,
-        qty: 0
-    },
-    pricePre: {
-        open: 0,
-        close: 0,
-        high: 0,
-        low: 0,
-    }
-
-};
-
-const tradeCoinData = strategiesList.reduce((pre, cur) => {
-    pre[cur.id] = tradeCoinItemDataDefault
-    return pre; // Return the accumulator
-}, {});
-
-// ------------------------------------------------------
-const listSymbol = [
-    "1000BEERUSDT",
-    "LISTAUSDT"
-]
-
-let listSub = listSymbol.map(item => `kline.1.${item}`)
-listSub = listSub.concat(["order"])
-
+const clientDigit = new RestClientV5({
+    testnet: false,
+});
 
 async function Digit(symbol) {// proScale
     let PScale = []
-    await client.getInstrumentsInfo({
+    await clientDigit.getInstrumentsInfo({
         category: 'linear',
         symbol: symbol,
     })
@@ -144,19 +29,45 @@ async function Digit(symbol) {// proScale
     return PScale
 }
 
-const cancelAll = (strategyID) => {
-    tradeCoinData[strategyID] = tradeCoinItemDataDefault
+const cancelAll = (
+    {
+        tradeCoinData,
+        strategyID
+    }
+) => {
+    tradeCoinData[strategyID] = {
+        "OC": {
+            orderID: "",
+            orderingStatus: false,
+            orderFilled: false
+        },
+        "TP": {
+            orderID: "",
+            orderFilled: false,
+            // orderingStatus: false,
+            price: 0,
+            qty: 0
+        },
+        pricePre: {
+            open: 0,
+            close: 0,
+            high: 0,
+            low: 0,
+        }
+
+    }
 }
 
 const handleSubmitOrder = ({
+    tradeCoinData,
     strategyID,
     symbol,
     qty,
     side,
     price,
+    candle
 }) => {
     tradeCoinData[strategyID].OC.orderingStatus = true
-    console.log(`\n[~] Ordering OC ( ${side} - ${strategyID} - ${price} )... `)
     client
         .submitOrder({
             category: 'linear',
@@ -168,30 +79,32 @@ const handleSubmitOrder = ({
             price,
         })
         .then((response) => {
-            if (response.retCode == 0) {
-                console.log(`[+] Order OC ( ${side} - ${strategyID} - ${price} ) successful `)
-                tradeCoinData[strategyID].OC.orderID = response.result.orderId
+            if (response.retCode === 0) {
+                console.log(`[+OC] Order OC ( ${side} - ${symbol} - ${candle} ) successful `)
+                tradeCoinData[strategyID].OC.orderID = response.result?.orderId
             }
             else {
-                console.log(`[!] Ordered OC ( ${side} - ${strategyID} - ${price} ) failed `, response)
+                console.log(`[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) failed `, response)
             }
             tradeCoinData[strategyID].OC.orderingStatus = false
 
         })
         .catch((error) => {
-            console.log(`[!] Ordered OC ( ${side} - ${strategyID} - ${price} ) error `, error)
+            console.log(`[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) error `, error)
             tradeCoinData[strategyID].OC.orderingStatus = false
         });
 }
 
 const handleSubmitOrderTP = ({
+    tradeCoinData,
     strategyID,
     symbol,
     side,
     qty,
     price,
+    candle = ""
 }) => {
-    tradeCoinData[strategyID].TP.orderingStatus = true
+    // tradeCoinData[strategyID].TP.orderingStatus = true
     client
         .submitOrder({
             category: 'linear',
@@ -203,32 +116,34 @@ const handleSubmitOrderTP = ({
             price,
         })
         .then((response) => {
-            if (response.retCode == 0) {
-                console.log(`[+] Order TP ( ${side} ) successful: ${response.result.orderId} `)
-                // console.log("TP Order ID first: " + response.result.orderId);
-                tradeCoinData[strategyID].TP.orderID = response.result.orderId
+            if (response.retCode === 0) {
+                console.log(`[+TP] Order TP ( ${side} - ${symbol} - ${candle} ) successful `)
+                tradeCoinData[strategyID].TP.orderID = response.result?.orderId
+                // console.log("TP Order ID first: " + response.result?.orderId);
             }
             else {
-                console.log("[!] Order TP failed ", response)
+                console.log(`[!] Order TP ( ${side} - ${symbol} - ${candle} ) failed `, response)
             }
-            tradeCoinData[strategyID].TP.orderingStatus = false
+            // tradeCoinData[strategyID].TP.orderingStatus = false
 
         })
         .catch((error) => {
-            console.log("[!] Order TP error ", error)
-            tradeCoinData[strategyID].TP.orderingStatus = false
+            console.log(`[!] Order TP ( ${side} - ${symbol} - ${candle} ) error `, error)
+            // tradeCoinData[strategyID].TP.orderingStatus = false
         });
 }
 
 const moveOrderTP = ({
+    tradeCoinData,
     strategyID,
     symbol,
     price,
-    orderId
+    orderId,
+    candle
 }) => {
 
     console.log("[~] Moving TP...");
-    tradeCoinData[strategyID].TP.orderingStatus = true
+    // tradeCoinData[strategyID].TP.orderingStatus = true
     client
         .amendOrder({
             category: 'linear',
@@ -237,33 +152,35 @@ const moveOrderTP = ({
             orderId
         })
         .then((response) => {
-            if (response.retCode == 0) {
-                console.log(`[->] Move Order TP successful `)
-                tradeCoinData[strategyID].TP.orderID = response.result.orderId
+            if (response.retCode === 0) {
+                console.log(`[->] Move Order TP ( ${symbol} - ${candle} ) successful `)
+                tradeCoinData[strategyID].TP.orderID = response.result?.orderId
             }
             else {
-                console.log("[!] Move Order TP failed ", response)
+                console.log(`[!] Move Order TP ( ${symbol} - ${candle} ) failed `, response)
             }
-            tradeCoinData[strategyID].TP.orderingStatus = false
+            // tradeCoinData[strategyID].TP.orderingStatus = false
 
         })
         .catch((error) => {
-            console.log("[!] Move Order TP error ", error)
-            tradeCoinData[strategyID].TP.orderingStatus = false
+            console.log(`[!] Move Order TP ( ${symbol} - ${candle} ) error `, error)
+            // tradeCoinData[strategyID].TP.orderingStatus = false
         });
 
 }
 
 const handleMoveOrderTP = ({
+    tradeCoinData,
     strategyID,
     strategy,
-    coinOpen
+    coinOpen,
+    candle = ""
 }) => {
 
     const TPOld = tradeCoinData[strategyID].TP.price
 
     let TPNew
-    if (strategy.PositionSide == "Long") {
+    if (strategy.PositionSide === "Long") {
         TPNew = TPOld - Math.abs(TPOld - coinOpen) * (strategy.ReduceTakeProfit / 100)
     }
     else {
@@ -281,16 +198,21 @@ const handleMoveOrderTP = ({
 
     const dataInput = {
         strategyID,
+        tradeCoinData,
         symbol: strategy.symbol,
         price: TPNew.toFixed(strategy.digit),
-        orderId: tradeCoinData[strategyID].TP.orderID
+        orderId: tradeCoinData[strategyID].TP.orderID,
+        candle
     }
 
     moveOrderTP(dataInput)
 }
+
 const handleCancelOrder = ({
+    tradeCoinData,
     strategyID,
-    symbol
+    symbol,
+    candle = ""
 }) => {
     client
         .cancelOrder({
@@ -299,47 +221,110 @@ const handleCancelOrder = ({
             orderId: tradeCoinData[strategyID].OC.orderID,
         })
         .then((response) => {
-            if (response.retCode == 0) {
-                console.log('[V] Cancel order successful ');
-                cancelAll(strategyID)
+            if (response.retCode === 0) {
+                console.log(`[V] Cancel order ( ${symbol} - ${candle} ) successful `);
+                cancelAll({ tradeCoinData, strategyID })
             }
             else {
-                console.log('[!] Cancel order failed ', response);
+                console.log(`[!] Cancel order ( ${symbol} - ${candle} ) failed `, response);
             }
         })
         .catch((error) => {
-            console.log('[!] Cancel order error ', error);
+            console.log(`[!] Cancel order ( ${symbol} - ${candle} ) error `, error);
         });
 
 }
 
-
-const handleGetAllStrategiesActive = async () => {
-    const result = await getAllStrategiesActive()
-    console.log(result);
-}
+// -----------------------------------------
+const Main = async () => {
 
 
+    const wsConfig = {
+        market: 'v5',
+        enable_time_sync: true,
+    }
+    const wsConfigOrder = {
+        key: 'foRfrB7L1GgXt1Ly5O',
+        secret: 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp',
+        market: 'v5',
+        enable_time_sync: true,
+    }
+
+    const wsSymbol = new WebsocketClient(wsConfig);
+    const wsOrder = new WebsocketClient(wsConfigOrder);
 
 
-const Main = () => {
+    const allStrategiesActiveResult = await getAllStrategiesActive()
 
 
-    // const strategyID = `${strategy.id}-${strategy.symbol}`;
-    // wsSymbol.subscribeV5([], "linear").catch((err) => { console.log(err) });
-    // wsSymbol.subscribeV5(["order"], 'linear').catch((err) => { console.log(err)})
 
-    wsSymbol.subscribeV5(listSub, 'linear').then(() => {
+    // 
+    const allStrategiesActive = allStrategiesActiveResult.flatMap((data) => data.children.map(child => ({
+        ...child,
+        symbol: data.value,
+    })))
+
+    const allSymbolAndCandle = []
+
+
+    allStrategiesActive.forEach(strategyItem => {
+
+        const symbol = strategyItem.symbol
+
+        const data = {
+            symbol,
+            Candlestick: strategyItem.Candlestick
+        }
+
+        !allSymbolAndCandle.find(item => item.symbol === data.symbol && item.Candlestick === data.Candlestick) && allSymbolAndCandle.push(data)
+    })
+
+    // 
+    const digitAllCoinObject = {}
+
+    await Promise.all(allSymbolAndCandle.map(async item => {
+        const symbol = item.symbol
+        const result = await Digit(symbol)
+        digitAllCoinObject[symbol] = result[0]
+    }))
+
+    // 
+    const listKline = allSymbolAndCandle.map(candleItem => `kline.${candleItem.Candlestick.slice(0, -1)}.${candleItem.symbol}`)
+    // const listOrder = ["order"]
+
+    const tradeCoinData = allStrategiesActive.reduce((pre, cur) => {
+        pre[`${cur._id}-${cur.symbol}-${cur.Candlestick}`] = {
+            "OC": {
+                orderID: "",
+                orderingStatus: false,
+                orderFilled: false
+            },
+            "TP": {
+                orderID: "",
+                orderFilled: false,
+                price: 0,
+                qty: 0
+            },
+            pricePre: {
+                open: 0,
+                close: 0,
+                high: 0,
+                low: 0,
+            }
+
+        }
+        return pre; // Return the accumulator
+    }, {});
+
+    wsSymbol.subscribeV5(listKline, 'linear').then(() => {
         console.log("[V] Subscribe successful");
 
-        strategiesList.forEach(async strategy => {
-            wsSymbol.on('update', async (dataCoin) => {
+        wsSymbol.on('update', async (dataCoin) => {
+            allStrategiesActive.forEach(async strategy => {
 
-                const strategyID = strategy.id;
+                const strategyID = `${strategy._id}-${strategy.symbol}-${strategy.Candlestick}`;
 
-                strategy.digit = strategy.digit || await Digit(strategy.symbol);
-
-
+                strategy.digit = digitAllCoinObject[strategy.symbol]
 
                 if (dataCoin.topic.indexOf(`kline.1.${strategy.symbol}`) != -1) {
 
@@ -352,7 +337,7 @@ const Main = () => {
 
                             const coinCurrent = +dataMain.close
 
-                            const side = strategy.PositionSide == "Long" ? "Buy" : "Sell"
+                            const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
                             let conditionOrder = 0
                             let priceOrder = 0
 
@@ -363,50 +348,52 @@ const Main = () => {
 
                             const pricePreData = tradeCoinData[strategyID].pricePre
                             if (pricePreData.close > pricePreData.open) {
-                                coinPreCoin = "Sell"
+                                coinPreCoin = "Blue"
                             }
                             else {
-                                coinPreCoin = "Buy"
+                                coinPreCoin = "Red"
                             }
                             // BUY
-                            if (side == "Buy") {
+                            if (side === "Buy") {
                                 priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
 
-                                if (coinPreCoin === "Sell") {
+                                if (coinPreCoin === "Blue") {
                                     const preValue = pricePreData.high - pricePreData.open
                                     const currentValue = coinCurrent - coinOpen
                                     conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                 }
-                                conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit) && conditionPre
+                                conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
 
                             }
                             else {
                                 // SELL
-                                if (coinPreCoin === "Buy") {
+                                if (coinPreCoin === "Red") {
                                     const preValue = pricePreData.open - pricePreData.low
                                     const currentValue = coinCurrent - coinOpen
                                     conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                 }
-                                conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit) && conditionPre
+                                conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                 priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
                             }
 
                             const qty = (5 / +priceOrder).toFixed(0)
 
                             const dataInput = {
+                                tradeCoinData,
                                 strategyID,
                                 symbol: strategy.symbol,
                                 qty,
                                 side,
                                 price: priceOrder.toFixed(strategy.digit),
+                                candle: "1m"
                             }
 
-                            if (side == "Buy") {
-                                +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && handleSubmitOrder(dataInput)
+                            if (side === "Buy") {
+                                +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
                             }
                             else {
                                 // SELL
-                                +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && handleSubmitOrder(dataInput)
+                                +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
                             }
                         }
 
@@ -425,8 +412,11 @@ const Main = () => {
                         }
 
                         // TP chưa khớp -> Dịch TP mới
-                        if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
+                        // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
+
+                        if (tradeCoinData[strategyID].TP.orderID) {
                             handleMoveOrderTP({
+                                tradeCoinData,
                                 strategyID,
                                 strategy,
                                 coinOpen: coinClose
@@ -436,6 +426,7 @@ const Main = () => {
                         // console.log(` New Candle ${strategy.PositionSide} `)
                         tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderFilled && handleCancelOrder(
                             {
+                                tradeCoinData,
                                 strategyID,
                                 symbol: strategy.symbol
                             }
@@ -445,17 +436,379 @@ const Main = () => {
 
                 }
 
+                if (dataCoin.topic.indexOf(`kline.3.${strategy.symbol}`) != -1) {
+
+                    const coinOpen = +dataCoin.data[0].open
+                    const dataMain = dataCoin.data[0]
+
+                    if (dataMain.confirm == false) {
+
+                        if (!tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderingStatus) {
+
+                            const coinCurrent = +dataMain.close
+
+                            const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
+                            let conditionOrder = 0
+                            let priceOrder = 0
+
+                            // Check pre coin type 
+
+                            let coinPreCoin = ""
+                            let conditionPre = true
+
+                            const pricePreData = tradeCoinData[strategyID].pricePre
+                            if (pricePreData.close > pricePreData.open) {
+                                coinPreCoin = "Blue"
+                            }
+                            else {
+                                coinPreCoin = "Red"
+                            }
+                            // BUY
+                            if (side === "Buy") {
+                                priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+
+                                if (coinPreCoin === "Blue") {
+                                    const preValue = pricePreData.high - pricePreData.open
+                                    const currentValue = coinCurrent - coinOpen
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                }
+                                conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+
+                            }
+                            else {
+                                // SELL
+                                if (coinPreCoin === "Red") {
+                                    const preValue = pricePreData.open - pricePreData.low
+                                    const currentValue = coinCurrent - coinOpen
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                }
+                                conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
+                            }
+
+                            const qty = (5 / +priceOrder).toFixed(0)
+
+                            const dataInput = {
+                                tradeCoinData,
+                                strategyID,
+                                symbol: strategy.symbol,
+                                qty,
+                                side,
+                                price: priceOrder.toFixed(strategy.digit),
+                                candle: "3m"
+                            }
+
+                            if (side === "Buy") {
+                                +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                            else {
+                                // SELL
+                                +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                        }
+
+                    }
+                    // Coin CLosed
+                    else if (dataMain.confirm == true) {
+                        const data = dataCoin.data[0]
+
+                        const coinClose = +data.close
+
+                        tradeCoinData[strategyID].pricePre = {
+                            open: +data.open,
+                            close: +data.close,
+                            high: +data.high,
+                            low: +data.low,
+                        }
+
+                        // TP chưa khớp -> Dịch TP mới
+                        // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
+
+                        if (tradeCoinData[strategyID].TP.orderID) {
+                            handleMoveOrderTP({
+                                tradeCoinData,
+                                strategyID,
+                                strategy,
+                                coinOpen: coinClose
+                            })
+                        }
+
+                        // console.log(` New Candle ${strategy.PositionSide} `)
+                        tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderFilled && handleCancelOrder(
+                            {
+                                tradeCoinData,
+                                strategyID,
+                                symbol: strategy.symbol
+                            }
+                        )
+                    }
+
+
+                }
+
+                if (dataCoin.topic.indexOf(`kline.5.${strategy.symbol}`) != -1) {
+
+                    const coinOpen = +dataCoin.data[0].open
+                    const dataMain = dataCoin.data[0]
+
+                    if (dataMain.confirm == false) {
+
+                        if (!tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderingStatus) {
+
+                            const coinCurrent = +dataMain.close
+
+                            const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
+                            let conditionOrder = 0
+                            let priceOrder = 0
+
+                            // Check pre coin type 
+
+                            let coinPreCoin = ""
+                            let conditionPre = true
+
+                            const pricePreData = tradeCoinData[strategyID].pricePre
+                            if (pricePreData.close > pricePreData.open) {
+                                coinPreCoin = "Blue"
+                            }
+                            else {
+                                coinPreCoin = "Red"
+                            }
+                            // BUY
+                            if (side === "Buy") {
+                                priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+
+                                if (coinPreCoin === "Blue") {
+                                    const preValue = pricePreData.high - pricePreData.open
+                                    const currentValue = coinCurrent - coinOpen
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                }
+                                conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+
+                            }
+                            else {
+                                // SELL
+                                if (coinPreCoin === "Red") {
+                                    const preValue = pricePreData.open - pricePreData.low
+                                    const currentValue = coinCurrent - coinOpen
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                }
+                                conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
+                            }
+
+                            const qty = (5 / +priceOrder).toFixed(0)
+
+                            const dataInput = {
+                                tradeCoinData,
+                                strategyID,
+                                symbol: strategy.symbol,
+                                qty,
+                                side,
+                                price: priceOrder.toFixed(strategy.digit),
+                                candle: "5m"
+                            }
+
+                            if (side === "Buy") {
+                                +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                            else {
+                                // SELL
+                                +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                        }
+
+                    }
+                    // Coin CLosed
+                    else if (dataMain.confirm == true) {
+                        const data = dataCoin.data[0]
+
+                        const coinClose = +data.close
+
+                        tradeCoinData[strategyID].pricePre = {
+                            open: +data.open,
+                            close: +data.close,
+                            high: +data.high,
+                            low: +data.low,
+                        }
+
+                        // TP chưa khớp -> Dịch TP mới
+                        // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
+
+                        if (tradeCoinData[strategyID].TP.orderID) {
+                            handleMoveOrderTP({
+                                tradeCoinData,
+                                strategyID,
+                                strategy,
+                                coinOpen: coinClose
+                            })
+                        }
+
+                        // console.log(` New Candle ${strategy.PositionSide} `)
+                        tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderFilled && handleCancelOrder(
+                            {
+                                tradeCoinData,
+                                strategyID,
+                                symbol: strategy.symbol
+                            }
+                        )
+                    }
+
+
+                }
+
+                if (dataCoin.topic.indexOf(`kline.15.${strategy.symbol}`) != -1) {
+
+                    const coinOpen = +dataCoin.data[0].open
+                    const dataMain = dataCoin.data[0]
+
+                    if (dataMain.confirm == false) {
+
+                        if (!tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderingStatus) {
+
+                            const coinCurrent = +dataMain.close
+
+                            const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
+                            let conditionOrder = 0
+                            let priceOrder = 0
+
+                            // Check pre coin type 
+
+                            let coinPreCoin = ""
+                            let conditionPre = true
+
+                            const pricePreData = tradeCoinData[strategyID].pricePre
+                            if (pricePreData.close > pricePreData.open) {
+                                coinPreCoin = "Blue"
+                            }
+                            else {
+                                coinPreCoin = "Red"
+                            }
+                            // BUY
+                            if (side === "Buy") {
+                                priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+
+                                if (coinPreCoin === "Blue") {
+                                    const preValue = pricePreData.high - pricePreData.open
+                                    const currentValue = coinCurrent - coinOpen
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                }
+                                conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+
+                            }
+                            else {
+                                // SELL
+                                if (coinPreCoin === "Red") {
+                                    const preValue = pricePreData.open - pricePreData.low
+                                    const currentValue = coinCurrent - coinOpen
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                }
+                                conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
+                            }
+
+                            const qty = (5 / +priceOrder).toFixed(0)
+
+                            const dataInput = {
+                                tradeCoinData,
+                                strategyID,
+                                symbol: strategy.symbol,
+                                qty,
+                                side,
+                                price: priceOrder.toFixed(strategy.digit),
+                                candle: "15m"
+                            }
+
+                            if (side === "Buy") {
+                                +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                            else {
+                                // SELL
+                                +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                        }
+
+                    }
+                    // Coin CLosed
+                    else if (dataMain.confirm == true) {
+                        const data = dataCoin.data[0]
+
+                        const coinClose = +data.close
+
+                        tradeCoinData[strategyID].pricePre = {
+                            open: +data.open,
+                            close: +data.close,
+                            high: +data.high,
+                            low: +data.low,
+                        }
+
+                        // TP chưa khớp -> Dịch TP mới
+                        // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
+
+                        if (tradeCoinData[strategyID].TP.orderID) {
+                            handleMoveOrderTP({
+                                tradeCoinData,
+                                strategyID,
+                                strategy,
+                                coinOpen: coinClose
+                            })
+                        }
+
+                        // console.log(` New Candle ${strategy.PositionSide} `)
+                        tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderFilled && handleCancelOrder(
+                            {
+                                tradeCoinData,
+                                strategyID,
+                                symbol: strategy.symbol
+                            }
+                        )
+                    }
+
+
+                }
+
+
+            })
+        })
+
+        wsSymbol.on('close', () => {
+            console.log('Connection listKline closed');
+            wsSymbol.unsubscribe(listKline, "linear")
+        });
+
+        wsSymbol.on('reconnected', () => {
+            console.log('Reconnected listKline successful')
+        });
+
+        wsSymbol.on('error', (err) => {
+            console.log('Connection listKline error');
+            console.error(err);
+        });
+
+
+    }).catch((err) => { console.log("[!] Subscribe error:", err) })
+
+    wsOrder.subscribeV5(["order"], 'linear').then(() => {
+
+        wsOrder.on('update', async (dataCoin) => {
+            allStrategiesActive.forEach(async strategy => {
+
+                const strategyID = `${strategy._id}-${strategy.symbol}-${strategy.Candlestick}`;
+
                 // Check khớp lệnh -> Create new Order with TP
-                if (dataCoin.topic == "order") {
+                if (dataCoin.topic === "order") {
+
                     const dataMain = dataCoin.data[0]
                     const orderID = dataCoin.data[0].orderId
 
+
+                    // console.log("___ Order ___", dataMain.orderStatus);
                     // console.log(`dataCoin : ${dataMain.orderStatus} / ${dataMain.side} / ${dataMain.orderId} `);
 
-                    if (dataMain.orderStatus == "Filled") {
+                    if (dataMain?.orderStatus === "Filled") {
                         // Khớp OC
-                        if (orderID == tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
-                            console.log(`[V] Filled OC ( ${strategy.PositionSide == "Long" ? "Buy" : "Sell"} ) `);
+                        // if (orderID === tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
+                        if (orderID === tradeCoinData[strategyID].OC.orderID) {
+                            console.log(`[V] Filled OC ( ${strategy.PositionSide === "Long" ? "Buy" : "Sell"} ) `);
                             tradeCoinData[strategyID].OC.orderFilled = true
 
                             if (!tradeCoinData[strategyID].TP.orderID) {
@@ -464,7 +817,7 @@ const Main = () => {
 
                                 let TPNew = 0
 
-                                if (strategy.PositionSide == "Long") {
+                                if (strategy.PositionSide === "Long") {
                                     TPNew = openTrade + (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
                                 }
                                 else {
@@ -484,11 +837,12 @@ const Main = () => {
                                 // console.log("TPNew",TPNew);
 
                                 const dataInput = {
+                                    tradeCoinData,
                                     strategyID,
                                     symbol: strategy.symbol,
                                     qty,
                                     price: TPNew.toFixed(strategy.digit),
-                                    side: strategy.PositionSide == "Long" ? "Sell" : "Buy",
+                                    side: strategy.PositionSide === "Long" ? "Sell" : "Buy",
                                 }
 
                                 handleSubmitOrderTP(dataInput)
@@ -500,40 +854,57 @@ const Main = () => {
                             // 
                         }
                         // Khớp TP
-                        else if (orderID == tradeCoinData[strategyID].TP.orderID) {
-                            console.log(`[V] Filled TP ( ${strategy.PositionSide == "Long" ? "Sell" : "Buy"} )`);
-                            cancelAll(strategyID)
+                        else if (orderID === tradeCoinData[strategyID].TP.orderID) {
+                            console.log(`[V] Filled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} )`);
+                            cancelAll({ tradeCoinData, strategyID })
                         }
 
                     }
-                    // if (dataMain.orderStatus == "Cancelled") {
-                    //     // Khớp TP
-                    //     if (orderID == tradeCoinData[strategyID].TP.orderID) {
-                    //         console.log(`[-] Cancel TP ( ${strategy.PositionSide == "Long" ? "Sell" : "Buy"} ) - Chốt lời `);
-                    //         // cancelAll(strategyID)
-                    //     }
-                    // }
+                    if (dataMain.orderStatus === "Cancelled") {
+                        // Khớp TP
+                        if (orderID === tradeCoinData[strategyID].TP.orderID) {
+                            console.log(`[-] Cancel TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} ) - Chốt lời `);
+                            tradeCoinData[strategyID] = {
+                                ...tradeCoinData[strategyID],
+                                "TP": {
+                                    orderID: "",
+                                    orderFilled: false,
+                                    // orderingStatus: false,
+                                    price: 0,
+                                    qty: 0
+                                },
+                            }
+                        }
+                        if (orderID === tradeCoinData[strategyID].OC.orderID) {
+                            console.log(`[-] Cancel OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} ) `);
+                            tradeCoinData[strategyID] = {
+                                ...tradeCoinData[strategyID],
+                                "OC": {
+                                    orderID: "",
+                                    orderingStatus: false,
+                                    orderFilled: false
+                                },
+                            }
+                        }
+
+                    }
 
                 }
-
-
             })
-
-            wsSymbol.on('close', () => {
-                console.log('Connection closed');
-                wsSymbol.unsubscribe(listSub, "linear")
-            });
-
-            wsSymbol.on('reconnected', () => {
-                console.log('Reconnected successful')
-            });
-
-            wsSymbol.on('error', (err) => {
-                console.log('Connection error');
-                console.error(err);
-            });
-
         })
+        wsOrder.on('close', () => {
+            console.log('Connection order closed');
+            wsOrder.unsubscribe(["order"], "linear")
+        });
+
+        wsOrder.on('reconnected', () => {
+            console.log('Reconnected order successful')
+        });
+
+        wsOrder.on('error', (err) => {
+            console.log('Connection order error');
+            console.error(err);
+        });
     }).catch((err) => { console.log("[!] Subscribe error:", err) })
 }
 

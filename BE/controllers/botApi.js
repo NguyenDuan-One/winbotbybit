@@ -2,6 +2,16 @@
 const BotApiModel = require('../models/botApi.model');
 
 const BotApiController = {
+    getBotApiByBotListID: async (req, res) => {
+        try {
+            const botListID = req.body;
+            const data = await BotApiModel.find({ "botID": { "$in": botListID } })
+            // const data = await BotApiModel.find({ botID })
+            res.customResponse(res.statusCode, "Get All Api Successful", data);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
     getBotApiByBotID: async (req, res) => {
         try {
             const botID = req.params.id;

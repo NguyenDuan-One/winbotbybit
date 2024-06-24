@@ -507,7 +507,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
-                    enable_time_sync:true,
+                    enable_time_sync: true,
                 });
 
                 // get field totalWalletBalance
@@ -544,7 +544,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
-                    enable_time_sync:true,
+                    enable_time_sync: true,
                 });
 
                 await client.getAllCoinsBalance({
@@ -707,7 +707,6 @@ const dataCoinByBitController = {
         try {
             // require("../models/bot.model")
 
-            console.log('call get all ');
             const resultFilter = await StrategiesModel.aggregate([
                 {
                     $match: { "children.IsActive": true }
@@ -730,14 +729,21 @@ const dataCoinByBitController = {
             // const result = await StrategiesModel.populate(resultFilter, {
             //     path: 'children.botID',
             // })
-            console.log(resultFilter);
             return resultFilter || []
 
         } catch (err) {
             return []
         }
     },
+    getAllSymbolBE: async (req, res) => {
+        try {
+            const result = await StrategiesModel.find();
+            return result.map(item => item.value)
 
+        } catch (err) {
+            return []
+        }
+    },
 
 }
 
