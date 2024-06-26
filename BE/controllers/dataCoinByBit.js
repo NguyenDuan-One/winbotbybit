@@ -73,7 +73,10 @@ const dataCoinByBitController = {
                             $filter: {
                                 input: "$children",
                                 as: "child",
-                                cond: { $eq: ["$$child.userID", new mongoose.Types.ObjectId(userID)] }
+                                cond: {
+                                    $eq: ["$$child.userID", new mongoose.Types.ObjectId(userID)],
+
+                                }
                             }
                         }
                     }
@@ -83,8 +86,17 @@ const dataCoinByBitController = {
                 path: 'children.botID',
             })
 
+            const handleResult = result.reduce((result, child) => {
+                if (child.children.some(childData => childData.botID.Status === "Running")) {
+                    result.push({
+                        ...child,
+                        children: child.children.filter(item => item.botID.Status === "Running")
+                    })
+                    return result
+                }
+            }, []) || []
 
-            res.customResponse(res.statusCode, "Get All Strategies Successful", result);
+            res.customResponse(res.statusCode, "Get All Strategies Successful", handleResult);
 
         } catch (err) {
             res.status(500).json({ message: err.message });
@@ -705,7 +717,7 @@ const dataCoinByBitController = {
 
     getAllStrategiesActive: async () => {
         try {
-            // require("../models/bot.model")
+            require("../models/bot.model")
 
             const resultFilter = await StrategiesModel.aggregate([
                 {
@@ -726,10 +738,20 @@ const dataCoinByBitController = {
                     }
                 }
             ]);
-            // const result = await StrategiesModel.populate(resultFilter, {
-            //     path: 'children.botID',
-            // })
-            return resultFilter || []
+            const result = await StrategiesModel.populate(resultFilter, {
+                path: 'children.botID',
+            })
+
+            const handleResult = result.reduce((result, child) => {
+                if (child.children.some(childData => childData.botID.Status === "Running")) {
+                    result.push({
+                        ...child,
+                        children: child.children.filter(item => item.botID.Status === "Running")
+                    })
+                    return result
+                }
+            }, []) || []
+            return handleResult
 
         } catch (err) {
             return []
@@ -738,7 +760,7 @@ const dataCoinByBitController = {
     getAllSymbolBE: async (req, res) => {
         try {
             const result = await StrategiesModel.find();
-            return result.map(item => item.value)
+            return result.map(item => item.value) || []
 
         } catch (err) {
             return []

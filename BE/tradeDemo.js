@@ -1,12 +1,14 @@
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 const { getAllStrategiesActive, getAllSymbolBE } = require('./controllers/dataCoinByBit');
 
-
+const API_KEY = "8Ttfa29X5wkjaGSa0P"
+const SECRET_KEY = "uLkFZbyooomB6FMwwlJOHWjgscbpIK4CgRFw"
 const client = new RestClientV5({
     testnet: false,
-    key: 'foRfrB7L1GgXt1Ly5O',
-    secret: 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp',
-    enable_time_sync: true,
+    key: API_KEY,
+    secret: SECRET_KEY,
+    // key: 'foRfrB7L1GgXt1Ly5O',
+    // secret: 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp',
 });
 
 const clientDigit = new RestClientV5({
@@ -67,6 +69,7 @@ const handleSubmitOrder = ({
     price,
     candle
 }) => {
+
     tradeCoinData[strategyID].OC.orderingStatus = true
     client
         .submitOrder({
@@ -80,17 +83,17 @@ const handleSubmitOrder = ({
         })
         .then((response) => {
             if (response.retCode === 0) {
-                console.log(`[+OC] Order OC ( ${side} - ${symbol} - ${candle} ) successful `)
-                tradeCoinData[strategyID].OC.orderID = response.result?.orderId
+                console.log(`\n[+OC] Order OC ( ${side} - ${symbol} - ${candle} ) successful `)
+                tradeCoinData[strategyID].OC.orderID = response.result.orderId
             }
             else {
-                console.log(`[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) failed `, response)
+                console.log(`\n[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) failed `, response)
             }
             tradeCoinData[strategyID].OC.orderingStatus = false
 
         })
         .catch((error) => {
-            console.log(`[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) error `, error)
+            console.log(`\n[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) error `, error)
             tradeCoinData[strategyID].OC.orderingStatus = false
         });
 }
@@ -118,7 +121,7 @@ const handleSubmitOrderTP = ({
         .then((response) => {
             if (response.retCode === 0) {
                 console.log(`[+TP] Order TP ( ${side} - ${symbol} - ${candle} ) successful `)
-                tradeCoinData[strategyID].TP.orderID = response.result?.orderId
+                tradeCoinData[strategyID].TP.orderID = response.result.orderId
                 // console.log("TP Order ID first: " + response.result?.orderId);
             }
             else {
@@ -142,7 +145,6 @@ const moveOrderTP = ({
     candle
 }) => {
 
-    console.log("[~] Moving TP...");
     // tradeCoinData[strategyID].TP.orderingStatus = true
     client
         .amendOrder({
@@ -153,8 +155,8 @@ const moveOrderTP = ({
         })
         .then((response) => {
             if (response.retCode === 0) {
-                console.log(`[->] Move Order TP ( ${symbol} - ${candle} ) successful `)
-                tradeCoinData[strategyID].TP.orderID = response.result?.orderId
+                console.log(`[->] Move Order TP ( ${symbol} - ${candle} ) successful`)
+                tradeCoinData[strategyID].TP.orderID = response.result.orderId
             }
             else {
                 console.log(`[!] Move Order TP ( ${symbol} - ${candle} ) failed `, response)
@@ -223,77 +225,206 @@ const handleCancelOrder = ({
         .then((response) => {
             if (response.retCode === 0) {
                 console.log(`[V] Cancel order ( ${symbol} - ${candle} ) successful `);
-                cancelAll({ tradeCoinData, strategyID })
             }
             else {
                 console.log(`[!] Cancel order ( ${symbol} - ${candle} ) failed `, response);
             }
+            cancelAll({ tradeCoinData, strategyID })
         })
         .catch((error) => {
             console.log(`[!] Cancel order ( ${symbol} - ${candle} ) error `, error);
+            cancelAll({ tradeCoinData, strategyID })
         });
 
 }
 
+const handleRealTimeDataChange = async () => {
+    let allStrategiesActiveBE = getAllStrategiesActive()
+    let allSymbolBE = getAllSymbolBE()
+
+    const result = await Promise.all([allStrategiesActiveBE, allSymbolBE])
+
+    const allStrategiesActiveResult = result[0]
+    const allSymbol = result[1]
+
+    // 
+    let allStrategiesActiveObject = allStrategiesActiveResult.flatMap((data) => data.children.map(child => ({
+        ...child,
+        symbol: data.value,
+        value: `${data._id}-${child._id}`
+    }))) || []
+
+    // const allStrategiesActive = allStrategiesActiveObject.reduce((pre, cur) => {
+    //     pre[cur.value] = cur
+    //     return pre
+    // }, {})
+
+    let allStrategies1m = []
+    let allStrategies3m = []
+    let allStrategies5m = []
+    let allStrategies15m = []
+
+    let allSymbolAndCandle = []
+    allStrategiesActiveObject.forEach(strategyItem => {
+        let Candlestick = strategyItem.Candlestick
+        let symbol = strategyItem.symbol
+        let data = {
+            symbol,
+            Candlestick
+        }
+        if (Candlestick === "1m") {
+            allStrategies1m.push(strategyItem)
+        }
+        else if (Candlestick === "3m") {
+            allStrategies3m.push(strategyItem)
+        }
+        else if (Candlestick === "5m") {
+            allStrategies5m.push(strategyItem)
+        }
+        else if (Candlestick === "15m") {
+            allStrategies15m.push(strategyItem)
+        }
+        !allSymbolAndCandle.find(item => item.symbol === data.symbol && item.Candlestick === data.Candlestick) && allSymbolAndCandle.push(data)
+    })
+
+    // 
+    let digitAllCoinObject = {}
+
+    await Promise.all(allSymbolAndCandle.map(async item => {
+        let symbol = item.symbol
+        let result = await Digit(symbol)
+        digitAllCoinObject[symbol] = result[0]
+    }))
+
+    // 
+    wsConfig.unsubscribe(listKline, "linear")
+
+    // let listKline = allSymbolAndCandle.map(candleItem => `kline.${candleItem.Candlestick.slice(0, -1)}.${candleItem.symbol}`)
+    let listKline = allSymbol.flatMap(candleItem => ([
+        `kline.1.${candleItem}`,
+        `kline.3.${candleItem}`,
+        `kline.5.${candleItem}`,
+        `kline.15.${candleItem}`,
+    ]))
+
+
+    wsConfig.subscribeV5(listKline, "linear")
+
+    let tradeCoinData = allStrategiesActiveObject.reduce((pre, cur) => {
+        if (!pre[cur.value].OC.orderID) {
+            pre[cur.value] = {
+                "OC": {
+                    orderID: "",
+                    orderingStatus: false,
+                    orderFilled: false
+                },
+                "TP": {
+                    orderID: "",
+                    orderFilled: false,
+                    price: 0,
+                    qty: 0
+                },
+                pricePre: {
+                    open: 0,
+                    close: 0,
+                    high: 0,
+                    low: 0,
+                }
+
+            }
+        }
+        return pre; // Return the accumulator
+
+
+    }, {});
+}
 // -----------------------------------------
 const Main = async () => {
 
 
     const wsConfig = {
         market: 'v5',
-        enable_time_sync: true,
     }
     const wsConfigOrder = {
-        key: 'foRfrB7L1GgXt1Ly5O',
-        secret: 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp',
+        key: API_KEY,
+        secret: SECRET_KEY,
         market: 'v5',
-        enable_time_sync: true,
     }
 
     const wsSymbol = new WebsocketClient(wsConfig);
     const wsOrder = new WebsocketClient(wsConfigOrder);
 
+    let allStrategiesActiveBE = getAllStrategiesActive()
+    let allSymbolBE = getAllSymbolBE()
 
-    const allStrategiesActiveResult = await getAllStrategiesActive()
+    const result = await Promise.all([allStrategiesActiveBE, allSymbolBE])
 
-
+    const allStrategiesActiveResult = result[0]
+    const allSymbol = result[1]
 
     // 
-    const allStrategiesActive = allStrategiesActiveResult.flatMap((data) => data.children.map(child => ({
+    let allStrategiesActiveObject = allStrategiesActiveResult.flatMap((data) => data.children.map(child => ({
         ...child,
         symbol: data.value,
-    })))
+        value: `${data._id}-${child._id}`
+    }))) || []
 
-    const allSymbolAndCandle = []
+    // const allStrategiesActive = allStrategiesActiveObject.reduce((pre, cur) => {
+    //     pre[cur.value] = cur
+    //     return pre
+    // }, {})
 
+    let allStrategies1m = []
+    let allStrategies3m = []
+    let allStrategies5m = []
+    let allStrategies15m = []
 
-    allStrategiesActive.forEach(strategyItem => {
-
-        const symbol = strategyItem.symbol
-
-        const data = {
+    let allSymbolAndCandle = []
+    allStrategiesActiveObject.forEach(strategyItem => {
+        let Candlestick = strategyItem.Candlestick
+        let symbol = strategyItem.symbol
+        let data = {
             symbol,
-            Candlestick: strategyItem.Candlestick
+            Candlestick
         }
-
+        if (Candlestick === "1m") {
+            allStrategies1m.push(strategyItem)
+        }
+        else if (Candlestick === "3m") {
+            allStrategies3m.push(strategyItem)
+        }
+        else if (Candlestick === "5m") {
+            allStrategies5m.push(strategyItem)
+        }
+        else if (Candlestick === "15m") {
+            allStrategies15m.push(strategyItem)
+        }
         !allSymbolAndCandle.find(item => item.symbol === data.symbol && item.Candlestick === data.Candlestick) && allSymbolAndCandle.push(data)
     })
 
     // 
-    const digitAllCoinObject = {}
+    let digitAllCoinObject = {}
 
     await Promise.all(allSymbolAndCandle.map(async item => {
-        const symbol = item.symbol
-        const result = await Digit(symbol)
+        let symbol = item.symbol
+        let result = await Digit(symbol)
         digitAllCoinObject[symbol] = result[0]
     }))
 
-    // 
-    const listKline = allSymbolAndCandle.map(candleItem => `kline.${candleItem.Candlestick.slice(0, -1)}.${candleItem.symbol}`)
-    // const listOrder = ["order"]
 
-    const tradeCoinData = allStrategiesActive.reduce((pre, cur) => {
-        pre[`${cur._id}-${cur.symbol}-${cur.Candlestick}`] = {
+    // let listKline = allSymbolAndCandle.map(candleItem => `kline.${candleItem.Candlestick.slice(0, -1)}.${candleItem.symbol}`)
+    let listKline = allSymbol.flatMap(candleItem => ([
+        `kline.1.${candleItem}`,
+        `kline.3.${candleItem}`,
+        `kline.5.${candleItem}`,
+        `kline.15.${candleItem}`,
+    ]))
+    let listOrder = ["order"]
+
+
+
+    let tradeCoinData = allStrategiesActiveObject.reduce((pre, cur) => {
+        pre[cur.value] = {
             "OC": {
                 orderID: "",
                 orderingStatus: false,
@@ -316,20 +447,25 @@ const Main = async () => {
         return pre; // Return the accumulator
     }, {});
 
-    wsSymbol.subscribeV5(listKline, 'linear').then(() => {
-        console.log("[V] Subscribe successful");
+    // 
+    await wsSymbol.subscribeV5(listKline, 'linear')
 
-        wsSymbol.on('update', async (dataCoin) => {
-            allStrategiesActive.forEach(async strategy => {
+    wsSymbol.on('update', async (dataCoin) => {
 
-                const strategyID = `${strategy._id}-${strategy.symbol}-${strategy.Candlestick}`;
+        allStrategies1m.forEach(strategy => {
+            const strategyID = strategy.value
 
-                strategy.digit = digitAllCoinObject[strategy.symbol]
+            const topic = dataCoin.topic
+            const symbol = topic.split(".").slice(-1)?.[0]
 
-                if (dataCoin.topic.indexOf(`kline.1.${strategy.symbol}`) != -1) {
+            if (topic === `kline.1.${symbol}`) {
 
-                    const coinOpen = +dataCoin.data[0].open
+                if (strategy.symbol === symbol) {
+
                     const dataMain = dataCoin.data[0]
+                    const coinOpen = +dataMain.open
+
+                    strategy.digit = digitAllCoinObject[strategy.symbol]
 
                     if (dataMain.confirm == false) {
 
@@ -359,7 +495,7 @@ const Main = async () => {
 
                                 if (coinPreCoin === "Blue") {
                                     const preValue = pricePreData.high - pricePreData.open
-                                    const currentValue = coinCurrent - coinOpen
+                                    const currentValue = coinOpen - coinCurrent
                                     conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                 }
                                 conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
@@ -414,6 +550,7 @@ const Main = async () => {
                         // TP chưa khớp -> Dịch TP mới
                         // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                        // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                         if (tradeCoinData[strategyID].TP.orderID) {
                             handleMoveOrderTP({
                                 tradeCoinData,
@@ -432,14 +569,26 @@ const Main = async () => {
                             }
                         )
                     }
-
-
                 }
 
-                if (dataCoin.topic.indexOf(`kline.3.${strategy.symbol}`) != -1) {
+            }
 
-                    const coinOpen = +dataCoin.data[0].open
+        })
+
+        allStrategies3m.forEach(strategy => {
+            const strategyID = strategy.value
+
+            const topic = dataCoin.topic
+            const symbol = topic.split(".").slice(-1)?.[0]
+
+            if (topic === `kline.3.${symbol}`) {
+
+                if (strategy.symbol === symbol) {
+
                     const dataMain = dataCoin.data[0]
+                    const coinOpen = +dataMain.open
+
+                    strategy.digit = digitAllCoinObject[strategy.symbol]
 
                     if (dataMain.confirm == false) {
 
@@ -469,7 +618,7 @@ const Main = async () => {
 
                                 if (coinPreCoin === "Blue") {
                                     const preValue = pricePreData.high - pricePreData.open
-                                    const currentValue = coinCurrent - coinOpen
+                                    const currentValue = coinOpen - coinCurrent
                                     conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                 }
                                 conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
@@ -524,6 +673,7 @@ const Main = async () => {
                         // TP chưa khớp -> Dịch TP mới
                         // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                        // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                         if (tradeCoinData[strategyID].TP.orderID) {
                             handleMoveOrderTP({
                                 tradeCoinData,
@@ -542,14 +692,26 @@ const Main = async () => {
                             }
                         )
                     }
-
-
                 }
 
-                if (dataCoin.topic.indexOf(`kline.5.${strategy.symbol}`) != -1) {
+            }
 
-                    const coinOpen = +dataCoin.data[0].open
+        })
+
+        allStrategies5m.forEach(strategy => {
+            const strategyID = strategy.value
+
+            const topic = dataCoin.topic
+            const symbol = topic.split(".").slice(-1)?.[0]
+
+            if (topic === `kline.5.${symbol}`) {
+
+                if (strategy.symbol === symbol) {
+
                     const dataMain = dataCoin.data[0]
+                    const coinOpen = +dataMain.open
+
+                    strategy.digit = digitAllCoinObject[strategy.symbol]
 
                     if (dataMain.confirm == false) {
 
@@ -579,7 +741,7 @@ const Main = async () => {
 
                                 if (coinPreCoin === "Blue") {
                                     const preValue = pricePreData.high - pricePreData.open
-                                    const currentValue = coinCurrent - coinOpen
+                                    const currentValue = coinOpen - coinCurrent
                                     conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                 }
                                 conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
@@ -634,6 +796,7 @@ const Main = async () => {
                         // TP chưa khớp -> Dịch TP mới
                         // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                        // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                         if (tradeCoinData[strategyID].TP.orderID) {
                             handleMoveOrderTP({
                                 tradeCoinData,
@@ -652,14 +815,26 @@ const Main = async () => {
                             }
                         )
                     }
-
-
                 }
 
-                if (dataCoin.topic.indexOf(`kline.15.${strategy.symbol}`) != -1) {
+            }
 
-                    const coinOpen = +dataCoin.data[0].open
+        })
+
+        allStrategies15m.forEach(strategy => {
+            const strategyID = strategy.value
+
+            const topic = dataCoin.topic
+            const symbol = topic.split(".").slice(-1)?.[0]
+
+            if (topic === `kline.15.${symbol}`) {
+
+                if (strategy.symbol === symbol) {
+
                     const dataMain = dataCoin.data[0]
+                    const coinOpen = +dataMain.open
+
+                    strategy.digit = digitAllCoinObject[strategy.symbol]
 
                     if (dataMain.confirm == false) {
 
@@ -689,7 +864,7 @@ const Main = async () => {
 
                                 if (coinPreCoin === "Blue") {
                                     const preValue = pricePreData.high - pricePreData.open
-                                    const currentValue = coinCurrent - coinOpen
+                                    const currentValue = coinOpen - coinCurrent
                                     conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                 }
                                 conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
@@ -744,6 +919,7 @@ const Main = async () => {
                         // TP chưa khớp -> Dịch TP mới
                         // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                        // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                         if (tradeCoinData[strategyID].TP.orderID) {
                             handleMoveOrderTP({
                                 tradeCoinData,
@@ -762,131 +938,119 @@ const Main = async () => {
                             }
                         )
                     }
-
-
                 }
 
+            }
 
-            })
         })
+    })
+    wsSymbol.on('close', () => {
+        console.log('Connection listKline closed');
+        wsSymbol.unsubscribe(listKline, "linear")
+    });
 
-        wsSymbol.on('close', () => {
-            console.log('Connection listKline closed');
-            wsSymbol.unsubscribe(listKline, "linear")
-        });
+    wsSymbol.on('reconnected', () => {
+        console.log('Reconnected listKline successful')
+    });
 
-        wsSymbol.on('reconnected', () => {
-            console.log('Reconnected listKline successful')
-        });
-
-        wsSymbol.on('error', (err) => {
-            console.log('Connection listKline error');
-            console.error(err);
-        });
+    wsSymbol.on('error', (err) => {
+        console.log('Connection listKline error');
+        console.error(err);
+    });
 
 
-    }).catch((err) => { console.log("[!] Subscribe error:", err) })
 
-    wsOrder.subscribeV5(["order"], 'linear').then(() => {
+    // 
+    wsOrder.subscribeV5(listOrder, 'linear').then(() => {
 
         wsOrder.on('update', async (dataCoin) => {
-            allStrategiesActive.forEach(async strategy => {
+            allStrategiesActiveObject.forEach(strategy => {
+                const strategyID = strategy.value
 
-                const strategyID = `${strategy._id}-${strategy.symbol}-${strategy.Candlestick}`;
+                const dataMain = dataCoin.data[0]
+                const symbol = dataMain.symbol
+                const orderID = dataMain.orderId
+                if (strategy.symbol === symbol) {
+                    if (dataCoin.topic === "order") {
+                        if (dataMain.orderStatus === "Filled") {
+                            // Khớp OC
+                            // if (orderID === tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
-                // Check khớp lệnh -> Create new Order with TP
-                if (dataCoin.topic === "order") {
+                            if (orderID === tradeCoinData[strategyID].OC.orderID) {
+                                console.log(`[V] Filled OC ( ${strategy.PositionSide === "Long" ? "Buy" : "Sell"} - ${symbol} ) `);
+                                tradeCoinData[strategyID].OC.orderFilled = true
 
-                    const dataMain = dataCoin.data[0]
-                    const orderID = dataCoin.data[0].orderId
+                                if (!tradeCoinData[strategyID].TP.orderID) {
 
+                                    const openTrade = +dataMain.avgPrice  //Gia khop lenh
 
-                    // console.log("___ Order ___", dataMain.orderStatus);
-                    // console.log(`dataCoin : ${dataMain.orderStatus} / ${dataMain.side} / ${dataMain.orderId} `);
+                                    let TPNew = 0
 
-                    if (dataMain?.orderStatus === "Filled") {
-                        // Khớp OC
-                        // if (orderID === tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
-                        if (orderID === tradeCoinData[strategyID].OC.orderID) {
-                            console.log(`[V] Filled OC ( ${strategy.PositionSide === "Long" ? "Buy" : "Sell"} ) `);
-                            tradeCoinData[strategyID].OC.orderFilled = true
+                                    if (strategy.PositionSide === "Long") {
+                                        TPNew = openTrade + (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
+                                    }
+                                    else {
+                                        TPNew = openTrade - (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
+                                    }
 
-                            if (!tradeCoinData[strategyID].TP.orderID) {
+                                    tradeCoinData[strategyID].TP.price = TPNew
 
-                                const openTrade = +dataMain.avgPrice  //Gia khop lenh
+                                    const qty = dataMain.qty
 
-                                let TPNew = 0
-
-                                if (strategy.PositionSide === "Long") {
-                                    TPNew = openTrade + (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
-                                }
-                                else {
-                                    TPNew = openTrade - (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
-                                }
-
-                                tradeCoinData[strategyID].TP.price = TPNew
-
-                                const qty = dataMain.qty
-
-                                tradeCoinData[strategyID].TP.qty = qty
+                                    tradeCoinData[strategyID].TP.qty = qty
 
 
-                                // console.log("price",dataMain.price);
-                                // console.log("avgPrice",dataMain.avgPrice);
-                                // console.log("openTrade",openTrade);
-                                // console.log("TPNew",TPNew);
+                                    // console.log("price",dataMain.price);
+                                    // console.log("avgPrice",dataMain.avgPrice);
+                                    // console.log("openTrade",openTrade);
+                                    // console.log("TPNew",TPNew);
 
-                                const dataInput = {
-                                    tradeCoinData,
-                                    strategyID,
-                                    symbol: strategy.symbol,
-                                    qty,
-                                    price: TPNew.toFixed(strategy.digit),
-                                    side: strategy.PositionSide === "Long" ? "Sell" : "Buy",
+                                    const dataInput = {
+                                        tradeCoinData,
+                                        strategyID,
+                                        symbol: strategy.symbol,
+                                        qty,
+                                        price: TPNew.toFixed(strategy.digit),
+                                        side: strategy.PositionSide === "Long" ? "Sell" : "Buy",
+                                    }
+
+                                    handleSubmitOrderTP(dataInput)
                                 }
 
-                                handleSubmitOrderTP(dataInput)
+
+                                // Send telegram
+
+                                // 
+                            }
+                            // Khớp TP
+                            else if (orderID === tradeCoinData[strategyID].TP.orderID) {
+                                console.log(`[V] Filled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} )`);
+                                cancelAll({ tradeCoinData, strategyID })
                             }
 
-
-                            // Send telegram
-
-                            // 
                         }
-                        // Khớp TP
-                        else if (orderID === tradeCoinData[strategyID].TP.orderID) {
-                            console.log(`[V] Filled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} )`);
-                            cancelAll({ tradeCoinData, strategyID })
-                        }
-
-                    }
-                    if (dataMain.orderStatus === "Cancelled") {
-                        // Khớp TP
-                        if (orderID === tradeCoinData[strategyID].TP.orderID) {
-                            console.log(`[-] Cancel TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} ) - Chốt lời `);
-                            tradeCoinData[strategyID] = {
-                                ...tradeCoinData[strategyID],
-                                "TP": {
-                                    orderID: "",
-                                    orderFilled: false,
-                                    // orderingStatus: false,
-                                    price: 0,
-                                    qty: 0
-                                },
+                        else if (dataMain.orderStatus === "Cancelled") {
+                            console.log("[X] Cancelled");
+                            // Khớp TP
+                            if (orderID === tradeCoinData[strategyID].TP.orderID) {
+                                console.log(`[-] Cancelled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} ) - Chốt lời `);
+                                // tradeCoinData[strategyID] = {
+                                //     ...tradeCoinData[strategyID],
+                                //     "TP": {
+                                //         orderID: "",
+                                //         orderFilled: false,
+                                //         // orderingStatus: false,
+                                //         price: 0,
+                                //         qty: 0
+                                //     },
+                                // }
                             }
-                        }
-                        if (orderID === tradeCoinData[strategyID].OC.orderID) {
-                            console.log(`[-] Cancel OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} ) `);
-                            tradeCoinData[strategyID] = {
-                                ...tradeCoinData[strategyID],
-                                "OC": {
-                                    orderID: "",
-                                    orderingStatus: false,
-                                    orderFilled: false
-                                },
+                            else if (orderID === tradeCoinData[strategyID].OC.orderID) {
+                                console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol}) `);
+                                cancelAll({ tradeCoinData, strategyID })
                             }
-                        }
 
+                        }
                     }
 
                 }
@@ -894,7 +1058,7 @@ const Main = async () => {
         })
         wsOrder.on('close', () => {
             console.log('Connection order closed');
-            wsOrder.unsubscribe(["order"], "linear")
+            wsOrder.unsubscribe(listOrder, "linear")
         });
 
         wsOrder.on('reconnected', () => {

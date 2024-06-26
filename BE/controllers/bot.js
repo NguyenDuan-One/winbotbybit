@@ -28,6 +28,18 @@ const BotController = {
             res.status(500).json({ message: err.message });
         }
     },
+    getAllBotActiveByUserID: async (req, res) => {
+        try {
+            const userID = req.params.id;
+
+            // ref: .populate({ path: "coinID", models: "Coin" })
+            const data = await BotModel.find({ userID, "Status": "Running" }).sort({ Created: -1 }).populate("userID", "userName");
+            res.customResponse(res.statusCode, "Get All Bot Successful", data);
+
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
     getAllBotBySameGroup: async (req, res) => {
         try {
             const groupID = req.params.id;

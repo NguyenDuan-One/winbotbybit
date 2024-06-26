@@ -53,14 +53,14 @@ function CreateStrategy({
             name: "15m",
             value: "15m",
         },
-        {
-            name: "30m",
-            value: "30m",
-        },
-        {
-            name: "60m",
-            value: "60m",
-        },
+        // {
+        //     name: "30m",
+        //     value: "30m",
+        // },
+        // {
+        //     name: "60m",
+        //     value: "60m",
+        // },
     ]
 
     const {

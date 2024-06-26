@@ -6,6 +6,9 @@ export const getAllBot = async () => {
 export const getAllBotByUserID = async (userID) => {
     return await api.get(`/bot/getAllBotByUserID/${userID}`)
 }
+export const getAllBotActiveByUserID = async (userID) => {
+    return await api.get(`/bot/getAllBotActiveByUserID/${userID}`)
+}
 export const getAllBotBySameGroup = async (groupID) => {
     return await api.get(`/bot/getAllBotBySameGroup/${groupID}`)
 }

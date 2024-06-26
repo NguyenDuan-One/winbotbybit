@@ -18,7 +18,7 @@ import FilterDialog from './components/FilterDialog';
 import TreeParent from './components/TreeView/TreeParent';
 import { handleCheckAllCheckBox } from '../../functions';
 import clsx from 'clsx';
-import { getAllBotByUserID } from '../../services/botService';
+import { getAllBotActiveByUserID } from '../../services/botService';
 
 function Strategies() {
 
@@ -71,14 +71,14 @@ function Strategies() {
             name: "15m",
             value: "15m",
         },
-        {
-            name: "30m",
-            value: "30m",
-        },
-        {
-            name: "60m",
-            value: "60m",
-        },
+        // {
+        //     name: "30m",
+        //     value: "30m",
+        // },
+        // {
+        //     name: "60m",
+        //     value: "60m",
+        // },
     ]
 
 
@@ -133,7 +133,7 @@ function Strategies() {
 
     const handleGetAllBotByUserID = () => {
         const userData = JSON.parse(localStorage.getItem("user"))
-        getAllBotByUserID(userData._id)
+        getAllBotActiveByUserID(userData._id)
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -164,7 +164,7 @@ function Strategies() {
                     {
                         ...itemChild,
                         value: `${item._id}-${itemChild._id}`,
-                        volume24h:item?.volume24h
+                        volume24h: item?.volume24h
                     }
                 )) : item?.children
             }
