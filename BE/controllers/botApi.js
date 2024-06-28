@@ -62,6 +62,16 @@ const BotApiController = {
         }
     },
 
+    // OTHER
+    getBotApiByBotIDBE: async (botID) => {
+        try {
+            const data = await BotApiModel.findOne({ botID })
+            return data
+        } catch (err) {
+            return ""
+        }
+    },
+
 }
 
 module.exports = BotApiController 

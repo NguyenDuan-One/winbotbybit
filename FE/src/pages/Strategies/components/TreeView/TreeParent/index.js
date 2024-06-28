@@ -19,7 +19,8 @@ function TreeParent({
     treeData,
     dataCheckTreeSelectedRef,
     setOpenCreateStrategy,
-    setDataCheckTree
+    setDataCheckTree,
+    dataCheckTreeCurrentLength
 }) {
 
 
@@ -171,6 +172,7 @@ function TreeParent({
                 <input
                     className={clsx("nodeParentSelected", styles.checkboxStyle)}
                     type="checkbox"
+                    checked = {dataCheckTreeCurrentLength=== dataCheckTreeSelectedRef.current?.length || undefined}
                     onClick={e => {
                         const check = e.target.checked
                         e.currentTarget.parentElement.parentElement.querySelectorAll(`.nodeItemSelected-${treeData._id}`)?.forEach(item => {
@@ -252,6 +254,7 @@ function TreeParent({
                                                 treeNode={treeNode}
                                                 dataCheckTreeSelectedRef={dataCheckTreeSelectedRef}
                                                 setDataCheckTree={setDataCheckTree}
+                                                dataCheckTreeCurrentLength={dataCheckTreeCurrentLength}
                                                 key={treeNode.value}
                                             />
                                         ))

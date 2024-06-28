@@ -15,7 +15,8 @@ function TreeChild({
     treeData,
     treeNode,
     dataCheckTreeSelectedRef,
-    setDataCheckTree
+    setDataCheckTree,
+    dataCheckTreeCurrentLength
 }) {
 
     const [openDeleteTreeItem, setOpenDeleteTreeItem] = useState({
@@ -131,7 +132,6 @@ function TreeChild({
         }
     }
 
-
     return (
         <>
             <TableRow className={styles.treeChild} key={treeNode.value} >
@@ -143,6 +143,7 @@ function TreeChild({
                     <input
                         type='checkbox'
                         className={clsx("nodeItemSelected", `nodeItemSelected-${treeData._id}`, styles.checkboxStyle)}
+                        checked = {dataCheckTreeCurrentLength=== dataCheckTreeSelectedRef.current?.length || undefined}
                         onClick={(e) => {
                             const check = e.target.checked;
                             if (check) {

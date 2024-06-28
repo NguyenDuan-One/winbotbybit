@@ -325,6 +325,14 @@ function Strategies() {
         }
     }
 
+    const dataCheckTreeCurrentLength = useMemo(() => {
+        const list = dataCheckTreeRef.current.length > 0 ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
+        const result = list.reduce((pre, cur) => {
+            return pre += cur.children.length
+        }, 0)
+        return result
+    }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
+
     useEffect(() => {
 
         handleGetAllBotByUserID()
@@ -347,6 +355,8 @@ function Strategies() {
     useEffect(() => {
         (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && !filterQuantityRef.current.length && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
+
+
 
     return (
         <div className={styles.strategies}>
@@ -538,6 +548,7 @@ function Strategies() {
                                     treeData={treeData}
                                     setOpenCreateStrategy={setOpenCreateStrategy}
                                     setDataCheckTree={setDataCheckTree}
+                                    dataCheckTreeCurrentLength={dataCheckTreeCurrentLength}
                                     key={treeData._id}
                                 />
                             )

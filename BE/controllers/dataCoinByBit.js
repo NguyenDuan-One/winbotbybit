@@ -651,13 +651,16 @@ const dataCoinByBitController = {
                 })
 
                 if (result.retCode === 0) {
-                    return result[0]?.result?.list?.[0]?.totalWalletBalance || 0
+                    return {
+                        totalWalletBalance:result.result?.list?.[0]?.totalWalletBalance || 0,
+                        botID
+                    }
                 }
-                return {}
+                return 0
 
             }
         } catch (error) {
-            return {}
+            return 0
 
         }
     },

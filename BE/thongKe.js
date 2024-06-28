@@ -8,8 +8,8 @@ const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBi
 
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
-const bot = new Telegraf(process.env.BOT_TOKEN);
-const CHANNEL_ID = process.env.CHANNEL_ID
+const bot = new Telegraf(process.env.BOT_TOKEN_THONG_KE);
+const CHANNEL_ID = process.env.CHANNEL_ID_THONG_KE
 
 // Bắt đầu bot
 bot.launch();
@@ -417,7 +417,7 @@ const handleStatistic = async (statisticLabel) => {
     // Số cây nến
     const nenCount = 100;
 
-    console.log(statisticLabel);
+    console.log(statisticLabel,new Date().toLocaleString());
 
     const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
     sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
@@ -543,7 +543,7 @@ let Main = async () => {
             if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
 
-                    console.log("Trade 1 Closed");
+                    console.log("Trade 1 Closed: ",new Date().toLocaleString());
                     !statistic1 && statisticTimeLoop1.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 1...")
@@ -567,7 +567,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 3 Closed");
+                    console.log("Trade 3 Closed: ",new Date().toLocaleString());
                     !statistic3 && statisticTimeLoop3.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 3...")
@@ -590,7 +590,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 5 Closed");
+                    console.log("Trade 5 Closed: ",new Date().toLocaleString());
                     !statistic5 && statisticTimeLoop5.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 5...")
