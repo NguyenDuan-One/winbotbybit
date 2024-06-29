@@ -87,13 +87,13 @@
 @media (max-width: 740px) {
     .strategies {
         &Header {
-            margin: 0 -2%;
+            margin: 0 -8px;
             margin-bottom: 16px;
             flex-basis: 100%;
             justify-content: space-between;
 
             &Item {
-                flex-basis: 20%;
+                flex:1
             }
         }
 
