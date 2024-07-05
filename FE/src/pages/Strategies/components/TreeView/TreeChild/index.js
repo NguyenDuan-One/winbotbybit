@@ -16,7 +16,8 @@ function TreeChild({
     treeNode,
     dataCheckTreeSelectedRef,
     setDataCheckTree,
-    dataCheckTreeCurrentLength
+    dataCheckTreeCurrentLength,
+    dataCheckTreeDefaultRef,
 }) {
 
     const [openDeleteTreeItem, setOpenDeleteTreeItem] = useState({
@@ -47,6 +48,7 @@ function TreeChild({
         })
     }
 
+
     const handleUpdateDataAfterSuccess = useCallback((newData) => {
 
         handleCheckAllCheckBox(false)
@@ -65,7 +67,20 @@ function TreeChild({
             }
             return data
         }))
-
+        dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+            if (data._id === treeData._id) {
+                return {
+                    ...treeData,
+                    children: treeData.children.map(treeItem => {
+                        if (treeItem.value === treeNode.value) {
+                            return newData
+                        }
+                        return treeItem
+                    })
+                }
+            }
+            return data
+        })
 
     }, [treeData, treeNode, dataCheckTreeSelectedRef])
 
@@ -87,6 +102,16 @@ function TreeChild({
                     }
                     return data
                 }))
+
+                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+                    if (data._id === treeData._id) {
+                        return {
+                            ...treeData,
+                            children: treeData.children.filter(treeItem => treeItem.value !== treeNode.value)
+                        }
+                    }
+                    return data
+                })
             }
 
             dispatch(addMessageToast({
@@ -103,13 +128,19 @@ function TreeChild({
         closeDeleteDialog()
     }
 
-    const handleActiveStrategy = async (id, parentID, newData) => {
+    const handleActiveStrategy = async ({
+        id,
+        parentID,
+        newData,
+        symbol
+    }) => {
         try {
             const res = await updateStrategiesByID({
                 id: id,
                 data: {
                     parentID,
-                    newData
+                    newData,
+                    symbol,
                 }
             })
             const { status, message } = res.data
@@ -143,7 +174,7 @@ function TreeChild({
                     <input
                         type='checkbox'
                         className={clsx("nodeItemSelected", `nodeItemSelected-${treeData._id}`, styles.checkboxStyle)}
-                        checked = {dataCheckTreeCurrentLength=== dataCheckTreeSelectedRef.current?.length || undefined}
+                        checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
                         onClick={(e) => {
                             const check = e.target.checked;
                             if (check) {
@@ -178,9 +209,16 @@ function TreeChild({
                         margin: "0 -16px"
                     }}>
                         <Switch
-                        size='small'
+                            size='small'
                             checked={treeNode.IsActive}
-                            onChange={(e) => { handleActiveStrategy(treeNode._id, treeData._id, { ...treeNode, IsActive: e.target.checked }) }}
+                            onChange={(e) => {
+                                handleActiveStrategy({
+                                    id: treeNode._id,
+                                    parentID: treeData._id,
+                                    symbol: treeData.value,
+                                    newData: { ...treeNode, IsActive: e.target.checked }
+                                })
+                            }}
                         />
                         {
                             !treeNode.IsActive && (
@@ -221,19 +259,22 @@ function TreeChild({
                     </div>
                 </TableCell>
                 <TableCell className={styles.tableBodyCell}>{treeNode?.botID?.botName}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.PositionSide}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.Amount}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.OrderChange}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.Candlestick}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.TakeProfit}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.ReduceTakeProfit}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.ExtendedOCPercent}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.Ignore}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.EntryTrailing}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.StopLose}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
-            </TableRow>
-            {openDeleteTreeItem.isOpen &&
+                <TableCell className={styles.tableBodyCell} style={{
+                    color: treeNode.PositionSide === "Long" ? "green" : "red"
+                }}>{treeNode.PositionSide}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.Amount}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.OrderChange}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.Candlestick}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.TakeProfit}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.ReduceTakeProfit}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.ExtendedOCPercent}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.Ignore}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.EntryTrailing}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.StopLose}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
+        </TableRow >
+        {
+            openDeleteTreeItem.isOpen &&
 
                 <DialogCustom
                     dialogTitle='The action requires confirmation'
@@ -253,21 +294,22 @@ function TreeChild({
                     <p>Are you remove this item?</p>
                 </DialogCustom>
 
-            }
+        }
 
 
-            {openUpdateStrategy.isOpen &&
+    {
+        openUpdateStrategy.isOpen &&
 
-                <UpdateStrategy
-                    onClose={(data) => {
-                        setOpenUpdateStrategy(data)
-                    }}
-                    treeNodeValue={openUpdateStrategy.data.treeNode}
-                    symbolValue={openUpdateStrategy.data.symbolValue}
-                    handleUpdateDataAfterSuccess={handleUpdateDataAfterSuccess}
-                />
+        <UpdateStrategy
+            onClose={(data) => {
+                setOpenUpdateStrategy(data)
+            }}
+            treeNodeValue={openUpdateStrategy.data.treeNode}
+            symbolValue={openUpdateStrategy.data.symbolValue}
+            handleUpdateDataAfterSuccess={handleUpdateDataAfterSuccess}
+        />
 
-            }
+    }
         </>
     );
 }

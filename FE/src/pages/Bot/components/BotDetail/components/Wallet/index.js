@@ -38,18 +38,24 @@ function Wallet() {
 
         try {
             const res = await getFutureAvailable(botID)
-            const { status, data } = res.data
+            const { status, data,message } = res.data
 
             if (status === 200) {
                 const value = +data.result?.list?.[0]?.totalWalletBalance || 0
                 setFutureAvailable(value)
                 futureAvailableDefault.current = value
             }
+            else {
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message,
+                }))
+            }
 
         } catch (error) {
             dispatch(addMessageToast({
                 status: 500,
-                message: "Update Future Available Error",
+                message: "Get Future Available Error",
             }))
         }
     }
@@ -59,7 +65,7 @@ function Wallet() {
         // const newSpotTotal = 50000
         try {
             const res = await getSpotTotal(botID)
-            const { status, data } = res.data
+            const { status, data,message } = res.data
 
             const newSpotTotal = +data.result?.balance?.[0]?.walletBalance || 0
             spotAvailable.current = {
@@ -73,7 +79,12 @@ function Wallet() {
             if (status === 200) {
                 setSpotTotal(newSpotTotal)
             }
-
+            else {
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message,
+                }))
+            }
         } catch (error) {
             dispatch(addMessageToast({
                 status: 500,

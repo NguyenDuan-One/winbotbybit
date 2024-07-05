@@ -75,17 +75,38 @@ function Bot() {
             renderCell: params => {
                 const rowData = params.row; // Dữ liệu của hàng hiện tại
                 const botStatus = rowData['Status']
+                const botApiKey = rowData['ApiKey']
                 return (
                     <Switch
                         disabled={!(botStatus === "Running" || botStatus === "Stopped")}
-                        defaultChecked={botStatus === "Running"}
+                        checked={botStatus === "Running"}
                         onClick={(e) => {
-                            handleUpdateBot({
-                                botID: rowData.id,
-                                data: {
-                                    Status: e.target.checked ? "Running" : "Stopped",
+                            const check = e.target.checked
+                            if (check) {
+                                handleUpdateBot({
+                                    botID: rowData.id,
+                                    data: {
+                                        Status: "Running",
+                                        type: "Active",
+                                        checkBot: botApiKey
+                                    }
+                                })
+                            }
+                            else {
+                                if (botApiKey) {
+                                    e.preventDefault()
+                                    setConfirmActiveBot(rowData.id)
                                 }
-                            })
+                                else {
+                                    handleUpdateBot({
+                                        botID: rowData.id,
+                                        data: {
+                                            Status: "Stopped",
+                                        }
+                                    })
+                                }
+                            }
+
                         }}
                     />
                 )
@@ -197,6 +218,7 @@ function Bot() {
     });
     const [dataTableChange, setDataTableChange] = useState([]);
     const [openEditMultiple, setOpenEditMultiple] = useState(false);
+    const [confirmActiveBot, setConfirmActiveBot] = useState(false);
     const [statusBotSelected, setStatusBotSelected] = useState('All');
 
     const botListDefaultRef = useRef()
@@ -400,6 +422,7 @@ function Bot() {
                         setDataTableChange={setDataTableChange}
                         tableRows={botList}
                         tableColumns={tableColumns}
+                        disableMultipleRowSelection
                     />
                 </div>
             </div>
@@ -426,6 +449,36 @@ function Bot() {
                         position="center"
                     >
                         <p style={{ textAlign: "center" }}>Do you want to delete {openEditMultiple} bots?</p>
+                    </DialogCustom >
+                )
+            }
+
+            {
+                confirmActiveBot && (
+                    <DialogCustom
+                        backdrop
+                        open={true}
+                        onClose={() => {
+                            setConfirmActiveBot(false)
+                        }}
+                        onSubmit={() => {
+                            handleUpdateBot({
+                                botID: confirmActiveBot,
+                                data: {
+                                    Status: "Stopped",
+                                    type:"Active",
+                                    checkBot: true
+                                }
+                            })
+                            setConfirmActiveBot(false)
+                        }}
+                        dialogTitle="The action requires confirmation"
+                        submitBtnColor="warning"
+                        submitBtnText="DeActive"
+                        reserveBtn
+                        position="center"
+                    >
+                        <p style={{ textAlign: "center" }}>Bot have api - Do you want to deactive?</p>
                     </DialogCustom >
                 )
             }

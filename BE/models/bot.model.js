@@ -11,6 +11,11 @@ const botSchema = new mongoose.Schema({
   telegramID: String,
   spotSavings: Number,
   Created: Date,
+  // Bot Api
+  ApiKey: String,
+  SecretKey: String,
+  UTA: Boolean,
+  // 
   userID: {
     type: mongoose.Types.ObjectId,
     ref: 'User',

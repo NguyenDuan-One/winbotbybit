@@ -4,12 +4,12 @@ import { useForm } from "react-hook-form";
 import { memo } from "react";
 import DialogCustom from "../../../../../../../../components/DialogCustom";
 import { useDispatch } from "react-redux";
-import { updateBotApi } from "../../../../../../../../services/botApiService";
 import { addMessageToast } from "../../../../../../../../store/slices/Toast";
+import { updateBot } from "../../../../../../../../services/botService";
 
 function EditApi({
     open,
-    botApiData,
+    botData,
     onClose
 }, ref) {
 
@@ -30,7 +30,16 @@ function EditApi({
                 ApiKey: data.ApiKey.trim(),
                 SecretKey: data.SecretKey.trim()
             }
-            const res = await updateBotApi({ botApiID: botApiData._id, data })
+            const res = await updateBot(
+                {
+                    id: botData._id,
+                    data: {
+                        ...data,
+                        type: "Api",
+                        checkBot: botData.Status === "Running"
+                    }
+                }
+            )
 
             const { message, status } = res.data
 
@@ -53,6 +62,7 @@ function EditApi({
     const closeDialog = (dataChange = false) => {
         onClose({
             isOpen: false,
+            confirm: false,
             dataChange
         })
         reset()
@@ -92,7 +102,7 @@ function EditApi({
                     <FormLabel className={styles.label}>UTA</FormLabel>
                     <Switch
                         title="UTA"
-                        defaultChecked={botApiData.UTA}
+                        defaultChecked={botData.UTA}
                         {...register("UTA")}
 
                     />

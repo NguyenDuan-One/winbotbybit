@@ -1,12 +1,66 @@
 const { RestClientV5, WebsocketClient } = require('bybit-api');
-const StrategiesModel = require('../models/strategies')
-const BotApiModel = require('../models/botApi.model')
+const StrategiesModel = require('../models/strategies.model')
+const BotModel = require('../models/bot.model')
 const { v4: uuidv4 } = require('uuid');
 const { default: mongoose } = require('mongoose');
 
-
 const dataCoinByBitController = {
+    // SOCKET
 
+    checkConditionStrategies: (strategiesData) => {
+        return strategiesData.botID.Status === "Running" && strategiesData.botID.ApiKey
+    },
+    getAllStrategiesNewUpdate: async (TimeTemp) => {
+
+        const resultFilter = await StrategiesModel.aggregate([
+            {
+                $match: {
+                    children: {
+                        $elemMatch: {
+                            TimeTemp: TimeTemp
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    label: 1,
+                    value: 1,
+                    volume24h: 1,
+                    children: {
+                        $filter: {
+                            input: "$children",
+                            as: "child",
+                            cond: {
+                                $and: [
+                                    { $eq: ["$$child.TimeTemp", TimeTemp] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]);
+        const result = await StrategiesModel.populate(resultFilter, {
+            path: 'children.botID',
+        })
+
+
+        const newDataSocketWithBotData = result.flatMap((data) => data.children.map(child => {
+            child.symbol = data.value
+            child.value = `${data._id}-${child._id}`
+            return child
+        })) || []
+
+        return newDataSocketWithBotData
+    },
+    sendDataRealtime: ({
+        type,
+        data
+    }) => {
+        const { socketServer } = require('../serverConfig');
+        socketServer.emit(type, data)
+    },
     // GET
     getSymbolFromCloud: async (userID) => {
         try {
@@ -92,8 +146,8 @@ const dataCoinByBitController = {
                         ...child,
                         children: child.children.filter(item => item.botID.Status === "Running")
                     })
-                    return result
                 }
+                return result
             }, []) || []
 
             res.customResponse(res.statusCode, "Get All Strategies Successful", handleResult);
@@ -102,8 +156,6 @@ const dataCoinByBitController = {
             res.status(500).json({ message: err.message });
         }
     },
-
-
     getAllSymbol: async (req, res) => {
         try {
             const result = await StrategiesModel.find();
@@ -128,7 +180,6 @@ const dataCoinByBitController = {
             res.status(500).json({ message: err.message });
         }
     },
-
     // CREATE
     createStrategies: async (req, res) => {
 
@@ -138,25 +189,108 @@ const dataCoinByBitController = {
             const { data: newData, botListId, Symbol } = req.body
 
             let result
+
+            const TimeTemp = new Date().toString()
+
             if (newData.PositionSide === "Both") {
                 result = await StrategiesModel.updateMany(
                     { "value": { "$in": Symbol } },
                     {
                         "$push": {
                             "children": [
-                                ...botListId.map(botID => ({ ...newData, PositionSide: "Long", botID, userID })),
-                                ...botListId.map(botID => ({ ...newData, PositionSide: "Short", botID, userID }))
+                                ...botListId.map(botID => ({ ...newData, PositionSide: "Long", botID, userID, TimeTemp })),
+                                ...botListId.map(botID => ({ ...newData, PositionSide: "Short", botID, userID, TimeTemp }))
                             ]
                         }
-                    }
+                    },
+                    { new: true }
                 )
             }
             else {
                 result = await StrategiesModel.updateMany(
                     { "value": { "$in": Symbol } },
-                    { "$push": { "children": botListId.map(botID => ({ ...newData, botID, userID })) } }
+                    { "$push": { "children": botListId.map(botID => ({ ...newData, botID, userID, TimeTemp })) } },
+                    { new: true }
                 );
             }
+
+            const resultFilter = await StrategiesModel.aggregate([
+                {
+                    $match: {
+                        children: {
+                            $elemMatch: {
+                                IsActive: true,
+                                userID: new mongoose.Types.ObjectId(userID),
+                                TimeTemp: TimeTemp
+                            }
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        label: 1,
+                        value: 1,
+                        volume24h: 1,
+                        children: {
+                            $filter: {
+                                input: "$children",
+                                as: "child",
+                                cond: {
+                                    $and: [
+                                        { $eq: ["$$child.IsActive", true] },
+                                        { $eq: ["$$child.userID", new mongoose.Types.ObjectId(userID)] },
+                                        { $eq: ["$$child.TimeTemp", TimeTemp] }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]);
+
+
+            const resultGet = await StrategiesModel.populate(resultFilter, {
+                path: 'children.botID',
+            })
+
+            const handleResult = resultGet.flatMap((data) => data.children.map(child => {
+                child.symbol = data.value
+                child.value = `${data._id}-${child._id}`
+                return child
+            })) || []
+
+
+
+            // const newDataUpdateList = await StrategiesModel.find({
+            //     "children.userID": userID,
+            //     "children.TimeTemp": TimeTemp,
+            // }).populate("children.botID")
+
+            // const newDataSocketWithBotData = newDataUpdateList.reduce((result, strategiesData) => {
+            //     if (strategiesData.children.some(childData =>
+            //         // dataCoinByBitController.checkConditionStrategies(childData) &&
+            //         childData.userID == userID &&
+            //         childData.TimeTemp === TimeTemp
+
+            //     )) {
+            //         strategiesData.children.forEach((childData) => {
+            //             if (
+            //                 // dataCoinByBitController.checkConditionStrategies(childData) &&
+            //                 childData.userID == userID &&
+            //                 childData.TimeTemp === TimeTemp
+            //             ) {
+            //                 childData.symbol = strategiesData.value
+            //                 result.push(childData)
+            //             }
+            //         })
+            //     }
+            //     return result
+            // }, []) || [];
+
+            handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "add",
+                data: handleResult
+            })
 
             if (result.acknowledged && result.matchedCount !== 0) {
 
@@ -180,12 +314,23 @@ const dataCoinByBitController = {
 
             const strategiesID = req.params.id;
 
-            const { parentID, newData } = req.body
+            const { parentID, newData, symbol } = req.body
 
             const result = await StrategiesModel.updateOne(
                 { "children._id": strategiesID, _id: parentID },
                 { $set: { "children.$": newData } }
             )
+
+            if (dataCoinByBitController.checkConditionStrategies(newData)) {
+                dataCoinByBitController.sendDataRealtime({
+                    type: "update",
+                    data: [{
+                        ...newData,
+                        value: `${parentID}-${strategiesID}`,
+                        symbol
+                    }]
+                })
+            }
 
             if (result.acknowledged && result.matchedCount !== 0) {
                 res.customResponse(200, "Update Strategies Successful", "");
@@ -199,6 +344,7 @@ const dataCoinByBitController = {
             res.status(500).json({ message: "Update Strategies Error" });
         }
     },
+
     updateStrategiesMultiple: async (req, res) => {
         try {
 
@@ -206,24 +352,42 @@ const dataCoinByBitController = {
 
             let resultAll = []
 
+            const TimeTemp = new Date().toString()
             for (data of dataList) {
                 const result = await StrategiesModel.updateOne(
                     { "children._id": data.id, _id: data.parentID },
-                    { $set: { "children.$": data.UpdatedFields } }
+                    {
+                        $set: {
+                            "children.$": {
+                                ...data.UpdatedFields,
+                                TimeTemp
+                            }
+                        }
+                    }
                 )
                 resultAll.push(result.acknowledged && result.matchedCount !== 0)
+
             }
 
+
+            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+
+            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "update",
+                data: newDataSocketWithBotData
+            })
+
+
             if (resultAll.every(result => result === true)) {
-                res.customResponse(200, "Update Strategies Successful", "");
+                res.customResponse(200, "Update Mul-Strategies Successful", "");
             }
             else {
-                res.customResponse(400, "Update Strategies Failed", "");
+                res.customResponse(400, "Update Mul-Strategies Failed", "");
             }
 
         } catch (error) {
             // Xử lý lỗi nếu có
-            res.status(500).json({ message: "Update Strategies Error" });
+            res.status(500).json({ message: "Update Mul-Strategies Error" });
         }
     },
 
@@ -233,9 +397,25 @@ const dataCoinByBitController = {
 
             const strategiesID = req.params.id;
 
+            const resultGet = await StrategiesModel.findOne(
+                { _id: strategiesID },
+            ).populate("children.botID")
+
+            const newDataSocketWithBotData = resultGet.children.map(child => {
+                child.symbol = resultGet.value
+                child.value = `${resultGet._id}-${child._id}`
+                return child
+            }) || []
+
+            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "delete",
+                data: newDataSocketWithBotData
+            })
+
             const result = await StrategiesModel.deleteOne(
                 { _id: strategiesID },
             );
+
 
 
             if (result.acknowledged && result.deletedCount !== 0) {
@@ -253,13 +433,50 @@ const dataCoinByBitController = {
     deleteStrategiesItem: async (req, res) => {
         try {
 
-            const { id, parentID } = req.body
+            const { id, parentID } = req.body;
 
+            const resultFilter = await StrategiesModel.aggregate([
+                {
+                    $match: {
+                        "_id": new mongoose.Types.ObjectId(parentID),
+                    }
+                },
+                {
+                    $project: {
+                        label: 1,
+                        value: 1,
+                        volume24h: 1,
+                        children: {
+                            $filter: {
+                                input: "$children",
+                                as: "child",
+                                cond: { $eq: ["$$child._id", new mongoose.Types.ObjectId(id)] }
+                            }
+                        }
+                    }
+                }
+            ]);
+
+            const resultGet = await StrategiesModel.populate(resultFilter, {
+                path: 'children.botID',
+            })
+            const newDataSocketWithBotData = resultGet[0].children.map(child => {
+                child.symbol = resultGet.value
+                child.value = `${parentID}-${id}`
+                return child
+            }) || []
+
+            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "delete",
+                data: newDataSocketWithBotData
+            })
 
             const result = await StrategiesModel.updateOne(
                 { _id: parentID },
                 { $pull: { children: { _id: id } } }
             );
+
+
 
             if (result.acknowledged && result.deletedCount !== 0) {
 
@@ -277,6 +494,48 @@ const dataCoinByBitController = {
         try {
 
             const strategiesIDList = req.body
+
+            const parentIDs = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.parentID));
+            const ids = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.id));
+
+            const resultFilter = await StrategiesModel.aggregate([
+                {
+                    $match: {
+                        "_id": { $in: parentIDs }
+                    }
+                },
+                {
+                    $project: {
+                        label: 1,
+                        value: 1,
+                        volume24h: 1,
+                        children: {
+                            $filter: {
+                                input: "$children",
+                                as: "child",
+                                cond: {
+                                    $in: ["$$child._id", ids]
+                                }
+                            }
+                        }
+                    }
+                }
+            ]);
+
+            const resultGet = await StrategiesModel.populate(resultFilter, {
+                path: 'children.botID',
+            })
+
+            const newDataSocketWithBotData = resultGet.flatMap((data) => data.children.map(child => {
+                child.symbol = data.value
+                child.value = `${data._id}-${child._id}`
+                return child
+            })) || []
+
+            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "delete",
+                data: newDataSocketWithBotData
+            })
 
             let resultAll = []
 
@@ -309,8 +568,10 @@ const dataCoinByBitController = {
         try {
             const { symbolListData, symbolList } = req.body
 
+            const TimeTemp = new Date().toString()
+
             const newData = symbolListData.map(data => {
-                const newObj = { ...data };
+                const newObj = { ...data, TimeTemp };
 
                 delete newObj?._id
                 delete newObj?.value
@@ -326,6 +587,13 @@ const dataCoinByBitController = {
                 }
             );
 
+            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+
+            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "update",
+                data: newDataSocketWithBotData
+            })
+
             if (result.acknowledged && result.matchedCount !== 0) {
 
                 res.customResponse(200, "Copy Strategies To Symbol Successful", []);
@@ -334,6 +602,7 @@ const dataCoinByBitController = {
                 res.customResponse(400, "Copy Strategies To Symbol Failed", "");
             }
         }
+
 
         catch (error) {
             res.status(500).json({ message: error.message });
@@ -345,6 +614,7 @@ const dataCoinByBitController = {
         try {
             const { symbolListData, symbolList } = req.body
 
+            const TimeTemp = new Date().toString()
 
             let resultAll = []
 
@@ -359,13 +629,21 @@ const dataCoinByBitController = {
                         "$push": {
                             "children": symbolList.map(item => ({
                                 ...newObj,
-                                botID: item
+                                botID: item,
+                                TimeTemp
                             }))
                         }
                     }
                 )
                 resultAll.push(result.acknowledged && result.matchedCount !== 0)
             }
+
+            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+
+            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "update",
+                data: newDataSocketWithBotData
+            })
 
             if (resultAll.every(result => result === true)) {
                 res.customResponse(200, "Copy Strategies To Bot Successful", "");
@@ -396,13 +674,35 @@ const dataCoinByBitController = {
 
                 const valuesToAdd = listSymbolObject.filter(value => !existingValues.includes(value.symbol));
 
-                await StrategiesModel.insertMany(valuesToAdd.map(value => ({
-                    label: value.symbol,
-                    value: value.symbol,
-                    volume24h: value.volume24h,
-                    children: []
-                })))
-                valuesToAdd.length > 0 ? res.customResponse(200, "Have New Sync Successful", []) : res.customResponse(200, "Sync Successful", []);
+                const newSymbolList = []
+                const newSymbolNameList = []
+
+                valuesToAdd.forEach(value => {
+                    newSymbolList.push({
+                        label: value.symbol,
+                        value: value.symbol,
+                        volume24h: value.volume24h,
+                        children: []
+                    });
+                    newSymbolNameList.push(value.symbol);
+                })
+                await StrategiesModel.insertMany(newSymbolList)
+
+                if (newSymbolList.length > 0) {
+                    res.customResponse(200, "Have New Sync Successful", [])
+
+                    const newSymbolResult = await StrategiesModel.find({
+                        value: { $in: newSymbolNameList }
+                    })
+
+                    dataCoinByBitController.sendDataRealtime({
+                        type: "sync-symbol",
+                        data: newSymbolResult
+                    })
+                }
+                else {
+                    res.customResponse(200, "Sync Successful", [])
+                }
             }
             else {
                 res.customResponse(400, "Sync Failed", []);
@@ -496,11 +796,12 @@ const dataCoinByBitController = {
 
     getApiKeyByBot: async (botID) => {
 
-        const resultApi = await BotApiModel.findOne({ botID })
+        const resultApi = await BotModel.findOne({ _id: botID })
 
         if (!resultApi) {
             return ""
         }
+
         return {
             API_KEY: resultApi.ApiKey,
             SECRET_KEY: resultApi.SecretKey
@@ -652,7 +953,7 @@ const dataCoinByBitController = {
 
                 if (result.retCode === 0) {
                     return {
-                        totalWalletBalance:result.result?.list?.[0]?.totalWalletBalance || 0,
+                        totalWalletBalance: result.result?.list?.[0]?.totalWalletBalance || 0,
                         botID
                     }
                 }
@@ -745,16 +1046,28 @@ const dataCoinByBitController = {
                 path: 'children.botID',
             })
 
-            const handleResult = result.reduce((result, child) => {
-                if (child.children.some(childData => childData.botID.Status === "Running")) {
-                    result.push({
-                        ...child,
-                        children: child.children.filter(item => item.botID.Status === "Running")
-                    })
-                    return result
-                }
-            }, []) || []
+
+            const handleResult = result.flatMap((data) => data.children.map(child => {
+                child.symbol = data.value
+                child.value = `${data._id}-${child._id}`
+                return child
+            })) || []
+
             return handleResult
+
+            // const handleResult = result.reduce((result, child) => {
+            //     if (child.children.length > 0 && child.children.some(childData =>
+            //         dataCoinByBitController.checkConditionStrategies(childData)
+            //     )) {
+            //         result.push({
+            //             ...child,
+            //             children: child.children.filter(item =>
+            //                 dataCoinByBitController.checkConditionStrategies(item)
+            //             )
+            //         })
+            //     }
+            //     return result
+            // }, []) || []
 
         } catch (err) {
             return []
@@ -763,7 +1076,7 @@ const dataCoinByBitController = {
     getAllSymbolBE: async (req, res) => {
         try {
             const result = await StrategiesModel.find();
-            return result.map(item => item.value) || []
+            return result || []
 
         } catch (err) {
             return []

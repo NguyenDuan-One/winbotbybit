@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { getAllBotActiveByUserID } from "../../services/botService";
 import DataGridCustom from "../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
-import { getAllPosition } from "../../services/positionService";
+import { getAllPosition, updatePL } from "../../services/positionService";
 import { addMessageToast } from "../../store/slices/Toast";
 import { useDispatch } from "react-redux";
 import AddLimit from "./components/AddLimit";
@@ -87,6 +87,12 @@ function Position() {
                     color: params.value > 0 ? "green" : "red"
                 }}>{params.value}</p>
             }
+        },
+        {
+            field: 'Time',
+            headerName: 'Time Created',
+            minWidth: 170,
+            flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Miss',
@@ -199,7 +205,7 @@ function Position() {
                     ...newData
                 ]
                 setBotList(newMain)
-                handleGetPositionData(newMain)
+                handleRefreshData(newMain)
 
             })
             .catch(error => {
@@ -232,15 +238,12 @@ function Position() {
             return filterList.every(filterItem => position[filterItem.name] === filterItem.value)
         }) : positionDataDefault.current
 
-        console.log(filterList);
-
         setPositionData(listData)
     }
 
-    const handleGetPositionData = async (botListID = botList) => {
-
+    const handleRefreshData = async (botListInput = botList) => {
         try {
-            const res = await getAllPosition(botListID.slice(1).map(item => item.value))
+            const res = await updatePL(botListInput.slice(1).map(item => item.value))
             const { status, message, data: resData } = res.data
 
             if (status === 200) {
@@ -252,11 +255,12 @@ function Position() {
                         Symbol: item.Symbol,
                         Side: item.Side,
                         Price: item.Price,
+                        Time: new Date(item.Time).toLocaleString(),
                         Quantity: item.Quantity,
                         Pnl: (+item.Pnl).toFixed(4),
                         Miss: item.Miss,
                     }
-                )) : []
+                )).filter(item=>+item.Pnl != 0) : []
                 setPositionData(data)
                 positionDataDefault.current = data
             }
@@ -270,12 +274,10 @@ function Position() {
         catch (err) {
             dispatch(addMessageToast({
                 status: 500,
-                message: "Get All Position Error",
+                message: "Update Position Error",
             }))
         }
-
     }
-
     useEffect(() => {
 
         handleGetAllBotByUserID()
@@ -284,7 +286,7 @@ function Position() {
 
     useEffect(() => {
         if (openAddLimit.dataChange || openAddMarket.dataChange) {
-            handleGetPositionData()
+            handleRefreshData()
         }
     }, [openAddLimit, openAddMarket]);
 
@@ -333,17 +335,18 @@ function Position() {
 
 
 
-                    <Button
-                        variant="contained"
-                        size="small"
-                        color="info"
-                        className={styles.refreshBtn}
-                        onClick={() => {
-                            handleGetPositionData()
-                        }}
-                    >
-                        Refresh
-                    </Button>
+                    {botList.length > 0 &&
+                        <Button
+                            variant="contained"
+                            size="small"
+                            color="info"
+                            className={styles.refreshBtn}
+                            onClick={() => {
+                                handleRefreshData()
+                            }}
+                        >
+                            Refresh
+                        </Button>}
                 </div>
 
                 <div className={styles.positionTable}>

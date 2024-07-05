@@ -1,10 +1,62 @@
 // const { ObjectId } = require('mongodb');
 const BotModel = require('../models/bot.model');
-const BotApiModel = require('../models/botApi.model');
 const UserModel = require('../models/user.model');
-const StrategiesModel = require('../models/strategies')
+const StrategiesModel = require('../models/strategies.model');
+const { default: mongoose } = require('mongoose');
 
 const BotController = {
+    // SOCKET
+
+    sendDataRealtime: ({
+        type,
+        data
+    }) => {
+        const { socketServer } = require('../serverConfig');
+        socketServer.emit(type, data)
+    },
+    getAllStrategiesByBotID: async ({
+        botID,
+        IsActive
+    }) => {
+        const resultFilter = await StrategiesModel.aggregate([
+            {
+                $match: {
+                    "children.botID":new mongoose.Types.ObjectId(botID)
+                }
+            },
+            {
+                $project: {
+                    label: 1,
+                    value: 1,
+                    volume24h: 1,
+                    children: {
+                        $filter: {
+                            input: "$children",
+                            as: "child",
+                            cond: {
+                                $and: [
+                                    { $eq: ["$$child.botID", new mongoose.Types.ObjectId(botID)] }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        ]);
+        const result = await StrategiesModel.populate(resultFilter, {
+            path: 'children.botID',
+        })
+
+        const newDataSocketWithBotData = result.flatMap((data) => data.children.map(child => {
+            child.symbol = data.value
+            child.value = `${data._id}-${child._id}`
+            child.IsActive = IsActive
+            return child
+        })) || []
+
+        return newDataSocketWithBotData;
+    },
+    // 
     getAllBot: async (req, res) => {
         try {
             // ref: .populate({ path: "coinID", models: "Coin" })
@@ -89,7 +141,46 @@ const BotController = {
 
             const botID = req.params.id;
 
-            const result = await BotModel.updateOne({ _id: botID }, { $set: req.body })
+            const { type, checkBot, ...data } = req.body;
+
+            const result = await BotModel.updateOne({ _id: botID }, { $set: data })
+
+            if (type === "Active") {
+                if (checkBot) {
+                    const IsActive = data.Status === "Running" ? true : false;
+
+                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                        botID,
+                        IsActive
+                    })
+
+                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                        type: "update",
+                        data: newDataSocketWithBotData
+                    })
+
+                }
+            }
+            else if (type === "Api") {
+                if (checkBot) {
+                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                        botID,
+                        IsActive: true
+                    })
+
+                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                        type: "bot-api",
+                        data: {
+                            newData: newDataSocketWithBotData,
+                            botID,
+                            newApiData: {
+                                ApiKey: data.ApiKey,
+                                SecretKey: data.SecretKey
+                            }
+                        }
+                    })
+                }
+            }
 
             if (result.acknowledged && result.matchedCount !== 0) {
                 res.customResponse(200, "Update Bot Successful", "");
@@ -107,13 +198,10 @@ const BotController = {
         try {
             const botID = req.params.id;
 
-            const result = BotModel.deleteOne({ _id: botID })
-            const resultApi = BotApiModel.deleteOne({ botID })
+            const result = await BotModel.deleteOne({ _id: botID })
             // const resultStrategies = StrategiesModel.deleteOne({ botID })
 
-            const resultAll = await Promise.all([result, resultApi])
-
-            if (resultAll.every(item => item.deletedCount !== 0)) {
+            if (result.deletedCount !== 0) {
                 res.customResponse(200, "Delete Bot Successful");
             }
             else {
@@ -129,13 +217,12 @@ const BotController = {
             const botIDList = req.body
 
             const result = await BotModel.deleteMany({ _id: { $in: botIDList } })
-            const resultApi = await BotApiModel.deleteMany({ botID: { $in: botIDList } })
             const resultStrategies = await StrategiesModel.updateMany(
                 { "children.botID": { $in: botIDList } },
                 { $pull: { children: { botID: { $in: botIDList } } } }
             );
 
-            const resultAll = await Promise.all([result, resultApi, resultStrategies])
+            const resultAll = await Promise.all([result, resultStrategies])
 
             if (resultAll.some(item => item.deletedCount !== 0)) {
                 res.customResponse(200, "Delete Bot Successful");

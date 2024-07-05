@@ -1,7 +1,6 @@
 const mongoose = require('../index');
 
 const childrenStrategiesSchema = new mongoose.Schema({
-  value: String,
   PositionSide: String,
   Amount: Number,
   OrderChange: Number,
@@ -14,6 +13,7 @@ const childrenStrategiesSchema = new mongoose.Schema({
   StopLose: Number,
   IsActive: Boolean,
   Remember: Boolean,
+  TimeTemp: String,
   botID: {
     type: mongoose.Types.ObjectId,
     ref: 'Bot',
@@ -22,6 +22,9 @@ const childrenStrategiesSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: 'User',
   },
+  // Other
+  symbol: String,
+  value: String,
 });
 
 const strategiesSchema = new mongoose.Schema({
@@ -39,7 +42,9 @@ const strategiesSchema = new mongoose.Schema({
 
 
 const Strategies = mongoose.model('Strategies', strategiesSchema);
-Strategies.createIndexes(); 
+const StrategiesChildren = mongoose.model('StrategiesChildren', childrenStrategiesSchema);
+Strategies.createIndexes();
 
 
 module.exports = Strategies;
+module.exports.StrategiesChildren = StrategiesChildren; 

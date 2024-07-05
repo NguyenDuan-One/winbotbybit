@@ -3,14 +3,15 @@ import styles from "./AddApi.module.scss"
 import { useForm } from "react-hook-form";
 import { memo } from "react";
 import DialogCustom from "../../../../../../../../components/DialogCustom";
-import { createBotApi } from "../../../../../../../../services/botApiService";
 import { addMessageToast } from "../../../../../../../../store/slices/Toast";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
+import { updateBot } from "../../../../../../../../services/botService";
 
 function AddApi({
     open,
-    onClose
+    onClose,
+    checkBot
 }, ref) {
 
     const { botID } = useParams()
@@ -27,13 +28,15 @@ function AddApi({
     const handleSubmitAddApi = async data => {
 
         try {
-            data = {
-                ...data,
-                botID,
-                ApiKey: data.ApiKey.trim(),
-                SecretKey: data.SecretKey.trim()
-            }
-            const res = await createBotApi(data)
+           
+            const res = await updateBot({
+                data:{
+                    ...data,
+                    type:"Api",
+                    checkBot
+                },
+                id: botID
+            })
 
             const { message, status } = res.data
 

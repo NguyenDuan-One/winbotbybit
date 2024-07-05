@@ -41,7 +41,8 @@ function UpdateStrategy({
                     id: newData._id,
                     data: {
                         parentID,
-                        newData
+                        newData,
+                        symbol:symbolValue
                     }
                 })
                 const { status, message } = res.data

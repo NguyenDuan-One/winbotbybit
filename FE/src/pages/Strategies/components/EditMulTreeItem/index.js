@@ -243,8 +243,8 @@ function EditMulTreeItem({
     }
 
     const handleUpdate = async () => {
-        setLoadingSubmit(true)
-        let dataChange = false
+
+        let checkValueMin = true
 
         try {
             const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => (
@@ -255,6 +255,9 @@ function EditMulTreeItem({
                         let valueHandle = handleCompare(dataCheckTreeItem[filterRow.value], filterRow.data.compare, filterRow.data.value)
                         if (typeof (valueHandle) === "number") {
                             valueHandle = parseFloat(valueHandle.toFixed(4))
+                            if (valueHandle < 0.1) {
+                                checkValueMin = false
+                            }
                         }
                         return {
                             [filterRow.value]: valueHandle
@@ -267,16 +270,26 @@ function EditMulTreeItem({
                 }
             ))
 
-            const res = await updateStrategiesMultiple(newData)
+            if (checkValueMin) {
+                setLoadingSubmit(true)
 
-            const { status, message } = res.data
+                const res = await updateStrategiesMultiple(newData)
 
-            dispatch(addMessageToast({
-                status: status,
-                message: message,
-            }))
-            if (status === 200) {
-                dataChange = true
+                const { status, message } = res.data
+
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message,
+                }))
+                if (status === 200) {
+                    closeDialog(true)
+                }
+            }
+            else {
+                dispatch(addMessageToast({
+                    status: 400,
+                    message: "All Field Value >= 0.1",
+                }))
             }
 
         }
@@ -286,7 +299,6 @@ function EditMulTreeItem({
                 message: "Update All Error",
             }))
         }
-        closeDialog(dataChange)
     }
 
     const handleDelete = async () => {

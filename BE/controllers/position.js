@@ -66,6 +66,45 @@ const BotApiController = {
         }
     },
 
+    updatePL: async (req, res) => {
+        try {
+            const { botListID } = req.body
+            const data = await PositionModel.find({ botID: { $in: botListID } }).populate("botID")
+
+            const { RestClientV5 } = require('bybit-api');
+
+            if (data.length > 0) {
+
+                const newData = await Promise.allSettled(data.map(positionData => {
+                    const client = new RestClientV5({
+                        testnet: false,
+                        key: positionData.botID.ApiKey,
+                        secret: positionData.botID.SecretKey,
+                    });
+
+                    return client
+                        .getPositionInfo({
+                            category: 'linear',
+                            symbol: positionData.Symbol
+                        })
+                        .then((response) => {
+                            positionData.Pnl = response.result.list[0].unrealisedPnl
+                            return positionData
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
+                }))
+                return res.customResponse(res.statusCode, "Refresh Position Successful", newData.map(item=>item.value));
+            }
+
+            return res.customResponse(res.statusCode, "Refresh Position Successful", data);
+
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
+
     // OTHER
     createPositionBE: async (newData) => {
         try {
@@ -75,15 +114,18 @@ const BotApiController = {
             // const checkSymbolExists = await PositionModel.findOne({ Symbol })
 
             // if (!checkSymbolExists) {
-            const newBot = new PositionModel(newData);
+            const newBot = new PositionModel({
+                ...newData,
+                Time: new Date()
+            });
 
             const savedBot = await newBot.save();
 
             if (savedBot) {
-                return "Add Position Successful"
+                return "[_DB_] Add Position Successful"
             }
             else {
-                return "Add Position Failed"
+                return "[_DB_] Add Position Failed"
             }
             // }
             // else {
@@ -97,7 +139,7 @@ const BotApiController = {
             // }
 
         } catch (error) {
-            return `Add Position Error: ${error}`
+            return `[_DB_] Add Position Error: ${error}`
         }
     },
 
@@ -107,17 +149,22 @@ const BotApiController = {
     }) => {
         try {
 
-            const result = await PositionModel.updateOne({ orderID: orderID }, { $set: newDataUpdate });
+            const result = await PositionModel.updateOne({ orderID: orderID }, {
+                $set: {
+                    ...newDataUpdate,
+                    Time: new Date()
+                }
+            });
 
             if (result.acknowledged && result.matchedCount !== 0) {
-                return "Update Position Successful"
+                return "[_DB_] Update Position Successful"
             }
             else {
-                return `Update Position Failed ${orderID}`
+                return `[_DB_] Update Position Failed ${orderID}`
             }
 
         } catch (error) {
-            return `Update Position Error: ${error}`
+            return `[_DB_] Update Position Error: ${error}`
         }
     },
 
@@ -127,14 +174,14 @@ const BotApiController = {
             const result = await PositionModel.deleteOne({ orderID })
 
             if (result.deletedCount && result.deletedCount !== 0) {
-                return "Delete Position Successful"
+                return "[_DB_] Delete Position Successful"
             }
             else {
-                return `Delete Position Failed ${orderID}`
+                return `[_DB_] Delete Position Failed ${orderID}`
             }
 
         } catch (error) {
-            return `Delete Position Error ${error}`
+            return `[_DB_] Delete Position Error ${error}`
         }
     },
 }

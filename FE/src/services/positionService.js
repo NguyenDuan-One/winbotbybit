@@ -4,6 +4,10 @@ export const getAllPosition = async (botListID) => {
     return await api.post("/position/getAllPosition", { botListID })
 }
 
+export const updatePL = async (botListID) => {
+    return await api.post("/position/updatePL", { botListID })
+}
+
 export const createPosition = async (data) => {
     return await api.post("/position/createPosition", data)
 }

@@ -350,13 +350,11 @@ function Strategies() {
     useEffect(() => {
         dataCheckTreeRef.current = dataCheckTree
         resetAfterSuccess(filterQuantityRef.current.length ? true : false, true)
-    }, [filterQuantityRef.current]);
+    }, [filterQuantityRef.current.length]);
 
     useEffect(() => {
         (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && !filterQuantityRef.current.length && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
-
-
 
     return (
         <div className={styles.strategies}>
@@ -549,6 +547,7 @@ function Strategies() {
                                     setOpenCreateStrategy={setOpenCreateStrategy}
                                     setDataCheckTree={setDataCheckTree}
                                     dataCheckTreeCurrentLength={dataCheckTreeCurrentLength}
+                                    dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                                     key={treeData._id}
                                 />
                             )

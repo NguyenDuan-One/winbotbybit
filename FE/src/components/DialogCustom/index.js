@@ -81,7 +81,7 @@ function DialogCustom({
                             <CircularProgress style={{
                                 width: "32px",
                                 height: "32px",
-                                color: "var(--blueLightColor)",
+                                color: "#2e75db",
                                 marginRight:"12px"
                             }} color='inherit' />
                     }

@@ -1,14 +1,15 @@
 import { Button } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import styles from "./Api.module.scss"
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AddApi from "./components/AddApi";
 import EditApi from "./components/EditApi";
-import { getBotApiByBotID } from "../../../../../../services/botApiService";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../../../store/slices/Toast";
 import { useParams } from "react-router-dom";
 import DataGridCustom from "../../../../../../components/DataGridCustom";
+import { getBotByID } from "../../../../../../services/botService";
+import DialogCustom from "../../../../../../components/DialogCustom";
 
 function Api() {
 
@@ -24,7 +25,7 @@ function Api() {
             field: 'ApiKey',
             headerName: 'ApiKey',
             flex: window.innerWidth <= 740 ? undefined : 1,
-            renderCell:()=>{
+            renderCell: () => {
                 return "ByBit"
             }
         },
@@ -32,7 +33,7 @@ function Api() {
             field: 'SecretKey',
             headerName: 'SecretKey',
             flex: window.innerWidth <= 740 ? undefined : 1,
-            renderCell:()=>{
+            renderCell: () => {
                 return "***** ***** *****"
             }
         },
@@ -43,9 +44,11 @@ function Api() {
     });
     const [openEditApi, setOpenEditApi] = useState({
         isOpen: false,
+        confirm: false,
         dataChange: ""
     });
     const [apiData, setApiData] = useState([]);
+    const checkBotRef = useRef(false)
 
     const dispatch = useDispatch()
 
@@ -54,10 +57,11 @@ function Api() {
 
     const handleGetApiData = async () => {
         try {
-            const res = await getBotApiByBotID(botID)
+            const res = await getBotByID(botID)
             const { status, message, data: resData } = res.data
             if (status === 200) {
-                setApiData(resData.map(item => ({ ...item, id: item._id })))
+                resData.ApiKey ? setApiData([resData].map(item => ({ ...item, id: item._id }))) : setApiData([])
+                checkBotRef.current= resData.Status === "Running"
             }
             else {
                 dispatch(addMessageToast({
@@ -81,6 +85,7 @@ function Api() {
             handleGetApiData()
         }
     }, [openAddApi, openEditApi]);
+
     return (
         <div className={styles.api}>
             <div className={styles.apiHeader}>
@@ -93,12 +98,13 @@ function Api() {
                             color="info"
                             onClick={() => {
                                 setOpenEditApi({
-                                    isOpen: true,
-                                    dataChange: ""
+                                    ...openEditApi,
+                                    isOpen: checkBotRef.current,
+                                    confirm:!checkBotRef.current
                                 })
                             }}
                         >
-                            update Api
+                            Update Api
                         </Button>
                         :
                         <Button
@@ -127,15 +133,46 @@ function Api() {
                 onClose={(data) => {
                     setOpenAddApi(data)
                 }}
+                checkBot = {checkBotRef.current}
             />}
 
-            {openEditApi.isOpen && <EditApi
+            {openEditApi.confirm && <EditApi
                 open={openEditApi}
-                botApiData={apiData[0]}
+                botData={apiData[0]}
                 onClose={(data) => {
                     setOpenEditApi(data)
                 }}
             />}
+
+            {
+                openEditApi.isOpen && (
+                    <DialogCustom
+                        backdrop
+                        open={true}
+                        onClose={() => {
+                            setOpenEditApi({
+                                confirm: false,
+                                isOpen: false,
+                                dataChange: "",
+                            })
+                        }}
+                        onSubmit={() => {
+                            setOpenEditApi({
+                                dataChange: "",
+                                isOpen:false,
+                                confirm: true,
+                            })
+                        }}
+                        dialogTitle="The action requires confirmation"
+                        submitBtnColor="warning"
+                        submitBtnText="update"
+                        reserveBtn
+                        position="center"
+                    >
+                        <p style={{ textAlign: "center" }}>Bot is running - Do you want to update?</p>
+                    </DialogCustom >
+                )
+            }
 
         </div>
     );

@@ -6,6 +6,7 @@ const positionSchema = new mongoose.Schema({
   Price: String,
   Quantity	: String,
   Pnl: String,
+  Time: Date,
   Miss: Boolean,
   orderID:{
     type:String,

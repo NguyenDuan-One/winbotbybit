@@ -19,8 +19,9 @@ function TreeParent({
     treeData,
     dataCheckTreeSelectedRef,
     setOpenCreateStrategy,
+    dataCheckTreeCurrentLength,
     setDataCheckTree,
-    dataCheckTreeCurrentLength
+    dataCheckTreeDefaultRef
 }) {
 
 
@@ -36,7 +37,6 @@ function TreeParent({
     }
     const handleUpdateDataAfterSuccess = (IsActive) => {
         handleCheckAllCheckBox(false)
-
         setDataCheckTree(dataCheckTree => dataCheckTree.map(data => {
             if (data._id === treeData._id) {
                 return {
@@ -51,8 +51,23 @@ function TreeParent({
             }
             return data
         }))
+        dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+            if (data._id === treeData._id) {
+                return {
+                    ...treeData,
+                    children: treeData.children.map(treeItem => {
+                        return {
+                            ...treeItem,
+                            IsActive
+                        }
+                    })
+                }
+            }
+            return data
+        })
         setOpenSettingTreeNode("")
     }
+
     const handleUnActiveAllTreeItem = async () => {
         handleCheckAllCheckBox(false)
 
@@ -141,6 +156,7 @@ function TreeParent({
                 // handleUpdateDataAfterSuccess(newData)
                 if (status === 200) {
                     setDataCheckTree(dataCheckTree => dataCheckTree.filter(data => data._id !== treeData._id))
+                    dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.filter(data => data._id !== treeData._id)
                     handleCheckAllCheckBox(false)
                 }
 
@@ -172,7 +188,7 @@ function TreeParent({
                 <input
                     className={clsx("nodeParentSelected", styles.checkboxStyle)}
                     type="checkbox"
-                    checked = {dataCheckTreeCurrentLength=== dataCheckTreeSelectedRef.current?.length || undefined}
+                    checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
                     onClick={e => {
                         const check = e.target.checked
                         e.currentTarget.parentElement.parentElement.querySelectorAll(`.nodeItemSelected-${treeData._id}`)?.forEach(item => {
@@ -255,6 +271,7 @@ function TreeParent({
                                                 dataCheckTreeSelectedRef={dataCheckTreeSelectedRef}
                                                 setDataCheckTree={setDataCheckTree}
                                                 dataCheckTreeCurrentLength={dataCheckTreeCurrentLength}
+                                                dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                                                 key={treeNode.value}
                                             />
                                         ))
