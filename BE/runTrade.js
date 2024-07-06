@@ -1535,7 +1535,7 @@ const Main = async () => {
     // REALTIME
     const socket = require('socket.io-client');
 
-    const socketRealtime = socket('http://localhost:3001');
+    const socketRealtime = socket(process.env.SOCKET_IP);
 
     socketRealtime.on('connect', () => {
         console.log('[V] Connected Socket Realtime');
