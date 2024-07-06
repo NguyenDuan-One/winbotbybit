@@ -259,34 +259,6 @@ const dataCoinByBitController = {
                 return child
             })) || []
 
-
-
-            // const newDataUpdateList = await StrategiesModel.find({
-            //     "children.userID": userID,
-            //     "children.TimeTemp": TimeTemp,
-            // }).populate("children.botID")
-
-            // const newDataSocketWithBotData = newDataUpdateList.reduce((result, strategiesData) => {
-            //     if (strategiesData.children.some(childData =>
-            //         // dataCoinByBitController.checkConditionStrategies(childData) &&
-            //         childData.userID == userID &&
-            //         childData.TimeTemp === TimeTemp
-
-            //     )) {
-            //         strategiesData.children.forEach((childData) => {
-            //             if (
-            //                 // dataCoinByBitController.checkConditionStrategies(childData) &&
-            //                 childData.userID == userID &&
-            //                 childData.TimeTemp === TimeTemp
-            //             ) {
-            //                 childData.symbol = strategiesData.value
-            //                 result.push(childData)
-            //             }
-            //         })
-            //     }
-            //     return result
-            // }, []) || [];
-
             handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
                 type: "add",
                 data: handleResult
@@ -350,13 +322,12 @@ const dataCoinByBitController = {
 
             const dataList = req.body
 
-            let resultAll = []
-
             const TimeTemp = new Date().toString()
-            for (data of dataList) {
-                const result = await StrategiesModel.updateOne(
-                    { "children._id": data.id, _id: data.parentID },
-                    {
+
+            const bulkOperations = dataList.map(data => ({
+                updateOne: {
+                    filter: { "children._id": data.id, _id: data.parentID },
+                    update: {
                         $set: {
                             "children.$": {
                                 ...data.UpdatedFields,
@@ -364,11 +335,18 @@ const dataCoinByBitController = {
                             }
                         }
                     }
-                )
-                resultAll.push(result.acknowledged && result.matchedCount !== 0)
+                }
+            }));
+
+            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+
+            if (bulkResult.modifiedCount === dataList.length) {
+                res.customResponse(200, "Update Mul-Strategies Successful", "");
+            }
+            else {
+                res.customResponse(400, `Update Mul-Strategies Failed ${dataList.length - bulkResult.modifiedCount} `);
 
             }
-
 
             const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
 
@@ -376,14 +354,6 @@ const dataCoinByBitController = {
                 type: "update",
                 data: newDataSocketWithBotData
             })
-
-
-            if (resultAll.every(result => result === true)) {
-                res.customResponse(200, "Update Mul-Strategies Successful", "");
-            }
-            else {
-                res.customResponse(400, "Update Mul-Strategies Failed", "");
-            }
 
         } catch (error) {
             // Xử lý lỗi nếu có
@@ -430,6 +400,7 @@ const dataCoinByBitController = {
             res.status(500).json({ message: "Delete Strategies Error" });
         }
     },
+
     deleteStrategiesItem: async (req, res) => {
         try {
 
@@ -490,6 +461,7 @@ const dataCoinByBitController = {
             res.status(500).json({ message: "Delete Strategies Error" });
         }
     },
+
     deleteStrategiesMultiple: async (req, res) => {
         try {
 
@@ -526,34 +498,22 @@ const dataCoinByBitController = {
                 path: 'children.botID',
             })
 
-            const newDataSocketWithBotData = resultGet.flatMap((data) => data.children.map(child => {
-                child.symbol = data.value
-                child.value = `${data._id}-${child._id}`
-                return child
-            })) || []
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "delete",
-                data: newDataSocketWithBotData
-            })
+            const bulkOperations = strategiesIDList.map(data => ({
+                updateOne: {
+                    filter: { _id: data.parentID },
+                    update: { $pull: { children: { _id: data.id } } }
+                }
+            }));
 
-            let resultAll = []
-
-            for (data of strategiesIDList) {
-                const result = await StrategiesModel.updateOne(
-                    { _id: data.parentID },
-                    { $pull: { children: { _id: data.id } } }
-                );
-                resultAll.push(result.acknowledged && result.matchedCount !== 0)
-            }
+            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
 
             // if (result.acknowledged && result.deletedCount !== 0) {
-            if (resultAll.every(result => result === true)) {
-
+            if (bulkResult.modifiedCount === strategiesIDList.length) {
                 res.customResponse(200, "Delete Strategies Successful");
             }
             else {
-                res.customResponse(400, "Delete Strategies failed");
+                res.customResponse(400, `Delete Strategies Failed ${strategiesIDList.length - bulkResult.modifiedCount} `);
             }
 
         } catch (error) {
@@ -570,72 +530,93 @@ const dataCoinByBitController = {
 
             const TimeTemp = new Date().toString()
 
-            const newData = symbolListData.map(data => {
-                const newObj = { ...data, TimeTemp };
+            const bulkOperations = [];
 
-                delete newObj?._id
-                delete newObj?.value
-                return newObj
-            })
+            // Lặp qua danh sách symbolList và tạo các thao tác push vào mảng bulkOperations
+            symbolList.forEach(symbol => {
+                const filter = { "value": symbol };
+                const update = {
+                    $push: {
+                        "children": {
+                            $each: symbolListData.map(data => {
+                                const newObj = { ...data, TimeTemp };
+                                delete newObj?._id
+                                delete newObj?.value
+                                return newObj
 
-            const result = await StrategiesModel.updateMany(
-                { "value": { "$in": symbolList } },
-                {
-                    "$push": {
-                        "children": newData
+                            })
+                        }
                     }
-                }
-            );
+                };
 
-            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+                bulkOperations.push({
+                    updateOne: {
+                        filter,
+                        update
+                    }
+                });
+            });
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "update",
-                data: newDataSocketWithBotData
-            })
+            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
 
-            if (result.acknowledged && result.matchedCount !== 0) {
+            if (bulkResult.modifiedCount === symbolList.length) {
 
                 res.customResponse(200, "Copy Strategies To Symbol Successful", []);
             }
             else {
                 res.customResponse(400, "Copy Strategies To Symbol Failed", "");
             }
-        }
+            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
 
+            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "update",
+                data: newDataSocketWithBotData
+            })
+
+        }
 
         catch (error) {
             res.status(500).json({ message: error.message });
         }
 
     },
+
     copyMultipleStrategiesToBot: async (req, res) => {
 
         try {
             const { symbolListData, symbolList } = req.body
 
-            const TimeTemp = new Date().toString()
+            const TimeTemp = new Date().toString();
 
-            let resultAll = []
-
-            for (data of symbolListData) {
-                const newObj = { ...data };
-
-                delete newObj?._id
-                delete newObj?.value
-                const result = await StrategiesModel.updateOne(
-                    { "_id": newObj.parentID },
-                    {
-                        "$push": {
-                            "children": symbolList.map(item => ({
-                                ...newObj,
-                                botID: item,
-                                TimeTemp
-                            }))
+            const bulkOperations = symbolListData.map(data => ({
+                updateOne: {
+                    filter: { _id: data.parentID },
+                    update: {
+                        $push: {
+                            children: {
+                                $each: symbolList.map(item => {
+                                    const newObj = { ...data };
+                                    delete newObj?._id;
+                                    delete newObj?.value;
+                                    return ({
+                                        ...newObj,
+                                        botID: item,
+                                        TimeTemp
+                                    })
+                                })
+                            }
                         }
                     }
-                )
-                resultAll.push(result.acknowledged && result.matchedCount !== 0)
+                }
+            }))
+
+            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+
+            if (bulkResult.modifiedCount === symbolListData.length) {
+                res.customResponse(200, "Copy Strategies To Bot Successful", "");
+            }
+            else {
+                res.customResponse(400, "Copy Strategies To Bot Failed", "");
             }
 
             const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
@@ -645,12 +626,7 @@ const dataCoinByBitController = {
                 data: newDataSocketWithBotData
             })
 
-            if (resultAll.every(result => result === true)) {
-                res.customResponse(200, "Copy Strategies To Bot Successful", "");
-            }
-            else {
-                res.customResponse(400, "Copy Strategies To Bot Failed", "");
-            }
+
         }
 
         catch (error) {

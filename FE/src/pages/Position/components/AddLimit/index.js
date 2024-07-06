@@ -3,6 +3,9 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import DialogCustom from "../../../../components/DialogCustom";
 import styles from "../../../Bot/components/AddBot/AddBot.module.scss"
+import { addMessageToast } from "../../../../store/slices/Toast";
+import { closeLimit, getPriceLimitCurrent } from "../../../../services/positionService";
+import { useEffect, useState } from "react";
 
 function AddLimit({
     onClose,
@@ -16,11 +19,35 @@ function AddLimit({
         formState: { errors }
     } = useForm();
 
+    const [priceCurrent, setPriceCurrent] = useState(0);
     const dispatch = useDispatch();
 
     const handleSubmitLimit = async (data) => {
-        console.log(positionData);
-        console.log(data);
+
+        try {
+            const res = await closeLimit({
+                positionData,
+                Quantity: data.Quantity,
+                Price: data.Price
+            })
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status,
+                message,
+            }))
+
+            if (status === 200) {
+                handleClose(true)
+            }
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Close Market Error",
+            }))
+        }
     }
 
     const handleClose = (dataChange = false) => {
@@ -29,6 +56,35 @@ function AddLimit({
             dataChange
         })
     }
+
+    const handleGetPriceCurrent = async () => {
+        try {
+            const symbol = positionData.symbol
+
+            const res = await getPriceLimitCurrent({ symbol })
+            const { status, message, data: resData } = res.data
+
+            if (status === 200) {
+                setPriceCurrent(resData)
+            }
+
+            dispatch(addMessageToast({
+                status,
+                message,
+            }))
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Price Current Error",
+            }))
+        }
+    }
+    useEffect(() => {
+        handleGetPriceCurrent()
+    }, []);
+
     return (
         <DialogCustom
             dialogTitle="Close Limit"
@@ -38,30 +94,35 @@ function AddLimit({
             reserveBtn
             submitBtnColor="warning"
         >
-            <form className={styles.dialogForm}>
-                <FormControl className={styles.formControl}>
-                    <FormLabel className={styles.label}>Price</FormLabel>
-                    <TextField
-                        {...register("Price", { required: true })}
-                        type="number"
-                        size="small"
-                    />
-                    {errors.Price && <p className="formControlErrorLabel">The Price field is required.</p>}
+            {
+                priceCurrent != 0 && <form className={styles.dialogForm}>
+                    <FormControl className={styles.formControl}>
+                        <FormLabel className={styles.label}>Price</FormLabel>
+                        <TextField
+                            {...register("Price", { required: true })}
+                            type="number"
+                            size="small"
+                            defaultValue={priceCurrent}
+                        />
+                        {errors.Price && <p className="formControlErrorLabel">The Price field is required.</p>}
 
-                </FormControl>
-                <FormControl className={styles.formControl}>
-                    <FormLabel className={styles.label}>Quantity</FormLabel>
-                    <TextField
-                        {...register("Quantity", { required: true })}
-                        type="number"
-                        size="small"
-                    />
-                    {errors.Quantity && <p className="formControlErrorLabel">The Quantity field is required.</p>}
+                    </FormControl>
+                    <FormControl className={styles.formControl}>
+                        <FormLabel className={styles.label}>Quantity</FormLabel>
+                        <TextField
+                            {...register("Quantity", { required: true })}
+                            type="number"
+                            size="small"
+                            value={positionData.Quantity}
+                            disabled
+                        />
+                        {errors.Quantity && <p className="formControlErrorLabel">The Quantity field is required.</p>}
 
-                </FormControl>
+                    </FormControl>
 
 
-            </form>
+                </form>
+            }
         </DialogCustom>
     );
 }

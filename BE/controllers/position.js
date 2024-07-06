@@ -1,7 +1,18 @@
+const { RestClientV5 } = require('bybit-api');
 const PositionModel = require('../models/position.model');
 
-const BotApiController = {
+const PositionController = {
 
+    // OTHER 
+
+    sendDataRealtime: ({
+        type,
+        data
+    }) => {
+        const { socketServer } = require('../serverConfig');
+        socketServer.emit(type, data)
+    },
+    // 
     getAllPosition: async (req, res) => {
         try {
             const { botListID } = req.body
@@ -13,65 +24,10 @@ const BotApiController = {
         }
     },
 
-    createPosition: async (req, res) => {
-        try {
-
-            const newBot = new PositionModel(req.body);
-
-            const savedBot = await newBot.save();
-
-            res.customResponse(res.statusCode, "Add Position Successful", savedBot);
-
-        } catch (error) {
-            // Xử lý lỗi nếu có
-            res.status(500).json({ message: "Add Position Error" });
-        }
-    },
-
-    updatePosition: async (req, res) => {
-        try {
-
-            const { orderID } = req.body;
-
-            const result = await PositionModel.updateOne({ orderID: orderID }, { $set: req.body })
-
-            if (result.acknowledged && result.matchedCount !== 0) {
-                res.customResponse(200, "Update Position Successful", "");
-            }
-            else {
-                res.customResponse(400, "Update Position failed", "");
-            }
-
-        } catch (error) {
-            // Xử lý lỗi nếu có
-            res.status(500).json({ message: "Update Position Error" });
-        }
-    },
-
-    deletePosition: async (req, res) => {
-        try {
-            const orderID = req.params.orderID;
-
-            const result = await PositionModel.deleteOne({ orderID })
-
-            if (result.deletedCount && result.deletedCount !== 0) {
-                res.customResponse(200, "Delete Position Successful");
-            }
-            else {
-                res.customResponse(400, "Delete Position failed", "");
-            }
-
-        } catch (error) {
-            res.status(500).json({ message: "Delete Position Error" });
-        }
-    },
-
     updatePL: async (req, res) => {
         try {
             const { botListID } = req.body
             const data = await PositionModel.find({ botID: { $in: botListID } }).populate("botID")
-
-            const { RestClientV5 } = require('bybit-api');
 
             if (data.length > 0) {
 
@@ -81,28 +37,132 @@ const BotApiController = {
                         key: positionData.botID.ApiKey,
                         secret: positionData.botID.SecretKey,
                     });
-
                     return client
                         .getPositionInfo({
                             category: 'linear',
                             symbol: positionData.Symbol
                         })
                         .then((response) => {
-                            positionData.Pnl = response.result.list[0].unrealisedPnl
+                            const newPnL = response.result.list[0].unrealisedPnl
+                            positionData.Pnl = newPnL
+                                +newPnL != 0 ? PositionController.updatePositionBE({
+                                    newDataUpdate: positionData,
+                                    orderID: positionData.orderID
+                                }) : PositionController.deletePositionBE({
+                                    orderID: positionData.orderID
+                                })
                             return positionData
                         })
                         .catch((error) => {
-                            console.error(error);
+                            console.log("Error", error);
                         });
                 }))
-                return res.customResponse(res.statusCode, "Refresh Position Successful", newData.map(item=>item.value));
+                res.customResponse(200, "Refresh Position Successful", newData.map(item => item.value));
             }
-
-            return res.customResponse(res.statusCode, "Refresh Position Successful", data);
+            else 
+            {
+                res.customResponse(200, "Refresh Position Successful", "");
+            }
 
         } catch (err) {
             res.status(500).json({ message: err.message });
         }
+    },
+
+    getPriceLimitCurrent: async (req, res) => {
+        try {
+            const { symbol } = req.body
+
+            const client = new RestClientV5({
+                testnet: false,
+            });
+
+            await client.getKline({
+                category: 'linear',
+                symbol,
+                interval: '1',
+            }).then(response => {
+                const priceCurrent = response.result.list[0]?.[4]
+                res.customResponse(200, "Get Price Current Successful", priceCurrent);
+            }).catch(err => {
+                res.customResponse(200, "Get Price Current Error", "");
+            })
+
+        } catch (error) {
+            res.customResponse(500, "Get Price Current Error", "");
+        }
+    },
+
+    closeMarket: async (req, res) => {
+
+        const { positionData, Quantity } = req.body
+
+        const client = new RestClientV5({
+            testnet: false,
+            key: positionData.botData.ApiKey,
+            secret: positionData.botData.SecretKey,
+        });
+        client
+            .submitOrder({
+                category: 'linear',
+                symbol: positionData.Symbol,
+                side: positionData.Side === "Sell" ? "Buy" : "Sell",
+                positionIdx: 0,
+                orderType: 'Market',
+                qty: Math.abs(Quantity).toString(),
+                price: positionData.Price,
+            })
+            .then((response) => {
+                if (response.retCode == 0) {
+                    res.customResponse(200, "Close Market Successful");
+                }
+                else {
+                    res.customResponse(400, "Close Market Failed");
+                }
+            })
+            .catch((error) => {
+                res.customResponse(500, "Close Market Error");
+            });
+    },
+
+    closeLimit: async (req, res) => {
+
+        const { positionData, Quantity, Price } = req.body
+
+        const symbol = positionData.Symbol
+        const client = new RestClientV5({
+            testnet: false,
+            key: positionData.botData.ApiKey,
+            secret: positionData.botData.SecretKey,
+        });
+        client
+            .submitOrder({
+                category: 'linear',
+                symbol,
+                side: positionData.Side === "Sell" ? "Buy" : "Sell",
+                positionIdx: 0,
+                orderType: 'Limit',
+                qty: Math.abs(Quantity).toString(),
+                price: Math.abs(Price).toString(),
+            })
+            .then((response) => {
+                if (response.retCode == 0) {
+                    res.customResponse(200, "Close Limit Successful");
+
+                    PositionController.sendDataRealtime({
+                        type: "close-limit",
+                        data: {
+                            positionData
+                        }
+                    })
+                }
+                else {
+                    res.customResponse(400, "Close Limit Failed");
+                }
+            })
+            .catch((error) => {
+                res.customResponse(500, "Close Limit Error");
+            });
     },
 
     // OTHER
@@ -122,24 +182,14 @@ const BotApiController = {
             const savedBot = await newBot.save();
 
             if (savedBot) {
-                return "[_DB_] Add Position Successful"
+                return "[Mongo] Add Position Successful"
             }
             else {
-                return "[_DB_] Add Position Failed"
+                return "[Mongo] Add Position Failed"
             }
-            // }
-            // else {
-            //     const { orderID, ...data } = newData
-            //     console.log(`Position for ${Symbol} already exists`);
-            //     this.updatePositionBE({
-            //         newDataUpdate: data,
-            //         orderID
-            //     })
-            //     return "Re-Update Position Successful"
-            // }
 
         } catch (error) {
-            return `[_DB_] Add Position Error: ${error}`
+            return `[Mongo] Add Position Error: ${error}`
         }
     },
 
@@ -148,7 +198,6 @@ const BotApiController = {
         orderID
     }) => {
         try {
-
             const result = await PositionModel.updateOne({ orderID: orderID }, {
                 $set: {
                     ...newDataUpdate,
@@ -157,14 +206,14 @@ const BotApiController = {
             });
 
             if (result.acknowledged && result.matchedCount !== 0) {
-                return "[_DB_] Update Position Successful"
+                return "[Mongo] Update Position Successful"
             }
             else {
-                return `[_DB_] Update Position Failed ${orderID}`
+                return `[Mongo] Update Position Failed ${orderID}`
             }
 
         } catch (error) {
-            return `[_DB_] Update Position Error: ${error}`
+            return `[Mongo] Update Position Error: ${error}`
         }
     },
 
@@ -174,16 +223,18 @@ const BotApiController = {
             const result = await PositionModel.deleteOne({ orderID })
 
             if (result.deletedCount && result.deletedCount !== 0) {
-                return "[_DB_] Delete Position Successful"
+                return "[Mongo] Delete Position Successful"
             }
             else {
-                return `[_DB_] Delete Position Failed ${orderID}`
+                return `[Mongo] Delete Position Failed ${orderID}`
             }
 
         } catch (error) {
-            return `[_DB_] Delete Position Error ${error}`
+            return `[Mongo] Delete Position Error ${error}`
         }
     },
+
+
 }
 
-module.exports = BotApiController 
+module.exports = PositionController 

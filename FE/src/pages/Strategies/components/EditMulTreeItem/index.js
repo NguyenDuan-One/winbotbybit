@@ -245,6 +245,7 @@ function EditMulTreeItem({
     const handleUpdate = async () => {
 
         let checkValueMin = true
+        let dataChange = false
 
         try {
             const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => (
@@ -282,7 +283,7 @@ function EditMulTreeItem({
                     message: message,
                 }))
                 if (status === 200) {
-                    closeDialog(true)
+                    dataChange = true
                 }
             }
             else {
@@ -291,17 +292,19 @@ function EditMulTreeItem({
                     message: "All Field Value >= 0.1",
                 }))
             }
-
         }
         catch (err) {
             dispatch(addMessageToast({
                 status: 500,
                 message: "Update All Error",
             }))
+
         }
+        closeDialog(dataChange)
     }
 
     const handleDelete = async () => {
+
         setLoadingSubmit(true)
 
         let dataChange = false
@@ -344,6 +347,8 @@ function EditMulTreeItem({
     const handleCopy = async () => {
 
         if (symbolListSelected.length > 0 || botLisSelected.length > 0) {
+            let dataChange = false
+            setLoadingSubmit(true)
             try {
                 let res
                 if (copyType === "Symbol") {
@@ -365,7 +370,7 @@ function EditMulTreeItem({
                     message: message
                 }))
                 if (status === 200) {
-                    closeDialog(true)
+                    dataChange = true
                 }
             }
             catch (err) {
@@ -373,7 +378,9 @@ function EditMulTreeItem({
                     status: 500,
                     message: "Copy Strategies Error",
                 }))
+                setLoadingSubmit(false)
             }
+            closeDialog(dataChange)
         }
     }
 

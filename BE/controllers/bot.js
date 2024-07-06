@@ -201,6 +201,19 @@ const BotController = {
             const result = await BotModel.deleteOne({ _id: botID })
             // const resultStrategies = StrategiesModel.deleteOne({ botID })
 
+            const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                botID,
+                IsActive: true
+            })
+
+            newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                type: "bot-api",
+                data: {
+                    newData: newDataSocketWithBotData,
+                    botID,
+                }
+            })
+
             if (result.deletedCount !== 0) {
                 res.customResponse(200, "Delete Bot Successful");
             }

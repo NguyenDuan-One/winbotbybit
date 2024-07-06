@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { getAllBotActiveByUserID } from "../../services/botService";
 import DataGridCustom from "../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
-import { getAllPosition, updatePL } from "../../services/positionService";
+import { updatePL } from "../../services/positionService";
 import { addMessageToast } from "../../store/slices/Toast";
 import { useDispatch } from "react-redux";
 import AddLimit from "./components/AddLimit";
@@ -185,7 +185,6 @@ function Position() {
 
     const dispatch = useDispatch()
 
-
     const handleGetAllBotByUserID = () => {
         const userData = JSON.parse(localStorage.getItem("user"))
         getAllBotActiveByUserID(userData._id)
@@ -208,9 +207,6 @@ function Position() {
                 handleRefreshData(newMain)
 
             })
-            .catch(error => {
-            }
-            )
     }
 
 
@@ -245,13 +241,13 @@ function Position() {
         try {
             const res = await updatePL(botListInput.slice(1).map(item => item.value))
             const { status, message, data: resData } = res.data
-
             if (status === 200) {
                 const data = resData.length > 0 ? resData?.map(item => (
                     {
                         id: item._id,
                         BotName: item.botID.botName,
                         botID: item.botID._id,
+                        botData: item.botID,
                         Symbol: item.Symbol,
                         Side: item.Side,
                         Price: item.Price,
@@ -260,7 +256,7 @@ function Position() {
                         Pnl: (+item.Pnl).toFixed(4),
                         Miss: item.Miss,
                     }
-                )).filter(item=>+item.Pnl != 0) : []
+                )).filter(item => (+item.Pnl) != 0) : []
                 setPositionData(data)
                 positionDataDefault.current = data
             }
@@ -274,7 +270,7 @@ function Position() {
         catch (err) {
             dispatch(addMessageToast({
                 status: 500,
-                message: "Update Position Error",
+                message: "Refresh Position Error",
             }))
         }
     }

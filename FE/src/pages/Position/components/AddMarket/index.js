@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import DialogCustom from "../../../../components/DialogCustom";
 import styles from "../../../Bot/components/AddBot/AddBot.module.scss"
+import { addMessageToast } from "../../../../store/slices/Toast";
+import { closeMarket } from "../../../../services/positionService";
 
 function AddMarket({
     onClose,
@@ -19,8 +21,27 @@ function AddMarket({
     const dispatch = useDispatch();
 
     const handleSubmitLimit = async (data) => {
-        console.log(positionData);
-        console.log(data);
+        try {
+            const res = await closeMarket({
+                positionData,
+                Quantity: data.Quantity,
+            })
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status,
+                message,
+            }))
+            if (status === 200) {
+                handleClose(true)
+            }
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Close Market Error",
+            }))
+        }
     }
 
     const handleClose = (dataChange = false) => {
@@ -55,6 +76,8 @@ function AddMarket({
                         {...register("Quantity", { required: true })}
                         type="number"
                         size="small"
+                        value={Math.abs(positionData.Quantity)}
+                    // disabled
                     />
                     {errors.Quantity && <p className="formControlErrorLabel">The Quantity field is required.</p>}
 
