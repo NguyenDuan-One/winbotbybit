@@ -256,7 +256,7 @@ function Position() {
                         Pnl: (+item.Pnl).toFixed(4),
                         Miss: item.Miss,
                     }
-                )).filter(item => (+item.Pnl) != 0) : []
+                )).filter(item => (item.Pnl) != 0) : []
                 setPositionData(data)
                 positionDataDefault.current = data
             }

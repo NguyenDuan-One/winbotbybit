@@ -44,13 +44,15 @@ const PositionController = {
                         })
                         .then((response) => {
                             const newPnL = response.result.list[0].unrealisedPnl
+                            const sizeNew = response.result.list[0].size
+                            
                             positionData.Pnl = newPnL
-                                +newPnL != 0 ? PositionController.updatePositionBE({
-                                    newDataUpdate: positionData,
-                                    orderID: positionData.orderID
-                                }) : PositionController.deletePositionBE({
-                                    orderID: positionData.orderID
-                                })
+                            sizeNew != 0 ? PositionController.updatePositionBE({
+                                newDataUpdate: positionData,
+                                orderID: positionData.orderID
+                            }) : PositionController.deletePositionBE({
+                                orderID: positionData.orderID
+                            })
                             return positionData
                         })
                         .catch((error) => {
@@ -59,8 +61,7 @@ const PositionController = {
                 }))
                 res.customResponse(200, "Refresh Position Successful", newData.map(item => item.value));
             }
-            else 
-            {
+            else {
                 res.customResponse(200, "Refresh Position Successful", "");
             }
 
@@ -83,6 +84,7 @@ const PositionController = {
                 interval: '1',
             }).then(response => {
                 const priceCurrent = response.result.list[0]?.[4]
+                console.log("priceCurrent", priceCurrent);
                 res.customResponse(200, "Get Price Current Successful", priceCurrent);
             }).catch(err => {
                 res.customResponse(200, "Get Price Current Error", "");

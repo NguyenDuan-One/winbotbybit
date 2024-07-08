@@ -23,6 +23,8 @@ function EditBot({
 
     const dispatch = useDispatch();
 
+    console.log(botData);
+
     const newBotDataRef = useRef(false)
 
     const formDataChangeRef = useRef(false)
@@ -32,7 +34,13 @@ function EditBot({
             try {
                 const res = await updateBot({
                     id: botData.id,
-                    data: formData
+                    data: {
+                        ...formData,
+                        telegramID:formData.telegramID.trim(),
+                        telegramToken:formData.telegramToken.trim(),
+                        type: "telegram",
+                        checkBot:botData.Status === "Running" && botData.ApiKey
+                    }
                 })
                 const { status, message } = res.data
 
@@ -95,14 +103,22 @@ function EditBot({
                 </FormControl>
 
                 <FormControl className={styles.formControl}>
+                    <FormLabel className={styles.label}>Telegram Token</FormLabel>
+                    <TextField
+                        defaultValue={botData?.telegramToken}
+                        {...register("telegramToken")}
+                        size="small"
+                    />
+
+                </FormControl>
+
+                <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>Telegram ID</FormLabel>
                     <TextField
                         defaultValue={botData?.telegramID}
                         {...register("telegramID")}
                         size="small"
                     />
-                    {/* {errors.telegramID?.type === 'required' && <p className="formControlErrorLabel">The Telegram ID field is required.</p>} */}
-
                 </FormControl>
 
             </form>

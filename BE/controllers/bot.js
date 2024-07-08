@@ -21,7 +21,7 @@ const BotController = {
         const resultFilter = await StrategiesModel.aggregate([
             {
                 $match: {
-                    "children.botID":new mongoose.Types.ObjectId(botID)
+                    "children.botID": new mongoose.Types.ObjectId(botID)
                 }
             },
             {
@@ -60,7 +60,7 @@ const BotController = {
     getAllBot: async (req, res) => {
         try {
             // ref: .populate({ path: "coinID", models: "Coin" })
-            const data = await BotModel.find().sort({ Created: -1 }).populate("userID", "userName");
+            const data = await BotModel.find({}, { telegramToken: 0 }).sort({ Created: -1 }).populate("userID", "userName roleName");
             res.customResponse(res.statusCode, "Get All Bot Successful", data);
 
         } catch (err) {
@@ -73,7 +73,7 @@ const BotController = {
             const userID = req.params.id;
 
             // ref: .populate({ path: "coinID", models: "Coin" })
-            const data = await BotModel.find({ userID }).sort({ Created: -1 }).populate("userID", "userName");
+            const data = await BotModel.find({ userID }, { telegramToken: 0 }).sort({ Created: -1 }).populate("userID", "userName roleName");
             res.customResponse(res.statusCode, "Get All Bot Successful", data);
 
         } catch (err) {
@@ -85,7 +85,7 @@ const BotController = {
             const userID = req.params.id;
 
             // ref: .populate({ path: "coinID", models: "Coin" })
-            const data = await BotModel.find({ userID, "Status": "Running" }).sort({ Created: -1 }).populate("userID", "userName");
+            const data = await BotModel.find({ userID, "Status": "Running" }, { telegramToken: 0 }).sort({ Created: -1 }).populate("userID", "userName roleName");
             res.customResponse(res.statusCode, "Get All Bot Successful", data);
 
         } catch (err) {
@@ -96,10 +96,10 @@ const BotController = {
         try {
             const groupID = req.params.id;
 
-            const resultGetAllUsersID = await UserModel.find({ groupID }, { password: 0 }).select('_id');
+            const resultGetAllUsersID = await UserModel.find({ groupID }, { telegramToken: 0 }).select('_id');
 
             // ref: .populate({ path: "coinID", models: "Coin" })
-            const data = await BotModel.find({ userID: { $in: resultGetAllUsersID } }).sort({ Created: -1 }).populate("userID", "userName");
+            const data = await BotModel.find({ userID: { $in: resultGetAllUsersID } }).sort({ Created: -1 }).populate("userID", "userName roleName");
             res.customResponse(res.statusCode, "Get All Bot Successful", data);
 
         } catch (err) {
@@ -155,7 +155,7 @@ const BotController = {
                     })
 
                     newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                        type: "update",
+                        type: "bot-update",
                         data: newDataSocketWithBotData
                     })
 
@@ -176,6 +176,26 @@ const BotController = {
                             newApiData: {
                                 ApiKey: data.ApiKey,
                                 SecretKey: data.SecretKey
+                            }
+                        }
+                    })
+                }
+            }
+            else if (type === "telegram") {
+                if (checkBot) {
+                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                        botID,
+                        IsActive: true
+                    })
+
+                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                        type: "bot-telegram",
+                        data: {
+                            newData: newDataSocketWithBotData,
+                            botID,
+                            newApiData: {
+                                telegramID: data.telegramID,
+                                telegramToken: data.telegramToken,
                             }
                         }
                     })

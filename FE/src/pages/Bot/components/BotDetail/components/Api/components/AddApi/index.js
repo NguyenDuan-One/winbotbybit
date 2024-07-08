@@ -28,11 +28,13 @@ function AddApi({
     const handleSubmitAddApi = async data => {
 
         try {
-           
+
             const res = await updateBot({
-                data:{
+                data: {
                     ...data,
-                    type:"Api",
+                    ApiKey: data.ApiKey.trim(),
+                    SecretKey: data.SecretKey.trim(),
+                    type: "Api",
                     checkBot
                 },
                 id: botID

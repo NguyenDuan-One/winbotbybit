@@ -27,13 +27,12 @@ var allStrategies3m = {}
 var allStrategies5m = {}
 var allStrategies15m = {}
 var tradeCoinData = {}
-var listPricePre = {}
-var listPricePreOne = {}
 var allStrategiesActiveByBotID = {}
 var allSymbolDataObject = {}
 var botApiList = {}
 var digitAllCoinObject = {}
 var botAmountListObject = {}
+var coinCurrentTemp = 0
 
 // ----------------------------------------------------------------------------------
 
@@ -245,7 +244,6 @@ const handleMoveOrderTP = ({
 
     if (tradeCoinData[strategyID].TP.orderID) {
 
-        const symbol = strategy.symbol
         const TPOld = tradeCoinData[strategyID].TP.price
 
         let TPNew
@@ -268,7 +266,7 @@ const handleMoveOrderTP = ({
         const dataInput = {
             strategyID,
             tradeCoinData,
-            symbol,
+            symbol: strategy.symbol,
             price: TPNew.toFixed(strategy.digit),
             orderId: tradeCoinData[strategyID].TP.orderID,
             candle,
@@ -282,7 +280,7 @@ const handleMoveOrderTP = ({
             const dataInputMiss = {
                 strategyID,
                 tradeCoinData,
-                symbol,
+                symbol: strategy.symbol,
                 price: TPNew.toFixed(strategy.digit),
                 orderId: missTPDataBySymbol[symbol].orderID,
                 candle,
@@ -419,7 +417,9 @@ const cancelAll = (
             price: 0,
             qty: 0
         },
+        pricePre: tradeCoinData[strategyID].pricePre
     }
+
 }
 
 // 
@@ -430,13 +430,13 @@ const sendMessageWithRetry = async ({
     telegramToken,
 }) => {
 
-    const BOT_TOKEN_RUN_TRADE = new Telegraf(telegramToken)
+    const BOT_TOKEN_RUN_TRADE = new Telegraf(telegramToken);
 
     BOT_TOKEN_RUN_TRADE.launch().then(async () => {
         for (let i = 0; i < retries; i++) {
             try {
 
-                messageText && await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText)
+                messageText && await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
                 return;
             } catch (error) {
                 if (error.code === 429) {
@@ -551,13 +551,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                         let TPNew = 0
 
-                                        const newOC = Math.abs((openTrade - strategy.coinOpen)) / openTrade * 100
-
                                         if (strategy.PositionSide === "Long") {
-                                            TPNew = openTrade + (openTrade * newOC / 100) * (strategy.TakeProfit / 100)
+                                            TPNew = openTrade + (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
                                         }
                                         else {
-                                            TPNew = openTrade - (openTrade * newOC / 100) * (strategy.TakeProfit / 100)
+                                            TPNew = openTrade - (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
                                         }
 
                                         tradeCoinData[strategyID].TP.price = TPNew
@@ -777,7 +775,34 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         Pnl: dataMain.unrealisedPnl,
                                     }
 
+                                    if (!missTPDataBySymbol[symbol].orderIDToDB) {
 
+                                        const orderIDToDB = dataCoin.id
+                                        missTPDataBySymbol[symbol].orderIDToDB = orderIDToDB
+                                        createPositionBE({
+                                            ...newDataToDB,
+                                            orderID: orderIDToDB,
+                                            botID: strategy.botID._id,
+                                        }).then(message => {
+                                            console.log(message);
+                                        }).catch(err => {
+                                            console.log(err);
+                                        })
+                                    }
+                                    else {
+                                        console.log("[Mongo] Re-Update Position");
+                                        updatePositionBE({
+                                            newDataUpdate: {
+                                                ...newDataToDB,
+                                                Miss: missTPDataBySymbol[symbol].gongLai
+                                            },
+                                            orderID: missTPDataBySymbol[symbol].orderIDToDB
+                                        }).then(message => {
+                                            console.log(message);
+                                        }).catch(err => {
+                                            console.log(err);
+                                        })
+                                    }
 
                                     if (!missTPDataBySymbol[symbol].gongLai) {
                                         if (missSize > 0) {
@@ -786,8 +811,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 console.log(`\n[_ MISS _] TP ( ${dataMain.side} - ${symbol} - ${strategy.Candlestick} ): ${missSize}\n`);
 
                                                 let TPNew = 0
-
-                                                console.log("openTrade", openTrade);
 
                                                 if (strategy.PositionSide === "Long") {
                                                     TPNew = openTrade + (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
@@ -826,35 +849,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         updatePositionBE({
                                             newDataUpdate: {
                                                 Miss: true
-                                            },
-                                            orderID: missTPDataBySymbol[symbol].orderIDToDB
-                                        }).then(message => {
-                                            console.log(message);
-                                        }).catch(err => {
-                                            console.log(err);
-                                        })
-                                    }
-
-                                    if (!missTPDataBySymbol[symbol].orderIDToDB) {
-
-                                        const orderIDToDB = dataCoin.id
-                                        missTPDataBySymbol[symbol].orderIDToDB = orderIDToDB
-                                        createPositionBE({
-                                            ...newDataToDB,
-                                            orderID: orderIDToDB,
-                                            botID: strategy.botID._id,
-                                        }).then(message => {
-                                            console.log(message);
-                                        }).catch(err => {
-                                            console.log(err);
-                                        })
-                                    }
-                                    else {
-                                        console.log("[Mongo] Re-Update Position");
-                                        updatePositionBE({
-                                            newDataUpdate: {
-                                                ...newDataToDB,
-                                                Miss: missTPDataBySymbol[symbol].gongLai
                                             },
                                             orderID: missTPDataBySymbol[symbol].orderIDToDB
                                         }).then(message => {
@@ -966,16 +960,6 @@ const Main = async () => {
         `kline.15.${symbolItem.value}`,
     ]))
 
-    allSymbol.forEach(item => {
-        listPricePre[item.value] = []
-        listPricePreOne[item.value] = {
-            open: 0,
-            close: 0,
-            high: 0,
-            low: 0,
-        }
-    })
-
 
     tradeCoinData = allStrategiesActiveObject.reduce((pre, cur) => {
         pre[cur.value] = {
@@ -991,6 +975,12 @@ const Main = async () => {
                 price: 0,
                 qty: 0
             },
+            pricePre: {
+                open: 0,
+                close: 0,
+                high: 0,
+                low: 0,
+            }
         }
         return pre; // Return the accumulator
     }, {});
@@ -1018,8 +1008,6 @@ const Main = async () => {
                             const dataMain = dataCoin.data[0]
                             const coinOpen = +dataMain.open
 
-                            strategy.coinOpen = coinOpen
-
                             const botID = strategy.botID._id
 
                             const ApiKey = strategy.botID.ApiKey
@@ -1031,7 +1019,13 @@ const Main = async () => {
                                 if (!tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderingStatus && strategy.IsActive) {
 
                                     const coinCurrent = +dataMain.close
+                                    if(symbol === "BTCUSDT")
+                                    {
 
+                                        console.log("coinCurrent",coinCurrent);
+                                    }
+
+                                    coinCurrentTemp = coinCurrent
 
                                     let conditionOrder = 0
                                     let priceOrder = 0
@@ -1041,7 +1035,7 @@ const Main = async () => {
                                     let coinPreCoin = ""
                                     let conditionPre = true
 
-                                    const pricePreData = listPricePreOne[symbol]
+                                    const pricePreData = tradeCoinData[strategyID].pricePre
                                     if (pricePreData.close > pricePreData.open) {
                                         coinPreCoin = "Blue"
                                     }
@@ -1050,14 +1044,15 @@ const Main = async () => {
                                     }
                                     // BUY
                                     if (side === "Buy") {
+                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
 
                                         if (coinPreCoin === "Blue") {
                                             const preValue = pricePreData.high - pricePreData.open
                                             const currentValue = coinOpen - coinCurrent
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+                                        conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+
                                     }
                                     else {
                                         // SELL
@@ -1066,19 +1061,8 @@ const Main = async () => {
                                             const currentValue = coinCurrent - coinOpen
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                        conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-
-                                    }
-
-                                    // Tinh lai OC moi
-                                    if (side === "Buy") {
-                                        priceOrder = priceOrder - Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen - Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                    }
-                                    else {
-                                        priceOrder = priceOrder + Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen + Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                     }
 
                                     const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
@@ -1112,30 +1096,17 @@ const Main = async () => {
                                 const data = dataCoin.data[0]
                                 const coinClose = +data.close
 
-                                listPricePreOne[symbol] = {
+                                tradeCoinData[strategyID].pricePre = {
                                     open: +data.open,
-                                    close: coinClose,
+                                    close: +data.close,
                                     high: +data.high,
                                     low: +data.low,
                                 }
 
-                                if (Object.values(listPricePre[symbol]).length === 3) {
-                                    listPricePre[symbol].shift()
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-                                else {
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-
-
                                 // TP chưa khớp -> Dịch TP mới
+                                // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                                // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                                 if (tradeCoinData[strategyID].TP.orderID) {
                                     handleMoveOrderTP({
                                         ApiKey,
@@ -1171,13 +1142,11 @@ const Main = async () => {
             Object.values(allStrategies3m).forEach(strategy => {
                 const strategyID = strategy.value
 
-                strategy.digit = digitAllCoinObject[strategy.symbol]
-
                 const topic = dataCoin.topic
                 const symbol = topic.split(".").slice(-1)?.[0]
 
-
                 if (checkConditionBot(strategy)) {
+
                     if (topic === `kline.3.${symbol}`) {
 
                         if (strategy.symbol === symbol) {
@@ -1185,20 +1154,20 @@ const Main = async () => {
                             const dataMain = dataCoin.data[0]
                             const coinOpen = +dataMain.open
 
-                            strategy.coinOpen = coinOpen
+                            strategy.digit = digitAllCoinObject[strategy.symbol]
 
                             const botID = strategy.botID._id
 
                             const ApiKey = strategy.botID.ApiKey
                             const SecretKey = strategy.botID.SecretKey
+
                             const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
                             if (dataMain.confirm == false) {
 
-                                if (!tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderingStatus && strategy.IsActive) {
+                                if (!tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderingStatus && strategy.IsActive) {
 
                                     const coinCurrent = +dataMain.close
-
 
                                     let conditionOrder = 0
                                     let priceOrder = 0
@@ -1208,7 +1177,7 @@ const Main = async () => {
                                     let coinPreCoin = ""
                                     let conditionPre = true
 
-                                    const pricePreData = listPricePreOne[symbol]
+                                    const pricePreData = tradeCoinData[strategyID].pricePre
                                     if (pricePreData.close > pricePreData.open) {
                                         coinPreCoin = "Blue"
                                     }
@@ -1217,14 +1186,15 @@ const Main = async () => {
                                     }
                                     // BUY
                                     if (side === "Buy") {
+                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
 
                                         if (coinPreCoin === "Blue") {
                                             const preValue = pricePreData.high - pricePreData.open
                                             const currentValue = coinOpen - coinCurrent
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+                                        conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+
                                     }
                                     else {
                                         // SELL
@@ -1233,19 +1203,8 @@ const Main = async () => {
                                             const currentValue = coinCurrent - coinOpen
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                        conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-
-                                    }
-
-                                    // Tinh lai OC moi
-                                    if (side === "Buy") {
-                                        priceOrder = priceOrder - Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen - Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                    }
-                                    else {
-                                        priceOrder = priceOrder + Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen + Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                     }
 
                                     const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
@@ -1259,8 +1218,7 @@ const Main = async () => {
                                         qty,
                                         side,
                                         price: priceOrder.toFixed(strategy.digit),
-                                        candle: "3m",
-
+                                        candle: "3m"
                                     }
 
                                     if (side === "Buy") {
@@ -1275,34 +1233,21 @@ const Main = async () => {
                             }
                             // Coin CLosed
                             else if (dataMain.confirm == true) {
-
                                 const data = dataCoin.data[0]
+
                                 const coinClose = +data.close
 
-                                listPricePreOne[symbol] = {
+                                tradeCoinData[strategyID].pricePre = {
                                     open: +data.open,
-                                    close: coinClose,
+                                    close: +data.close,
                                     high: +data.high,
                                     low: +data.low,
                                 }
 
-                                if (Object.values(listPricePre[symbol]).length === 3) {
-                                    listPricePre[symbol].shift()
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-                                else {
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-
-
                                 // TP chưa khớp -> Dịch TP mới
+                                // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                                // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                                 if (tradeCoinData[strategyID].TP.orderID) {
                                     handleMoveOrderTP({
                                         ApiKey,
@@ -1310,7 +1255,6 @@ const Main = async () => {
                                         tradeCoinData,
                                         strategyID,
                                         strategy,
-                                        candle: strategy.Candlestick,
                                         coinOpen: coinClose
                                     })
                                 }
@@ -1338,13 +1282,10 @@ const Main = async () => {
             Object.values(allStrategies5m).forEach(strategy => {
                 const strategyID = strategy.value
 
-                strategy.digit = digitAllCoinObject[strategy.symbol]
-
                 const topic = dataCoin.topic
                 const symbol = topic.split(".").slice(-1)?.[0]
-
-
                 if (checkConditionBot(strategy)) {
+
                     if (topic === `kline.5.${symbol}`) {
 
                         if (strategy.symbol === symbol) {
@@ -1352,7 +1293,7 @@ const Main = async () => {
                             const dataMain = dataCoin.data[0]
                             const coinOpen = +dataMain.open
 
-                            strategy.coinOpen = coinOpen
+                            strategy.digit = digitAllCoinObject[strategy.symbol]
 
                             const botID = strategy.botID._id
 
@@ -1362,10 +1303,9 @@ const Main = async () => {
 
                             if (dataMain.confirm == false) {
 
-                                if (!tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderingStatus && strategy.IsActive) {
+                                if (!tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderingStatus && strategy.IsActive) {
 
                                     const coinCurrent = +dataMain.close
-
 
                                     let conditionOrder = 0
                                     let priceOrder = 0
@@ -1375,7 +1315,7 @@ const Main = async () => {
                                     let coinPreCoin = ""
                                     let conditionPre = true
 
-                                    const pricePreData = listPricePreOne[symbol]
+                                    const pricePreData = tradeCoinData[strategyID].pricePre
                                     if (pricePreData.close > pricePreData.open) {
                                         coinPreCoin = "Blue"
                                     }
@@ -1384,14 +1324,15 @@ const Main = async () => {
                                     }
                                     // BUY
                                     if (side === "Buy") {
+                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
 
                                         if (coinPreCoin === "Blue") {
                                             const preValue = pricePreData.high - pricePreData.open
                                             const currentValue = coinOpen - coinCurrent
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+                                        conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+
                                     }
                                     else {
                                         // SELL
@@ -1400,19 +1341,8 @@ const Main = async () => {
                                             const currentValue = coinCurrent - coinOpen
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                        conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-
-                                    }
-
-                                    // Tinh lai OC moi
-                                    if (side === "Buy") {
-                                        priceOrder = priceOrder - Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen - Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                    }
-                                    else {
-                                        priceOrder = priceOrder + Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen + Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                     }
 
                                     const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
@@ -1426,8 +1356,7 @@ const Main = async () => {
                                         qty,
                                         side,
                                         price: priceOrder.toFixed(strategy.digit),
-                                        candle: "5m",
-
+                                        candle: "5m"
                                     }
 
                                     if (side === "Buy") {
@@ -1442,34 +1371,21 @@ const Main = async () => {
                             }
                             // Coin CLosed
                             else if (dataMain.confirm == true) {
-
                                 const data = dataCoin.data[0]
+
                                 const coinClose = +data.close
 
-                                listPricePreOne[symbol] = {
+                                tradeCoinData[strategyID].pricePre = {
                                     open: +data.open,
-                                    close: coinClose,
+                                    close: +data.close,
                                     high: +data.high,
                                     low: +data.low,
                                 }
 
-                                if (Object.values(listPricePre[symbol]).length === 3) {
-                                    listPricePre[symbol].shift()
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-                                else {
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-
-
                                 // TP chưa khớp -> Dịch TP mới
+                                // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                                // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                                 if (tradeCoinData[strategyID].TP.orderID) {
                                     handleMoveOrderTP({
                                         ApiKey,
@@ -1477,7 +1393,6 @@ const Main = async () => {
                                         tradeCoinData,
                                         strategyID,
                                         strategy,
-                                        candle: strategy.Candlestick,
                                         coinOpen: coinClose
                                     })
                                 }
@@ -1488,8 +1403,8 @@ const Main = async () => {
                                         tradeCoinData,
                                         strategyID,
                                         symbol: strategy.symbol,
-                                        candle: strategy.Candlestick,
                                         side,
+                                        candle: strategy.Candlestick,
                                         ApiKey,
                                         SecretKey,
                                     }
@@ -1505,13 +1420,11 @@ const Main = async () => {
             Object.values(allStrategies15m).forEach(strategy => {
                 const strategyID = strategy.value
 
-                strategy.digit = digitAllCoinObject[strategy.symbol]
-
                 const topic = dataCoin.topic
                 const symbol = topic.split(".").slice(-1)?.[0]
 
-
                 if (checkConditionBot(strategy)) {
+
                     if (topic === `kline.15.${symbol}`) {
 
                         if (strategy.symbol === symbol) {
@@ -1519,7 +1432,7 @@ const Main = async () => {
                             const dataMain = dataCoin.data[0]
                             const coinOpen = +dataMain.open
 
-                            strategy.coinOpen = coinOpen
+                            strategy.digit = digitAllCoinObject[strategy.symbol]
 
                             const botID = strategy.botID._id
 
@@ -1529,10 +1442,9 @@ const Main = async () => {
 
                             if (dataMain.confirm == false) {
 
-                                if (!tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderingStatus && strategy.IsActive) {
+                                if (!tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].OC.orderingStatus && strategy.IsActive) {
 
                                     const coinCurrent = +dataMain.close
-
 
                                     let conditionOrder = 0
                                     let priceOrder = 0
@@ -1542,7 +1454,7 @@ const Main = async () => {
                                     let coinPreCoin = ""
                                     let conditionPre = true
 
-                                    const pricePreData = listPricePreOne[symbol]
+                                    const pricePreData = tradeCoinData[strategyID].pricePre
                                     if (pricePreData.close > pricePreData.open) {
                                         coinPreCoin = "Blue"
                                     }
@@ -1551,14 +1463,15 @@ const Main = async () => {
                                     }
                                     // BUY
                                     if (side === "Buy") {
+                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
 
                                         if (coinPreCoin === "Blue") {
                                             const preValue = pricePreData.high - pricePreData.open
                                             const currentValue = coinOpen - coinCurrent
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+                                        conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+
                                     }
                                     else {
                                         // SELL
@@ -1567,19 +1480,8 @@ const Main = async () => {
                                             const currentValue = coinCurrent - coinOpen
                                             conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                         }
-                                        // conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                        conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-
-                                    }
-
-                                    // Tinh lai OC moi
-                                    if (side === "Buy") {
-                                        priceOrder = priceOrder - Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen - Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                    }
-                                    else {
-                                        priceOrder = priceOrder + Math.abs((Object.values(listPricePre[symbol]).reduce((pre, cur) => pre + Math.abs((cur.close - cur.open)), coinCurrent - coinOpen)) / 4)
-                                        conditionOrder = (coinOpen + Math.abs(priceOrder - coinOpen) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                     }
 
                                     const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
@@ -1593,8 +1495,7 @@ const Main = async () => {
                                         qty,
                                         side,
                                         price: priceOrder.toFixed(strategy.digit),
-                                        candle: "15m",
-
+                                        candle: "15m"
                                     }
 
                                     if (side === "Buy") {
@@ -1609,34 +1510,21 @@ const Main = async () => {
                             }
                             // Coin CLosed
                             else if (dataMain.confirm == true) {
-
                                 const data = dataCoin.data[0]
+
                                 const coinClose = +data.close
 
-                                listPricePreOne[symbol] = {
+                                tradeCoinData[strategyID].pricePre = {
                                     open: +data.open,
-                                    close: coinClose,
+                                    close: +data.close,
                                     high: +data.high,
                                     low: +data.low,
                                 }
 
-                                if (Object.values(listPricePre[symbol]).length === 3) {
-                                    listPricePre[symbol].shift()
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-                                else {
-                                    listPricePre[symbol].push({
-                                        open: +data.open,
-                                        close: coinClose,
-                                    })
-                                }
-
-
                                 // TP chưa khớp -> Dịch TP mới
+                                // if (tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
 
+                                // console.log("Move", tradeCoinData[strategyID].TP.orderID);
                                 if (tradeCoinData[strategyID].TP.orderID) {
                                     handleMoveOrderTP({
                                         ApiKey,
@@ -1644,7 +1532,6 @@ const Main = async () => {
                                         tradeCoinData,
                                         strategyID,
                                         strategy,
-                                        candle: strategy.Candlestick,
                                         coinOpen: coinClose
                                     })
                                 }
@@ -1728,6 +1615,13 @@ const Main = async () => {
                         price: 0,
                         qty: 0
                     },
+                    pricePre: {
+                        open: 0,
+                        close: 0,
+                        high: 0,
+                        low: 0,
+                    }
+
                 }
 
                 const ApiKey = newStrategiesData.botID.ApiKey
@@ -1804,23 +1698,25 @@ const Main = async () => {
                 const IsActive = strategiesData.IsActive
                 const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
+                const newStrategiesDataUpdate = { ...strategiesData, symbol: strategiesData.symbol }
+
                 switch (strategiesData.Candlestick) {
                     case "1m": {
-                        allStrategies1m[strategyID] = strategiesData
+                        allStrategies1m[strategyID] = newStrategiesDataUpdate
                         break
                     }
                     case "3m": {
-                        allStrategies3m[strategyID] = strategiesData
+                        allStrategies3m[strategyID] = newStrategiesDataUpdate
                         break
 
                     }
                     case "5m": {
-                        allStrategies5m[strategyID] = strategiesData
+                        allStrategies5m[strategyID] = newStrategiesDataUpdate
                         break
 
                     }
                     case "15m": {
-                        allStrategies15m[strategyID] = strategiesData
+                        allStrategies15m[strategyID] = newStrategiesDataUpdate
                         break
                     }
                 }
@@ -1958,24 +1854,25 @@ const Main = async () => {
             const IsActive = strategiesData.IsActive
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
+            const newStrategiesDataUpdate = { ...strategiesData, symbol: strategiesData.symbol }
 
             switch (strategiesData.Candlestick) {
                 case "1m": {
-                    allStrategies1m[strategyID] = strategiesData
+                    allStrategies1m[strategyID] = newStrategiesDataUpdate
                     break
                 }
                 case "3m": {
-                    allStrategies3m[strategyID] = strategiesData
+                    allStrategies3m[strategyID] = newStrategiesDataUpdate
                     break
 
                 }
                 case "5m": {
-                    allStrategies5m[strategyID] = strategiesData
+                    allStrategies5m[strategyID] = newStrategiesDataUpdate
                     break
 
                 }
                 case "15m": {
-                    allStrategies15m[strategyID] = strategiesData
+                    allStrategies15m[strategyID] = newStrategiesDataUpdate
                     break
                 }
             }
@@ -2192,34 +2089,6 @@ const Main = async () => {
 
     });
 
-    socketRealtime.on('bot-telegram', async (data) => {
-        console.log("[...] Update Bot Telegram From Realtime");
-
-        const { newData, botID: botIDMain, newApiData } = data;
-        const telegramID = newApiData.telegramID
-        const telegramToken = newApiData.telegramToken
-
-        newData.map(async strategiesData => {
-
-            if (checkConditionBot(strategiesData)) {
-
-                const strategyID = strategiesData.value
-
-                const newStrategiesDataUpdate = {
-                    ...strategiesData,
-                    botID:
-                    {
-                        ...strategiesData.botID,
-                        telegramID,
-                        telegramToken,
-                    }
-                }
-
-                allStrategiesActiveByBotID[botIDMain][strategyID] = newStrategiesDataUpdate
-            }
-        })
-    });
-
     socketRealtime.on('sync-symbol', async (newData) => {
         console.log("[...] Sync Symbol");
 
@@ -2239,16 +2108,6 @@ const Main = async () => {
             digitAllCoinObject[symbol.value] = result[0]
             allSymbolDataObject[symbol.value] = symbol._id
         }))
-
-        newData.forEach(item => {
-            listPricePre[item.value] = []
-            listPricePreOne[item.value] = {
-                open: 0,
-                close: 0,
-                high: 0,
-                low: 0,
-            }
-        })
 
         wsSymbol.subscribeV5(newListKline, 'linear').then(() => {
             console.log("[V] Subscribe New Kline Successful\n");

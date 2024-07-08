@@ -9,6 +9,7 @@ const botSchema = new mongoose.Schema({
   Version: String,
   note: String,
   telegramID: String,
+  telegramToken: String,
   spotSavings: Number,
   Created: Date,
   // Bot Api

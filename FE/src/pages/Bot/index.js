@@ -157,7 +157,7 @@ function Bot() {
         {
             field: 'userName',
             headerName: 'User Created',
-            minWidth: 170,
+            minWidth: 250,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
@@ -293,7 +293,7 @@ function Bot() {
                         ...item,
                         id: item?._id,
                         Created: item?.Created && new Date(item?.Created).toLocaleDateString(),
-                        userName: item.userID?.userName
+                        userName: `${item.userID?.userName} ( ${item.userID?.roleName} )`
                     }
                 ))
                 botListDefaultRef.current = newData
@@ -426,11 +426,13 @@ function Bot() {
                     />
                 </div>
             </div>
+
             {openAddBot.isOpen && <AddBot
                 open={true}
                 onClose={(data) => {
                     setOpenAddBot(data)
                 }}
+                roleName = {roleName}
             />}
 
             {

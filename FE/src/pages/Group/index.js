@@ -98,7 +98,7 @@ function Group() {
         },
         {
             field: 'userCreated', headerName: 'User Created',
-            minWidth: 170,
+            minWidth: 250,
             flex: window.innerWidth <= 740 ? undefined : 1,
 
         },

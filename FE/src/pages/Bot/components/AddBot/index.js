@@ -16,7 +16,8 @@ const botTypeList = [
 
 function AddBot({
     open,
-    onClose
+    onClose,
+    roleName
 }, ref) {
 
     const {
@@ -30,13 +31,16 @@ function AddBot({
 
     const newBotDataRef = useRef()
 
+    const checkRoleNameAdmin = ()=>{
+        return roleName === "Admin" || roleName === "SuperAdmin"
+    }
 
     const handleSubmitAddBot = async formData => {
 
         try {
             const res = await createBot({
                 ...formData,
-                Status: "Pending",
+                Status: checkRoleNameAdmin() ? "Stopped" : "Pending",
             })
 
             const { message, data: resData, status } = res.data

@@ -275,8 +275,8 @@ const UserController = {
                 }
             )
             const resultAll = await Promise.all([result, resultRemove])
-
-            if (resultAll[0].deletedCount !== 0 && resultAll[1].acknowledged && resultAll[1].matchedCount !== 0) {
+            
+            if (resultAll[0].deletedCount !== 0 && resultAll[1].acknowledged) {
                 res.customResponse(200, "Delete User Successful");
             }
             else {
