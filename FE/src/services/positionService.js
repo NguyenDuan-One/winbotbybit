@@ -1,7 +1,7 @@
 import api from "../utils/api"
 
-export const getPriceLimitCurrent = async ({ symbol }) => {
-    return await api.post("/position/getPriceLimitCurrent", { symbol })
+export const getPriceLimitCurrent = async (symbol) => {
+    return await api.post("/position/getPriceLimitCurrent", {symbol})
 }
 
 export const getAllPosition = async (botListID) => {

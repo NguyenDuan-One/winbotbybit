@@ -8,5 +8,6 @@ router.post('/getPriceLimitCurrent', MiddlewareController.verifyToken, PositionC
 router.post('/getAllPosition', MiddlewareController.verifyToken, PositionController.getAllPosition);
 router.post('/updatePL', MiddlewareController.verifyToken, PositionController.updatePL);
 router.post('/closeMarket', MiddlewareController.verifyToken, PositionController.closeMarket);
+router.post('/closeLimit', MiddlewareController.verifyToken, PositionController.closeLimit);
 
 module.exports = router;

@@ -72,7 +72,7 @@ const PositionController = {
 
     getPriceLimitCurrent: async (req, res) => {
         try {
-            const { symbol } = req.body
+            const {symbol} = req.body
 
             const client = new RestClientV5({
                 testnet: false,
@@ -84,10 +84,9 @@ const PositionController = {
                 interval: '1',
             }).then(response => {
                 const priceCurrent = response.result.list[0]?.[4]
-                console.log("priceCurrent", priceCurrent);
                 res.customResponse(200, "Get Price Current Successful", priceCurrent);
             }).catch(err => {
-                res.customResponse(200, "Get Price Current Error", "");
+                res.customResponse(400, "Get Price Current Failed", "");
             })
 
         } catch (error) {

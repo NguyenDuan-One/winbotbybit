@@ -24,7 +24,7 @@ function AddMarket({
         try {
             const res = await closeMarket({
                 positionData,
-                Quantity: data.Quantity,
+                Quantity: positionData.Quantity,
             })
             const { status, message } = res.data
 
@@ -73,11 +73,11 @@ function AddMarket({
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>Quantity</FormLabel>
                     <TextField
-                        {...register("Quantity", { required: true })}
+                        {...register("Quantity")}
                         type="number"
                         size="small"
                         value={Math.abs(positionData.Quantity)}
-                    // disabled
+                        disabled
                     />
                     {errors.Quantity && <p className="formControlErrorLabel">The Quantity field is required.</p>}
 
