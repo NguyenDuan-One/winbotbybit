@@ -423,6 +423,7 @@ const cancelAll = (
 }
 
 // 
+
 const sendMessageWithRetry = async ({
     messageText,
     retries = 5,
@@ -430,14 +431,18 @@ const sendMessageWithRetry = async ({
     telegramToken,
 }) => {
 
-    const BOT_TOKEN_RUN_TRADE = new Telegraf(telegramToken)
+    const BOT_TOKEN_RUN_TRADE = new Telegraf(telegramToken);
 
-    BOT_TOKEN_RUN_TRADE.launch().then(async () => {
+    try {
+        await BOT_TOKEN_RUN_TRADE.launch();
+
         for (let i = 0; i < retries; i++) {
             try {
-
-                messageText && await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText)
-                return;
+                if (messageText) {
+                    await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
+                    console.log('Message sent to telegram successfully');
+                    return;
+                }
             } catch (error) {
                 if (error.code === 429) {
                     const retryAfter = error.parameters.retry_after;
@@ -448,17 +453,15 @@ const sendMessageWithRetry = async ({
                 }
             }
         }
+
         throw new Error('Failed to send message after multiple retries');
-    })
-        .catch((error) => {
-            console.log("[!] Bot Telegram Error:", error);
-        })
+    } catch (error) {
+        console.log("[!] Bot Telegram Error:", error);
+    } finally {
+        await BOT_TOKEN_RUN_TRADE.stop();
+    }
+};
 
-    process.once('SIGINT', () => BOT_TOKEN_RUN_TRADE.stop('SIGINT'))
-    process.once('SIGTERM', () => BOT_TOKEN_RUN_TRADE.stop('SIGTERM'))
-
-
-}
 
 const handleSocketBotApiList = async (botApiList = {}) => {
 
@@ -2108,70 +2111,68 @@ const Main = async () => {
         console.log("[...] Deleted Strategies From Realtime");
 
         newData.map(async strategiesData => {
-            if (checkConditionBot(strategiesData)) {
 
-                const ApiKey = strategiesData.botID.ApiKey
-                const SecretKey = strategiesData.botID.SecretKey
+            const ApiKey = strategiesData.botID.ApiKey
+            const SecretKey = strategiesData.botID.SecretKey
 
-                const symbol = strategiesData.symbol
-                const strategyID = strategiesData.value
-                const botID = strategiesData.botID._id
-                const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+            const symbol = strategiesData.symbol
+            const strategyID = strategiesData.value
+            const botID = strategiesData.botID._id
+            const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
-                switch (strategiesData.Candlestick) {
-                    case "1m": {
-                        delete allStrategies1m[strategyID]
-                        break
-                    }
-                    case "3m": {
-                        delete allStrategies3m[strategyID]
-                        break
-
-                    }
-                    case "5m": {
-                        delete allStrategies5m[strategyID]
-                        break
-
-                    }
-                    case "15m": {
-                        delete allStrategies15m[strategyID]
-                        break
-                    }
+            switch (strategiesData.Candlestick) {
+                case "1m": {
+                    delete allStrategies1m[strategyID]
+                    break
                 }
+                case "3m": {
+                    delete allStrategies3m[strategyID]
+                    break
 
-                const cancelDataObject = {
-                    ApiKey,
-                    SecretKey,
-                    tradeCoinData,
-                    strategyID,
-                    symbol: symbol,
-                    candle: strategiesData.Candlestick,
-                    side,
                 }
+                case "5m": {
+                    delete allStrategies5m[strategyID]
+                    break
 
-                delete tradeCoinData[strategyID]
-                delete allStrategiesActiveByBotID[botID]?.[strategyID]
-
-                const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
-                const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
-
-                if (OCOrderID || TPOrderID || TPMissOrderID) {
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
-
-
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
-                    await delay(500)
                 }
+                case "15m": {
+                    delete allStrategies15m[strategyID]
+                    break
+                }
+            }
+
+            const cancelDataObject = {
+                ApiKey,
+                SecretKey,
+                tradeCoinData,
+                strategyID,
+                symbol: symbol,
+                candle: strategiesData.Candlestick,
+                side,
+            }
+
+            delete tradeCoinData[strategyID]
+            delete allStrategiesActiveByBotID[botID]?.[strategyID]
+
+            const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
+            const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
+            const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
+
+
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
+                await delay(500)
             }
         })
 

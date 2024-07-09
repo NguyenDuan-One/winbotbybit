@@ -34,7 +34,7 @@ function Overview() {
             await navigator.clipboard.writeText(text);
             setToolTipText("Copied")
         } catch (err) {
-            console.error('Failed to copy: ', err);
+            alert('Failed to copy');
         }
     }
 

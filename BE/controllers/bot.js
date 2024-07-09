@@ -227,7 +227,7 @@ const BotController = {
             })
 
             newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                type: "bot-api",
+                type: "bot-delete",
                 data: {
                     newData: newDataSocketWithBotData,
                     botID,

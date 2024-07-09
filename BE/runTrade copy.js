@@ -1019,11 +1019,6 @@ const Main = async () => {
                                 if (!tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderingStatus && strategy.IsActive) {
 
                                     const coinCurrent = +dataMain.close
-                                    if(symbol === "BTCUSDT")
-                                    {
-
-                                        console.log("coinCurrent",coinCurrent);
-                                    }
 
                                     coinCurrentTemp = coinCurrent
 
