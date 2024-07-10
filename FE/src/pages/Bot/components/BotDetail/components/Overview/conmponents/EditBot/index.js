@@ -23,8 +23,6 @@ function EditBot({
 
     const dispatch = useDispatch();
 
-    console.log(botData);
-
     const newBotDataRef = useRef(false)
 
     const formDataChangeRef = useRef(false)
@@ -36,6 +34,7 @@ function EditBot({
                     id: botData.id,
                     data: {
                         ...formData,
+                        telegramIDOld:botData.telegramID.trim(),
                         telegramID:formData.telegramID.trim(),
                         telegramToken:formData.telegramToken.trim(),
                         type: "telegram",

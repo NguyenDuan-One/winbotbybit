@@ -113,6 +113,7 @@ function Strategies() {
 
     const filterQuantityRef = useRef([])
     const searchRef = useRef("")
+    const selectAllRef = useRef(false)
 
     const dispatch = useDispatch()
 
@@ -212,6 +213,7 @@ function Strategies() {
 
             dataCheckTreeDefaultRef.current = newDataCheckTree
             setDataCheckTree(newDataCheckTree)
+            window.scrollTo(0, 0)
 
         }
         catch (err) {
@@ -301,7 +303,12 @@ function Strategies() {
         const scrollPercentage = (scrollY / (scrollHeight - windowHeight)) * 100;
 
         if (dataTreeViewIndexTemp <= dataCheckTree.length) {
-            scrollPercentage >= 80 && setDataTreeViewIndex(dataTreeViewIndex + SCROLL_INDEX)
+            const newIndex = dataTreeViewIndex + SCROLL_INDEX
+            if (scrollPercentage >= 80) {
+                setDataTreeViewIndex(newIndex)
+
+            }
+
         }
         else {
             window.removeEventListener('scroll', handleScrollData)
@@ -333,6 +340,7 @@ function Strategies() {
         return result
     }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
 
+
     useEffect(() => {
 
         handleGetAllBotByUserID()
@@ -341,9 +349,31 @@ function Strategies() {
     }, []);
 
     useEffect(() => {
-        if (dataCheckTree.length > 0 && dataTreeViewIndex < dataCheckTree.length) {
-            document.addEventListener('scroll', handleScrollData);
+        if (dataCheckTree.length > 0) {
+
+
+            if(selectAllRef.current)
+            {
+                document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
+                    if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
+                        console.log('click all');
+                        item.checked = false
+                        item.click()
+                    }
+                })
+                // document.querySelectorAll(".nodeItemSelected")?.forEach((item, index) => {
+                //     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
+                //         // console.log('gasn child');
+                //         item.checked = true
+                //     }
+                // })
+            }
+            if (dataTreeViewIndex < dataCheckTree.length) {
+
+                document.addEventListener('scroll', handleScrollData);
+            }
             return () => document.removeEventListener('scroll', handleScrollData);
+
         }
     }, [dataCheckTree, dataTreeViewIndex]);
 
@@ -509,12 +539,12 @@ function Strategies() {
 
                                     e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeParentSelected")?.forEach(item => {
                                         item.checked = check
-
                                     })
                                     e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeItemSelected")?.forEach(child => {
                                         child.checked = check
                                     })
 
+                                    selectAllRef.current = check
                                     if (check) {
                                         dataCheckTree.forEach(data => {
                                             data.children?.forEach(child => {

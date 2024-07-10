@@ -281,9 +281,7 @@ function Position() {
     }, []);
 
     useEffect(() => {
-        if (openAddLimit.dataChange || openAddMarket.dataChange) {
-            handleRefreshData()
-        }
+        handleRefreshData()
     }, [openAddLimit, openAddMarket]);
 
     return (
@@ -357,7 +355,7 @@ function Position() {
             </div>
 
             {
-                openAddLimit.isOpen && (
+                openAddLimit.isOpen && positionData.find(item=>item.id == openAddLimit.data?.id) && (
                     <AddLimit
                         onClose={(data) => {
                             setOpenAddLimit({
@@ -371,7 +369,7 @@ function Position() {
             }
 
             {
-                openAddMarket.isOpen && (
+                openAddMarket.isOpen && positionData.find(item=>item.id == openAddMarket.data?.id) && (
                     <AddMarket
                         onClose={(data) => {
                             setOpenAddMarket({

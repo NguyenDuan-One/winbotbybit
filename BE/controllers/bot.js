@@ -194,6 +194,7 @@ const BotController = {
                             newData: newDataSocketWithBotData,
                             botID,
                             newApiData: {
+                                telegramIDOld: data.telegramIDOld,
                                 telegramID: data.telegramID,
                                 telegramToken: data.telegramToken,
                             }

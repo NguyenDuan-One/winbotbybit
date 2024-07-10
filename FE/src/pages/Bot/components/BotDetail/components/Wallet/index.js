@@ -196,7 +196,7 @@ function Wallet() {
     return (
         <div className={styles.overview}>
             <div className={styles.overviewHeader}>
-                <p className={styles.text}>Balance : 0 $</p>
+                <p className={styles.text}>Balance : {(futureAvailable + spotTotal).toFixed(2)} $</p>
             </div>
 
             <div className={styles.overviewInfo}>
