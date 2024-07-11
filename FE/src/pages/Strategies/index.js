@@ -9,7 +9,7 @@ import AddBreadcrumbs from '../../components/BreadcrumbsCutom';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
-import { getAllStrategies, syncSymbol } from '../../services/dataCoinByBitService';
+import { getAllStrategies, getTotalFutureByBot, syncSymbol } from '../../services/dataCoinByBitService';
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import CreateStrategy from './components/CreateStrategy';
@@ -19,6 +19,7 @@ import TreeParent from './components/TreeView/TreeParent';
 import { handleCheckAllCheckBox } from '../../functions';
 import clsx from 'clsx';
 import { getAllBotActiveByUserID } from '../../services/botService';
+import { setTotalFuture } from '../../store/slices/TotalFuture';
 
 function Strategies() {
 
@@ -156,6 +157,31 @@ function Strategies() {
             }
             )
     }
+    const handleGetTotalFutureByBot = async () => {
+        const userData = JSON.parse(localStorage.getItem("user"))
+        try {
+            const res = await getTotalFutureByBot(userData._id)
+            const { status, message, data: resData } = res.data
+
+            dispatch(setTotalFuture({
+                total: resData || 0
+            }))
+
+            if (status !== 200) {
+                dispatch(addMessageToast({
+                    status,
+                    message
+                }))
+            }
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Total Future Error",
+            }))
+        }
+    }
 
     const handleDataTree = (data) => {
         const newDataCheckTree = data.map(item => (
@@ -178,36 +204,6 @@ function Strategies() {
         try {
             const res = await getAllStrategies()
             const { status, message, data: resData } = res.data
-
-            // const newDataCheckTree = handleDataTree([
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            // ])
 
             const newDataCheckTree = handleDataTree(resData)
 
@@ -345,6 +341,7 @@ function Strategies() {
 
         handleGetAllBotByUserID()
         handleGetAllStrategies()
+        handleGetTotalFutureByBot()
 
     }, []);
 
@@ -352,8 +349,7 @@ function Strategies() {
         if (dataCheckTree.length > 0) {
 
 
-            if(selectAllRef.current)
-            {
+            if (selectAllRef.current) {
                 document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
                     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
                         console.log('click all');

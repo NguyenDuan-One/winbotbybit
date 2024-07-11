@@ -23,6 +23,7 @@ const clientDigit = new RestClientV5({
 let missTPDataBySymbol = {}
 
 var listKline = []
+var allSymbol = []
 
 var allStrategies1m = {}
 var allStrategies3m = {}
@@ -68,7 +69,8 @@ const handleSubmitOrder = ({
     price,
     candle,
     ApiKey,
-    SecretKey
+    SecretKey,
+    botName,
 }) => {
 
     const client = new RestClientV5({
@@ -77,9 +79,10 @@ const handleSubmitOrder = ({
         secret: SecretKey,
     });
 
-    tradeCoinData[strategyID]?.OC && cancelAll({ tradeCoinData, strategyID })
+    !tradeCoinData[strategyID]?.OC && cancelAll({ tradeCoinData, strategyID })
 
     tradeCoinData[strategyID].OC.orderingStatus = true
+
 
     client
         .submitOrder({
@@ -93,18 +96,17 @@ const handleSubmitOrder = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(`\n[+OC] Order OC ( ${side} - ${symbol} - ${candle} ) successful `)
+                console.log(`\n[+OC] Order OC ( ${botName} - ${side} - ${symbol} - ${candle} ) successful `)
                 tradeCoinData[strategyID].OC.orderID = response.result.orderId
-                missTPDataBySymbol[symbol].Candlestick = candle
             }
             else {
-                console.log(`\n[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg)
+                console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg)
             }
             tradeCoinData[strategyID].OC.orderingStatus = false
 
         })
         .catch((error) => {
-            console.log(`\n[!] Ordered OC ( ${side} - ${symbol} - ${candle} ) error `, error)
+            console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
             tradeCoinData[strategyID].OC.orderingStatus = false
         });
 }
@@ -119,14 +121,18 @@ const handleSubmitOrderTP = ({
     candle = "",
     ApiKey,
     SecretKey,
-    missState = false
+    missState = false,
+    botName,
+    botID
 }) => {
 
     console.log(`Price order TP ( ${candle} ):`, price);
 
-    tradeCoinData[strategyID]?.TP && cancelAll({ tradeCoinData, strategyID })
+    !tradeCoinData[strategyID]?.TP && cancelAll({ tradeCoinData, strategyID })
 
     tradeCoinData[strategyID].TP.orderingStatus = true
+
+    const botSymbolMissID = `${botID}-${symbol}`
 
     const client = new RestClientV5({
         testnet: false,
@@ -145,16 +151,17 @@ const handleSubmitOrderTP = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ' '} ( ${side} - ${symbol} - ${candle} ) successful `)
+                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ' '} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful `)
                 const newOrderID = response.result.orderId
 
-                missTPDataBySymbol[symbol] = {
-                    ...missTPDataBySymbol[symbol],
-                    size: missTPDataBySymbol[symbol].size + Math.abs(qty),
+                missTPDataBySymbol[botSymbolMissID] = {
+                    ...missTPDataBySymbol[botSymbolMissID],
+                    size: missTPDataBySymbol[botSymbolMissID].size + Math.abs(qty),
                     Candlestick: candle,
+                    botName
                 }
 
-                missTPDataBySymbol[symbol].orderIDOfListTP.push({
+                missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
                     orderID: newOrderID,
                     strategyID
                 })
@@ -163,49 +170,49 @@ const handleSubmitOrderTP = ({
                     tradeCoinData[strategyID].TP.orderID = newOrderID
                 }
                 else {
-                    missTPDataBySymbol[symbol].orderID = newOrderID
-                    missTPDataBySymbol[symbol].ApiKey = ApiKey
-                    missTPDataBySymbol[symbol].SecretKey = SecretKey
+                    missTPDataBySymbol[botSymbolMissID].orderID = newOrderID
+                    missTPDataBySymbol[botSymbolMissID].ApiKey = ApiKey
+                    missTPDataBySymbol[botSymbolMissID].SecretKey = SecretKey
                 }
-                missTPDataBySymbol[symbol].priceOrderTP = price
+                missTPDataBySymbol[botSymbolMissID].priceOrderTP = price
 
             }
             else {
-                console.log(`[!] Order TP ${missState ? "( MISS )" : ' '} - ( ${side} - ${symbol} - ${candle} ) failed `, response)
+                console.log(`[!] Order TP ${missState ? "( MISS )" : ' '} - ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response)
                 tradeCoinData[strategyID].TP.orderingStatus = false
                 if (missState) {
-                    console.log(`[X] Không thể xử lý MISS ( ${side} - ${symbol} - ${candle} )`);
-                    console.log(`[Mongo] UPDATE MISS Position ( ${side} - ${symbol} - ${candle} )`);
+                    console.log(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`);
+                    console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                     updatePositionBE({
                         newDataUpdate: {
                             Miss: true
                         },
-                        orderID: missTPDataBySymbol[symbol].orderIDToDB
+                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                     }).then(message => {
                         console.log(message);
                     }).catch(err => {
                         console.log(err);
-                        missTPDataBySymbol[symbol].orderIDToDB = ""
+                        missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                     })
                 }
             }
         })
         .catch((error) => {
-            console.log(`[!] Order TP ${missState ? "( MISS )" : ' '} - ( ${side} - ${symbol} - ${candle} ) error `, error)
+            console.log(`[!] Order TP ${missState ? "( MISS )" : ' '} - ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
             tradeCoinData[strategyID].TP.orderingStatus = false
             if (missState) {
-                console.log(`[X] Không thể xử lý MISS ( ${side} - ${symbol} - ${candle} )`);
-                console.log(`[Mongo] UPDATE MISS Position ( ${side} - ${symbol} - ${candle} )`);
+                console.log(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`);
+                console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                 updatePositionBE({
                     newDataUpdate: {
                         Miss: true
                     },
-                    orderID: missTPDataBySymbol[symbol].orderIDToDB
+                    orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                 }).then(message => {
                     console.log(message);
                 }).catch(err => {
                     console.log(err);
-                    missTPDataBySymbol[symbol].orderIDToDB = ""
+                    missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                 })
             }
         });
@@ -219,7 +226,8 @@ const moveOrderTP = ({
     orderId,
     candle,
     ApiKey,
-    SecretKey
+    SecretKey,
+    botName
 }) => {
     const client = new RestClientV5({
         testnet: false,
@@ -235,16 +243,16 @@ const moveOrderTP = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(`[->] Move Order TP ( ${symbol} - ${candle} ) successful`)
+                console.log(`[->] Move Order TP ( ${botName} - ${symbol} - ${candle} ) successful`)
                 tradeCoinData[strategyID].TP.orderID = response.result.orderId
             }
             else {
-                console.log(`[!] Move Order TP ( ${symbol} - ${candle} ) failed `, response)
+                console.log(`[!] Move Order TP ( ${botName} - ${symbol} - ${candle} ) failed `, response)
                 tradeCoinData[strategyID].TP.orderID = ""
             }
         })
         .catch((error) => {
-            console.log(`[!] Move Order TP ( ${symbol} - ${candle} ) error `, error)
+            console.log(`[!] Move Order TP ( ${botName} - ${symbol} - ${candle} ) error `, error)
             tradeCoinData[strategyID].TP.orderID = ""
         });
 
@@ -257,7 +265,8 @@ const handleMoveOrderTP = ({
     coinOpen,
     candle = "",
     ApiKey,
-    SecretKey
+    SecretKey,
+    botName
 }) => {
 
     const symbol = strategy.symbol
@@ -284,11 +293,10 @@ const handleMoveOrderTP = ({
             orderId: tradeCoinData[strategyID]?.TP.orderID,
             candle,
             ApiKey,
-            SecretKey
+            SecretKey,
+            botName
         }
         moveOrderTP(dataInput)
-
-
 
     }
 }
@@ -300,7 +308,8 @@ const handleCancelOrderOC = ({
     candle = "",
     side,
     ApiKey,
-    SecretKey
+    SecretKey,
+    botName
 }) => {
     const client = new RestClientV5({
         testnet: false,
@@ -316,15 +325,15 @@ const handleCancelOrderOC = ({
             })
             .then((response) => {
                 if (response.retCode == 0) {
-                    console.log(`[V] Cancel order ( ${side} -  ${symbol} - ${candle} ) successful `);
+                    console.log(`[V] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) successful `);
                 }
                 else {
-                    console.log(`[!] Cancel order ( ${side} -  ${symbol} - ${candle} ) failed `, response);
+                    console.log(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) failed `, response);
                 }
                 cancelAll({ tradeCoinData, strategyID })
             })
             .catch((error) => {
-                console.log(`[!] Cancel order ( ${side} -  ${symbol} - ${candle} ) error `, error);
+                console.log(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) error `, error);
                 cancelAll({ tradeCoinData, strategyID })
             });
     }
@@ -340,8 +349,12 @@ const handleCancelOrderTP = ({
     orderId,
     ApiKey,
     SecretKey,
-    gongLai = false
+    gongLai = false,
+    botName,
+    botID
 }) => {
+    const botSymbolMissID = `${botID}-${symbol}`
+
     const client = new RestClientV5({
         testnet: false,
         key: ApiKey,
@@ -355,16 +368,16 @@ const handleCancelOrderTP = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(`[V] Cancel TP ( ${side} - ${symbol} - ${candle} ) successful `);
-                if (missTPDataBySymbol[symbol]?.orderIDToDB) {
+                console.log(`[V] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful `);
+                if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
                 }
                 if (gongLai) {
-                    missTPDataBySymbol[symbol].gongLai = true
+                    missTPDataBySymbol[botSymbolMissID].gongLai = true
                 }
                 // else {
-                //     console.log(`[_DELETE_] Position ( ${side} - ${symbol} - ${candle} )`);
-                //     missTPDataBySymbol[symbol].orderIDToDB && deletePositionBE({
-                //         orderID: missTPDataBySymbol[symbol].orderIDToDB
+                //     console.log(`[_DELETE_] Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
+                //     missTPDataBySymbol[botSymbolMissID].orderIDToDB && deletePositionBE({
+                //         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                 //     }).then(message => {
                 //         console.log(message);
                 //     }).catch(err => {
@@ -373,19 +386,23 @@ const handleCancelOrderTP = ({
                 // }
             }
             else {
-                console.log(`[!] Cancel TP ( ${side} - ${symbol} - ${candle} ) failed `, response);
+                console.log(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response);
             }
             cancelAll({ tradeCoinData, strategyID })
         })
         .catch((error) => {
-            console.log(`[!] Cancel TP ( ${side} - ${symbol} - ${candle} ) error `, error);
+            console.log(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error);
             cancelAll({ tradeCoinData, strategyID })
         });
 
 }
 
-const resetMissData = (symbol) => {
-    missTPDataBySymbol[symbol] = {
+const resetMissData = ({
+    botID,
+    symbol
+}) => {
+    const id = `${botID}-${symbol}`
+    missTPDataBySymbol[id] = {
         size: 0,
         side: "",
         Candlestick: "",
@@ -398,6 +415,8 @@ const resetMissData = (symbol) => {
         priceOrderTP: 0,
         ApiKey: "",
         SecretKey: "",
+        botName: "",
+        botID: "",
     }
 }
 
@@ -489,6 +508,15 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
             const ApiKey = botApiData.ApiKey
             const SecretKey = botApiData.SecretKey
+            const botID = botApiData.id
+            const botName = botApiData.botName
+
+            allSymbol.forEach(symbol => {
+                resetMissData({
+                    botID,
+                    symbol: symbol.value
+                })
+            })
 
             const wsConfigOrder = {
                 key: ApiKey,
@@ -499,7 +527,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
             const wsOrder = new WebsocketClient(wsConfigOrder);
 
-            const botID = botApiData.id
 
             wsOrder.subscribeV5(LIST_ORDER, 'linear').catch(err => {
                 console.log(`[V] Subscribe order ${botID} error:`, err);
@@ -509,20 +536,19 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 Object.values(allStrategiesActiveByBotID[botID]).forEach(strategy => {
 
                     const strategyID = strategy.value
+                    const telegramID = strategy.botID.telegramID
+                    const telegramToken = strategy.botID.telegramToken
 
                     const dataMain = dataCoin.data[0]
                     const symbol = dataMain.symbol
                     const orderID = dataMain.orderId
 
+                    const botSymbolMissID = `${botID}-${symbol}`
+
                     if (strategy.symbol === symbol) {
 
                         if (dataCoin.topic === "order") {
                             if (dataMain.orderStatus === "Filled") {
-                                // Khớp OC
-                                // if (orderID === tradeCoinData[strategyID].OC.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
-
-                                const telegramID = strategy.botID.telegramID
-                                const telegramToken = strategy.botID.telegramToken
 
                                 if (orderID === tradeCoinData[strategyID]?.OC.orderID) {
                                     tradeCoinData[strategyID].OC.orderFilled = true
@@ -533,24 +559,18 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     tradeCoinData[strategyID].OC.openTrade = openTrade
 
                                     const sideText = strategy.PositionSide === "Long" ? "Buy" : "Sell"
-                                    const botName = strategy.botID.botName
 
 
                                     const qty = dataMain.qty
 
-                                    const priceOldOrder = (botAmountListObject[strategy.botID._id] * strategy.Amount / 100).toFixed(2)
+                                    const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
-                                    missTPDataBySymbol[symbol].Candlestick = strategy.Candlestick
-
-
-                                    // 
 
                                     if (!tradeCoinData[strategyID]?.TP.orderID && !tradeCoinData[strategyID]?.TP.orderingStatus) {
 
-
                                         let TPNew = 0
 
-                                        const newOC = Math.abs((openTrade - strategy.coinOpen)) / openTrade * 100
+                                        const newOC = Math.abs((openTrade - strategy.coinOpen)) / strategy.coinOpen * 100
 
                                         //console.log("[New OC]:", newOC);
 
@@ -581,13 +601,57 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             side: strategy.PositionSide === "Long" ? "Sell" : "Buy",
                                             candle: strategy.Candlestick,
                                             ApiKey,
-                                            SecretKey
+                                            SecretKey,
+                                            botName,
+                                            botID
                                         }
 
                                         tradeCoinData[strategyID].OC.dataSend = dataInput
 
-                                        console.log(`[V] Filled OC: \n${symbol} | Open ${sideText} \nBot: ${botName} \nFutures: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2).toString()}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`);
-                                        const teleText = `${symbol} | Open ${sideText} \nBot: ${botName} \nFut: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2).toString()}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+                                        console.log(`[V] Filled OC: \n${symbol} | Open ${sideText} \nBot: ${botName} \nFutures: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`);
+                                        const teleText = `${symbol} | Open ${sideText} \nBot: ${botName} \nFut: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+
+
+                                        if (!tradeCoinData[strategyID].TP.orderID && !tradeCoinData[strategyID].TP.orderingStatus) {
+
+
+                                            let TPNew = 0
+
+                                            if (strategy.PositionSide === "Long") {
+                                                TPNew = openTrade + (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
+                                            }
+                                            else {
+                                                TPNew = openTrade - (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
+                                            }
+
+                                            tradeCoinData[strategyID].TP.price = TPNew
+
+
+                                            tradeCoinData[strategyID].TP.qty = qty
+
+
+                                            // console.log("price",dataMain.price);
+                                            // console.log("avgPrice",dataMain.avgPrice);
+                                            // console.log("openTrade",openTrade);
+                                            // console.log("TPNew",TPNew);
+
+                                            const dataInput = {
+                                                tradeCoinData,
+                                                strategyID,
+                                                symbol: strategy.symbol,
+                                                qty,
+                                                price: TPNew.toFixed(strategy.digit),
+                                                side: strategy.PositionSide === "Long" ? "Sell" : "Buy",
+                                                candle: strategy.Candlestick,
+                                                ApiKey,
+                                                SecretKey,
+                                                botID,
+                                                botName
+                                            }
+
+                                            handleSubmitOrderTP(dataInput)
+
+                                        }
 
                                         sendMessageWithRetry({
                                             messageText: teleText,
@@ -604,12 +668,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     const closePrice = +dataMain.avgPrice
 
                                     const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
-                                    const botName = strategy.botID.botName
 
                                     const openTradeOCFilled = tradeCoinData[strategyID]?.OC.openTrade
 
                                     const qty = +dataMain.qty
-                                    const priceOldOrder = (botAmountListObject[strategy.botID._id] * strategy.Amount / 100).toFixed(2)
+                                    const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
                                     console.log(`[V] Filled TP: \n${symbol} | Close ${side} \nBot: ${botName} \nFutures: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${strategy.Amount}`);
                                     const teleText = `${symbol} | Close ${side} \nBot: ${botName} \nFutures: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
@@ -640,25 +703,22 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                     }
 
-                                    sendMessageWithRetry({
-                                        messageText: `${teleText} \n${textWinLose}`,
-                                        telegramID,
-                                        telegramToken
-                                    })
 
-                                    missTPDataBySymbol[symbol].size -= Math.abs(qty)
+
+
+                                    missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
 
                                     // Fill toàn bộ
-                                    if (missTPDataBySymbol[symbol].sizeTotal == qty || missTPDataBySymbol[symbol].size == 0) {
+                                    if (missTPDataBySymbol[botSymbolMissID].sizeTotal == qty || missTPDataBySymbol[botSymbolMissID].size == 0) {
                                         // 
                                         console.log(`[_FULL Filled_] Filled TP ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                         console.log(`[Mongo] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
 
                                         deletePositionBE({
-                                            orderID: missTPDataBySymbol[symbol].orderIDToDB
+                                            orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                         }).then(message => {
                                             console.log(message);
-                                            missTPDataBySymbol[symbol].orderIDToDB = ""
+                                            missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                                         }).catch(err => {
                                             console.log(err);
                                         })
@@ -667,7 +727,10 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                         // 
                                         console.log("[...] Reset Miss");
-                                        resetMissData(symbol)
+                                        resetMissData({
+                                            botID,
+                                            symbol,
+                                        })
                                         cancelAll({ tradeCoinData, strategyID })
 
                                     }
@@ -676,17 +739,22 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         console.log(`[_UPDATE QTY_] Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                         updatePositionBE({
                                             newDataUpdate: {
-                                                Quantity: missTPDataBySymbol[symbol].size
+                                                Quantity: missTPDataBySymbol[botSymbolMissID].size
                                             },
-                                            orderID: missTPDataBySymbol[symbol].orderIDToDB
+                                            orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                         }).then(message => {
                                             console.log(message);
                                         }).catch(err => {
                                             console.log(err);
-                                            missTPDataBySymbol[symbol].orderIDToDB = ""
+                                            missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                                         })
                                     }
 
+                                    sendMessageWithRetry({
+                                        messageText: `${teleText} \n${textWinLose}`,
+                                        telegramID,
+                                        telegramToken
+                                    })
 
                                 }
                                 // User cancel vị thế
@@ -703,11 +771,13 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 orderId: tradeCoinData[strategyID]?.TP.orderID,
                                                 candle: strategy.Candlestick,
                                                 ApiKey,
-                                                SecretKey
+                                                SecretKey,
+                                                botName,
+                                                botID
                                             }
                                         )
                                     }
-                                    if (missTPDataBySymbol[strategy.symbol].TP?.orderID) {
+                                    if (missTPDataBySymbol[botSymbolMissID].TP?.orderID) {
                                         console.log(`[...] Cancel Position MISS`);
                                         handleCancelOrderTP(
                                             {
@@ -715,21 +785,23 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 strategyID,
                                                 symbol: strategy.symbol,
                                                 side,
-                                                orderId: missTPDataBySymbol[strategy.symbol].TP.orderID,
+                                                orderId: missTPDataBySymbol[botSymbolMissID].TP.orderID,
                                                 candle: strategy.Candlestick,
                                                 ApiKey,
-                                                SecretKey
+                                                SecretKey,
+                                                botName,
+                                                botID
                                             }
                                         )
                                     }
 
-                                    if (missTPDataBySymbol[symbol].orderIDToDB && missTPDataBySymbol[symbol].Candlestick === strategy.Candlestick) {
+                                    if (missTPDataBySymbol[botSymbolMissID].orderIDToDB && missTPDataBySymbol[botSymbolMissID].Candlestick === strategy.Candlestick) {
                                         console.log(`[Mongo] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
-                                        missTPDataBySymbol[symbol].orderIDToDB && deletePositionBE({
-                                            orderID: missTPDataBySymbol[symbol].orderIDToDB
+                                        missTPDataBySymbol[botSymbolMissID].orderIDToDB && deletePositionBE({
+                                            orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                         }).then(message => {
                                             console.log(message);
-                                            missTPDataBySymbol[symbol].orderIDToDB = ""
+                                            missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                                         }).catch(err => {
                                             console.log(err);
                                         })
@@ -754,21 +826,23 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                         else if (dataCoin.topic === "position") {
                             const size = Math.abs(dataMain.size)
 
-                            // if (size > 0 && strategy.Candlestick === missTPDataBySymbol[symbol].Candlestick) {
+                            // if (size > 0 && strategy.Candlestick === missTPDataBySymbol[botSymbolMissID].Candlestick) {
                             if (size > 0) {
 
-                                missTPDataBySymbol[symbol].timeOutFunc && clearTimeout(missTPDataBySymbol[symbol].timeOutFunc)
+                                missTPDataBySymbol[botSymbolMissID].timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
-                                missTPDataBySymbol[symbol].timeOutFunc = setTimeout(() => {
+                                missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
 
                                     const dataMain = dataCoin.data[0]
                                     const symbol = dataMain.symbol
                                     const side = dataMain.side
                                     const size = Math.abs(dataMain.size)
 
-                                    const missSize = size - missTPDataBySymbol[symbol].size
+                                    const orderIDToDB = dataCoin.id
 
-                                    missTPDataBySymbol[symbol].sizeTotal = size
+                                    const missSize = size - missTPDataBySymbol[botSymbolMissID].size
+
+                                    missTPDataBySymbol[botSymbolMissID].sizeTotal = size
 
                                     const openTrade = +dataMain.entryPrice  //Gia khop lenh
                                     // 
@@ -784,28 +858,27 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         Pnl: dataMain.unrealisedPnl,
                                     }
 
-                                    if (!missTPDataBySymbol[symbol].orderIDToDB) {
+                                    if (!missTPDataBySymbol[botSymbolMissID].orderIDToDB) {
 
-                                        const orderIDToDB = dataCoin.id
-                                        createPositionBE({
+                                        await createPositionBE({
                                             ...newDataToDB,
                                             orderID: orderIDToDB,
-                                            botID: strategy.botID._id,
+                                            botID,
                                         }).then(message => {
-                                            missTPDataBySymbol[symbol].orderIDToDB = orderIDToDB
+                                            missTPDataBySymbol[botSymbolMissID].orderIDToDB = orderIDToDB
                                             console.log(message);
                                         }).catch(err => {
                                             console.log(err);
                                         })
                                     }
 
-                                    if (!missTPDataBySymbol[symbol].gongLai) {
+                                    if (!missTPDataBySymbol[botSymbolMissID].gongLai) {
                                         if (missSize > 0) {
-                                            if (!tradeCoinData[strategyID]?.TP.orderingStatus && !missTPDataBySymbol[symbol].orderID) {
+                                            if (!tradeCoinData[strategyID]?.TP.orderingStatus && !missTPDataBySymbol[botSymbolMissID].orderID) {
 
                                                 console.log(`\n[_ MISS _] TP ( ${side} - ${symbol} ): ${missSize}\n`);
 
-                                                const TPNew = missTPDataBySymbol[symbol].priceOrderTP
+                                                const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
 
                                                 // console.log("openTrade", openTrade);
 
@@ -816,8 +889,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 //     TPNew = openTrade - (openTrade * strategy.OrderChange / 100) * (strategy.TakeProfit / 100)
                                                 // }
 
-                                                missTPDataBySymbol[symbol].prePrice = TPNew
-                                                missTPDataBySymbol[symbol].side = side
+                                                missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
+                                                missTPDataBySymbol[botSymbolMissID].side = side
 
                                                 const dataInput = {
                                                     tradeCoinData,
@@ -828,10 +901,25 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                     side: side === "Buy" ? "Sell" : "Buy",
                                                     ApiKey,
                                                     SecretKey,
-                                                    missState: true
+                                                    missState: true,
+                                                    botName,
+                                                    botID,
                                                 }
                                                 console.log("[ Re-TP ] Order TP Miss");
+
                                                 handleSubmitOrderTP(dataInput)
+
+                                                // updatePositionBE({
+                                                //     newDataUpdate: {
+                                                //         Miss: true
+                                                //     },
+                                                //     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                                // }).then(message => {
+                                                //     console.log(message);
+                                                // }).catch(err => {
+                                                //     console.log(err);
+                                                //     missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
+                                                // })
                                             }
 
                                         }
@@ -842,12 +930,12 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                     ...newDataToDB,
                                                     Miss: false
                                                 },
-                                                orderID: missTPDataBySymbol[symbol].orderIDToDB
+                                                orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                             }).then(message => {
                                                 console.log(message);
                                             }).catch(err => {
                                                 console.log(err);
-                                                missTPDataBySymbol[symbol].orderIDToDB = ""
+                                                missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                                             })
                                         }
                                     }
@@ -859,12 +947,12 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 ...newDataToDB,
                                                 Miss: true
                                             },
-                                            orderID: missTPDataBySymbol[symbol].orderIDToDB
+                                            orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                         }).then(message => {
                                             console.log(message);
                                         }).catch(err => {
                                             console.log(err);
-                                            missTPDataBySymbol[symbol].orderIDToDB = ""
+                                            missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                                         })
                                     }
 
@@ -873,7 +961,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 }, 1500)
                             }
                             else {
-                                missTPDataBySymbol[symbol].timeOutFunc && clearTimeout(missTPDataBySymbol[symbol].timeOutFunc)
+                                missTPDataBySymbol[botSymbolMissID].timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
                             }
                         }
                     }
@@ -922,6 +1010,7 @@ const renderAllStrategies = ({
                     strategy.coinOpen = coinOpen
 
                     const botID = strategy.botID._id
+                    const botName = strategy.botID.botName
 
                     const ApiKey = strategy.botID.ApiKey
                     const SecretKey = strategy.botID.SecretKey
@@ -931,27 +1020,28 @@ const renderAllStrategies = ({
 
                     if (dataMain.confirm == false) {
                         if (!tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderingStatus && strategy.IsActive) {
-                            setTimeout(() => {
+                            // setTimeout(() => {
 
                                 const coinCurrent = +dataMain.close
 
-                                const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+                                // const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
-                                if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
-                                    trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
-                                    trichMauOCListObject[symbolCandleID].minPrice = []
-                                }
-                                else {
-                                    if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
-                                        if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                                            trichMauOCListObject[symbolCandleID].minPrice.shift()
-                                        }
-                                        trichMauOCListObject[symbolCandleID].minPrice.push(khoangGia)
-                                    }
-                                }
-                                trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                                // if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
+                                //     trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
+                                //     trichMauOCListObject[symbolCandleID].minPrice = []
+                                // }
+                                // else {
+                                //     if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
+                                //         if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                //             trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                //         }
+                                //         trichMauOCListObject[symbolCandleID].minPrice.push(khoangGia)
+                                //     }
+                                // }
 
-                                if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                // trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+
+                                // if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
                                     let conditionOrder = 0
                                     let priceOrder = 0
 
@@ -977,9 +1067,9 @@ const renderAllStrategies = ({
                                         }
                                         conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
-                                        if (coinCurrent <= priceOrder) {
-                                            priceOrder = coinCurrent
-                                        }
+                                        // if (coinCurrent <= priceOrder) {
+                                        //     priceOrder = coinCurrent
+                                        // }
                                     }
                                     else {
                                         // SELL
@@ -990,9 +1080,9 @@ const renderAllStrategies = ({
                                         }
                                         conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-                                        if (coinCurrent >= priceOrder) {
-                                            priceOrder = coinCurrent
-                                        }
+                                        // if (coinCurrent >= priceOrder) {
+                                        //     priceOrder = coinCurrent
+                                        // }
                                     }
 
                                     const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
@@ -1007,7 +1097,7 @@ const renderAllStrategies = ({
                                         side,
                                         price: priceOrder.toFixed(strategy.digit),
                                         candle: `${CDle}m`,
-
+                                        botName
                                     }
 
                                     if (side === "Buy") {
@@ -1017,56 +1107,56 @@ const renderAllStrategies = ({
                                         // SELL
                                         +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
                                     }
-                                }
+                                // }
 
-                            }, 250)
+                            // }, 250)
                         }
-                        else if (tradeCoinData[strategyID]?.OC.orderFilled) {
-                            if (!tradeCoinData[strategyID]?.TP.orderID && !tradeCoinData[strategyID]?.TP.orderingStatus && tradeCoinData[strategyID]?.OC?.dataSend?.price) {
-                                setTimeout(() => {
+                        // else if (tradeCoinData[strategyID]?.OC.orderFilled) {
+                        //     if (!tradeCoinData[strategyID]?.TP.orderID && !tradeCoinData[strategyID]?.TP.orderingStatus && tradeCoinData[strategyID]?.OC?.dataSend?.price) {
+                        //         setTimeout(() => {
 
-                                    const coinCurrent = +dataMain.close
+                        //             const coinCurrent = +dataMain.close
 
-                                    const khoangGia = Math.abs(coinCurrent - trichMauTPListObject[symbolCandleID].prePrice)
+                        //             const khoangGia = Math.abs(coinCurrent - trichMauTPListObject[symbolCandleID].prePrice)
 
-                                    if (khoangGia > trichMauTPListObject[symbolCandleID].maxPrice) {
-                                        trichMauTPListObject[symbolCandleID].maxPrice = khoangGia
-                                        trichMauTPListObject[symbolCandleID].minPrice = []
-                                    }
-                                    else {
-                                        if (khoangGia <= trichMauTPListObject[symbolCandleID].maxPrice / 4) {
-                                            if (trichMauTPListObject[symbolCandleID].minPrice.length === 3) {
-                                                trichMauTPListObject[symbolCandleID].minPrice.shift()
-                                            }
-                                            trichMauTPListObject[symbolCandleID].minPrice.push(khoangGia)
-                                        }
-                                    }
-                                    trichMauTPListObject[symbolCandleID].prePrice = coinCurrent
+                        //             if (khoangGia > trichMauTPListObject[symbolCandleID].maxPrice) {
+                        //                 trichMauTPListObject[symbolCandleID].maxPrice = khoangGia
+                        //                 trichMauTPListObject[symbolCandleID].minPrice = []
+                        //             }
+                        //             else {
+                        //                 if (khoangGia <= trichMauTPListObject[symbolCandleID].maxPrice / 4) {
+                        //                     if (trichMauTPListObject[symbolCandleID].minPrice.length === 3) {
+                        //                         trichMauTPListObject[symbolCandleID].minPrice.shift()
+                        //                     }
+                        //                     trichMauTPListObject[symbolCandleID].minPrice.push(khoangGia)
+                        //                 }
+                        //             }
+                        //             trichMauTPListObject[symbolCandleID].prePrice = coinCurrent
 
 
-                                    let priceOrder = tradeCoinData[strategyID]?.OC.dataSend.price
+                        //             let priceOrder = tradeCoinData[strategyID]?.OC.dataSend.price
 
-                                    if (trichMauTPListObject[symbolCandleID].minPrice.length === 3) {
-                                        if (side === "Buy") {
-                                            if (coinCurrent >= priceOrder) {
-                                                priceOrder = coinCurrent
-                                            }
-                                        }
-                                        else {
-                                            if (coinCurrent <= priceOrder) {
-                                                priceOrder = coinCurrent
-                                            }
-                                        }
-                                    }
+                        //             if (trichMauTPListObject[symbolCandleID].minPrice.length === 3) {
+                        //                 if (side === "Buy") {
+                        //                     if (coinCurrent >= priceOrder) {
+                        //                         priceOrder = coinCurrent
+                        //                     }
+                        //                 }
+                        //                 else {
+                        //                     if (coinCurrent <= priceOrder) {
+                        //                         priceOrder = coinCurrent
+                        //                     }
+                        //                 }
+                        //             }
 
-                                    handleSubmitOrderTP({
-                                        ...tradeCoinData[strategyID]?.OC.dataSend,
-                                        price: priceOrder.toFixed(strategy.digit)
-                                    })
+                        //             handleSubmitOrderTP({
+                        //                 ...tradeCoinData[strategyID]?.OC.dataSend,
+                        //                 price: priceOrder.toFixed(strategy.digit)
+                        //             })
 
-                                }, 250)
-                            }
-                        }
+                        //         }, 250)
+                        //     }
+                        // }
 
                     }
                     // Coin CLosed
@@ -1106,6 +1196,7 @@ const renderAllStrategies = ({
                                 side,
                                 ApiKey,
                                 SecretKey,
+                                botName
                             }
                         )
 
@@ -1119,11 +1210,10 @@ const renderAllStrategies = ({
                                 strategyID,
                                 strategy,
                                 candle: strategy.Candlestick,
-                                coinOpen: coinClose
+                                coinOpen: coinClose,
+                                botName
                             })
                         }
-
-
 
                         trichMauOCListObject[symbolCandleID] = {
                             maxPrice: 0,
@@ -1150,7 +1240,6 @@ const checkConditionBot = (botData) => {
 
 const Main = async () => {
 
-
     const wsConfig = {
         market: 'v5',
         enable_time_sync: true,
@@ -1165,13 +1254,14 @@ const Main = async () => {
     const result = await Promise.all([allStrategiesActiveBE, allSymbolBE])
 
     const allStrategiesActiveObject = result[0]
-    const allSymbol = result[1]
+    allSymbol = result[1]
 
     allStrategiesActiveObject.forEach(strategyItem => {
         if (checkConditionBot(strategyItem)) {
             let Candlestick = strategyItem.Candlestick
             let symbol = strategyItem.symbol
             const botID = strategyItem.botID._id
+            const botName = strategyItem.botID.botName
             const strategyID = strategyItem.value
 
             if (Candlestick === "1m") {
@@ -1191,12 +1281,14 @@ const Main = async () => {
             if (!botApiList[botID]) {
                 botApiList[botID] = {
                     id: botID,
+                    botName,
                     ApiKey: strategyItem.botID.ApiKey,
                     SecretKey: strategyItem.botID.SecretKey,
                 }
             }
             !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
             allStrategiesActiveByBotID[botID][strategyID] = strategyItem
+
         }
     })
 
@@ -1236,7 +1328,6 @@ const Main = async () => {
                 prePrice: 0,
             }
         })
-        resetMissData(symbol)
     })
 
 
@@ -1259,7 +1350,7 @@ const Main = async () => {
     }, {});
 
     // KLINE
-    wsSymbol.subscribeV5(listKline, 'linear').then(() => {
+    await wsSymbol.subscribeV5(listKline, 'linear').then(() => {
 
         console.log("[V] Subscribe kline successful\n");
 
@@ -1297,47 +1388,57 @@ const Main = async () => {
                 const symbol = topic.split(".").slice(-1)?.[0]
                 const coinOpen = +dataMain.open
 
-                // TP chưa khớp -> Dịch TP MISS mới
-                if (missTPDataBySymbol[symbol]?.orderID && !missTPDataBySymbol[symbol].gongLai) {
-                    const TPOld = missTPDataBySymbol[symbol].prePrice
+                Object.values(missTPDataBySymbol).map(missData => {
 
-                    let TPNew
-                    if (missTPDataBySymbol[symbol].side === "Buy") {
-                        TPNew = TPOld - Math.abs(TPOld - coinOpen) * (50 / 100)
-                    }
-                    else {
-                        TPNew = TPOld + Math.abs(TPOld - coinOpen) * (50 / 100)
-                    }
+                    const botName = missData.botName
+                    const botID = missData.botID
 
-                    missTPDataBySymbol[symbol].prePrice = TPNew
+                    const botSymbolMissID = `${botID}-${symbol}`
 
-                    const client = new RestClientV5({
-                        testnet: false,
-                        key: missTPDataBySymbol[symbol].ApiKey,
-                        secret: missTPDataBySymbol[symbol].SecretKey,
-                    });
-                    client
-                        .amendOrder({
-                            category: 'linear',
-                            symbol,
-                            price: TPNew,
-                            orderId: missTPDataBySymbol[symbol].orderId,
-                        })
-                        .then((response) => {
-                            if (response.retCode == 0) {
-                                console.log(`[->] Move Order TP Miss( ${symbol} ) successful`)
-                                missTPDataBySymbol[symbol].orderId = response.result.orderId
-                            }
-                            else {
-                                console.log(`[!] Move Order TP Miss ( ${symbol} ) failed `, response)
-                                missTPDataBySymbol[symbol].orderId = ""
-                            }
-                        })
-                        .catch((error) => {
-                            console.log(`[!] Move Order TP Miss ( ${symbol} ) error `, error)
-                            missTPDataBySymbol[symbol].orderId = ""
+                    // TP chưa khớp -> Dịch TP MISS mới
+                    if (missData?.orderID && !missData.gongLai) {
+
+                        const TPOld = +missData.prePrice
+
+                        let TPNew
+
+                        if (missData.side === "Buy") {
+                            TPNew = TPOld - Math.abs(TPOld - coinOpen) * (50 / 100)
+                        }
+                        else {
+                            TPNew = TPOld + Math.abs(TPOld - coinOpen) * (50 / 100)
+                        }
+
+                        missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
+
+                        const client = new RestClientV5({
+                            testnet: false,
+                            key: missData.ApiKey,
+                            secret: missData.SecretKey,
                         });
-                }
+                        client
+                            .amendOrder({
+                                category: 'linear',
+                                symbol,
+                                price: TPNew,
+                                orderId: missData.orderId,
+                            })
+                            .then((response) => {
+                                if (response.retCode == 0) {
+                                    console.log(`[->] Move Order TP Miss( ${botName} - ${symbol} ) successful`)
+                                    missTPDataBySymbol[botSymbolMissID].orderId = response.result.orderId
+                                }
+                                else {
+                                    console.log(`[!] Move Order TP Miss ( ${botName} - ${symbol} ) failed `, response)
+                                    missTPDataBySymbol[botSymbolMissID].orderId = ""
+                                }
+                            })
+                            .catch((error) => {
+                                console.log(`[!] Move Order TP Miss ( ${botName} - ${symbol} ) error `, error)
+                                missTPDataBySymbol[botSymbolMissID].orderId = ""
+                            });
+                    }
+                })
             }
 
         })
@@ -1386,6 +1487,7 @@ const Main = async () => {
                 const strategyID = newStrategiesData.value
 
                 const botID = newStrategiesData.botID._id
+                const botName = newStrategiesData.botID.botName
 
                 cancelAll({ tradeCoinData, strategyID })
 
@@ -1395,11 +1497,13 @@ const Main = async () => {
                 if (!botApiList[botID]) {
                     botApiList[botID] = {
                         id: botID,
+                        botName,
                         ApiKey,
                         SecretKey
                     }
                     newBotApiList[botID] = {
                         id: botID,
+                        botName,
                         ApiKey,
                         SecretKey
                     }
@@ -1460,11 +1564,15 @@ const Main = async () => {
                 const ApiKey = strategiesData.botID.ApiKey
                 const SecretKey = strategiesData.botID.SecretKey
                 const botID = strategiesData.botID._id
+                const botName = strategiesData.botID.botName
 
                 const symbol = strategiesData.symbol
                 const strategyID = strategiesData.value
                 const IsActive = strategiesData.IsActive
                 const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
+                const botSymbolMissID = `${botID}-${symbol}`
+
 
                 switch (strategiesData.Candlestick) {
                     case "1m": {
@@ -1495,6 +1603,8 @@ const Main = async () => {
                     symbol: symbol,
                     candle: strategiesData.Candlestick,
                     side,
+                    botName,
+                    botID
                 }
 
                 !tradeCoinData[strategyID] && cancelAll({ tradeCoinData, strategyID })
@@ -1504,11 +1614,13 @@ const Main = async () => {
 
                         botApiList[botID] = {
                             id: botID,
+                            botName,
                             ApiKey,
                             SecretKey
                         }
                         newBotApiList[botID] = {
                             id: botID,
+                            botName,
                             ApiKey,
                             SecretKey
                         }
@@ -1518,17 +1630,17 @@ const Main = async () => {
                 }
                 else {
                     delete allStrategiesActiveByBotID[botID]?.[strategyID]
-                    !updateMongoMiss && missTPDataBySymbol[symbol].orderIDToDB && updatePositionBE({
+                    !updateMongoMiss && missTPDataBySymbol[botSymbolMissID].orderIDToDB && updatePositionBE({
                         newDataUpdate: {
                             Miss: true
                         },
-                        orderID: missTPDataBySymbol[symbol].orderIDToDB
+                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                     }).then(message => {
                         console.log(message);
                         updateMongoMiss = true
                     }).catch(err => {
                         console.log(err);
-                        missTPDataBySymbol[symbol].orderIDToDB = ""
+                        missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                     })
                 }
 
@@ -1538,7 +1650,7 @@ const Main = async () => {
                     OCOrderID && handleCancelOrderOC(cancelDataObject)
                     if (!strategiesData.IsActive) {
                         const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                        const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+                        const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
                         TPOrderID && handleCancelOrderTP({
                             ...cancelDataObject,
                             orderId: TPOrderID,
@@ -1573,7 +1685,11 @@ const Main = async () => {
                 const symbol = strategiesData.symbol
                 const strategyID = strategiesData.value
                 const botID = strategiesData.botID._id
+                const botName = strategiesData.botID.botName
+
                 const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
+                const botSymbolMissID = `${botID}-${symbol}`
 
                 switch (strategiesData.Candlestick) {
                     case "1m": {
@@ -1604,6 +1720,8 @@ const Main = async () => {
                     symbol: symbol,
                     candle: strategiesData.Candlestick,
                     side,
+                    botName,
+                    botID
                 }
 
                 delete tradeCoinData[strategyID]
@@ -1611,7 +1729,7 @@ const Main = async () => {
 
                 const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
                 const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
 
                 if (OCOrderID || TPOrderID || TPMissOrderID) {
                     OCOrderID && handleCancelOrderOC(cancelDataObject)
@@ -1646,11 +1764,15 @@ const Main = async () => {
             const ApiKey = strategiesData.botID.ApiKey
             const SecretKey = strategiesData.botID.SecretKey
             const botID = strategiesData.botID._id
+            const botName = strategy.botID.botName
+
 
             const symbol = strategiesData.symbol
             const strategyID = strategiesData.value
             const IsActive = strategiesData.IsActive
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
+            const botSymbolMissID = `${botID}-${symbol}`
 
 
             switch (strategiesData.Candlestick) {
@@ -1682,6 +1804,8 @@ const Main = async () => {
                 symbol: symbol,
                 candle: strategiesData.Candlestick,
                 side,
+                botName,
+                botID
             }
             if (IsActive) {
                 if (!botApiList[botID]) {
@@ -1689,12 +1813,14 @@ const Main = async () => {
                     botApiList[botID] = {
                         id: botID,
                         ApiKey,
-                        SecretKey
+                        SecretKey,
+                        botName
                     }
                     newBotApiList[botID] = {
                         id: botID,
                         ApiKey,
-                        SecretKey
+                        SecretKey,
+                        botName
                     }
                     !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
                     allStrategiesActiveByBotID[botID][strategyID] = strategiesData
@@ -1710,7 +1836,7 @@ const Main = async () => {
                 OCOrderID && handleCancelOrderOC(cancelDataObject)
                 if (!strategiesData.IsActive) {
                     const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                    const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+                    const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
                     TPOrderID && handleCancelOrderTP({
                         ...cancelDataObject,
                         orderId: TPOrderID,
@@ -1743,10 +1869,15 @@ const Main = async () => {
                 const symbol = strategiesData.symbol
                 const ApiKey = strategiesData.botID.ApiKey
                 const SecretKey = strategiesData.botID.SecretKey
+                const botID = strategy.botID._id
+                const botName = strategy.botID.botName
 
                 const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
                 const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+
+                const botSymbolMissID = `${botID}-${symbol}`
+
+                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
 
 
 
@@ -1758,6 +1889,8 @@ const Main = async () => {
                     symbol: symbol,
                     candle: strategiesData.Candlestick,
                     side,
+                    botName,
+                    botID
                 }
 
                 if (OCOrderID || TPOrderID || TPMissOrderID) {
@@ -1797,7 +1930,7 @@ const Main = async () => {
             await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
 
             botApiList[botIDMain] = {
-                id: botIDMain,
+                ...botApiList[botIDMain],
                 ApiKey: newApiData.ApiKey,
                 SecretKey: newApiData.SecretKey,
             }
@@ -1830,7 +1963,12 @@ const Main = async () => {
                 const symbol = strategiesData.symbol
                 const strategyID = strategiesData.value
                 const botID = strategiesData.botID._id
+                const botName = strategy.botID.botName
+
                 const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
+                const botSymbolMissID = `${botID}-${symbol}`
+
 
                 switch (strategiesData.Candlestick) {
                     case "1m": {
@@ -1861,6 +1999,8 @@ const Main = async () => {
                     symbol: symbol,
                     candle: strategiesData.Candlestick,
                     side,
+                    botName,
+                    botID
                 }
 
                 delete tradeCoinData[strategyID]
@@ -1868,7 +2008,7 @@ const Main = async () => {
 
                 const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
                 const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
 
                 if (OCOrderID || TPOrderID || TPMissOrderID) {
                     OCOrderID && handleCancelOrderOC(cancelDataObject)
@@ -1987,7 +2127,12 @@ const Main = async () => {
                     prePrice: 0,
                 }
             })
-            resetMissData(symbol)
+            Object.values(botApiList).forEach(botApiData => {
+                resetMissData({
+                    botID: botApiData.id,
+                    symbol
+                })
+            })
         })
 
 
@@ -2001,7 +2146,11 @@ const Main = async () => {
     socketRealtime.on("close-limit", async (data) => {
         const { positionData } = data
         const symbol = positionData.Symbol
-        await Promise.allSettled(missTPDataBySymbol[symbol].orderIDOfListTP.map(orderIdTPData => {
+        const botID = positionData.botID
+
+        const botSymbolMissID = `${botID}-${symbol}`
+
+        await Promise.allSettled(missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.map(orderIdTPData => {
             return handleCancelOrderTP({
                 ApiKey: positionData.botID.ApiKey,
                 SecretKey: positionData.botID.SecretKey,
@@ -2019,6 +2168,7 @@ const Main = async () => {
         console.log('[V] Disconnected from socket realtime');
     });
 }
+
 
 Main()
 

@@ -7,15 +7,20 @@ import Avatar from '@mui/material/Avatar';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Popover } from "@mui/material";
-import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import styles from "./Heading.module.scss"
 import { removeLocalStorage } from "../../../../functions";
+import { useSelector } from "react-redux";
 
 function Heading({
     toggleSidebar,
     userData
 }, ref) {
+
+    const totalFuture = useSelector(state => state.totalFutureSlice.total)
+
+    const location = useLocation()
 
     const [avatarDetailState, setAvatarDetailState] = useState(false);
 
@@ -24,6 +29,10 @@ function Heading({
         removeLocalStorage()
         navigate("/login")
     }
+
+    const routeName = useMemo(() => {
+        return location.pathname.split("/")[1]
+    }, [location])
 
     return (
         <div className={styles.heading}>
@@ -35,6 +44,10 @@ function Heading({
                 className={styles.navbar}
                 onClick={toggleSidebar}
             />
+            {
+                routeName === "Strategies" &&
+                <p className={styles.totalMoneyFutureBot}>{Number.parseFloat((+totalFuture || 0).toFixed(2)).toLocaleString("vn-VN")} $</p>
+            }
             <div className={styles.headingInfor} >
                 <div className={styles.avatar} onClick={(e) => {
                     setAvatarDetailState(e.currentTarget)
