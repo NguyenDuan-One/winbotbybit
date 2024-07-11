@@ -10,8 +10,8 @@ const StrategiesModel = require("./models/strategies.model")
 // const API_KEY = "8Ttfa29X5wkjaGSa0P"
 // const SECRET_KEY = "uLkFZbyooomB6FMwwlJOHWjgscbpIK4CgRFw"
 
-const BOT_TOKEN_RUN_TRADE = new Telegraf("6973355601:AAFucLsDHjE8JIQmtaDJR864o9w9hBhVj-Y");
-BOT_TOKEN_RUN_TRADE.launch();
+// const BOT_TOKEN_RUN_TRADE = new Telegraf("6973355601:AAFucLsDHjE8JIQmtaDJR864o9w9hBhVj-Y");
+// BOT_TOKEN_RUN_TRADE.launch();
 
 const LIST_ORDER = ["order", "position"]
 
@@ -76,6 +76,9 @@ const handleSubmitOrder = ({
         key: ApiKey,
         secret: SecretKey,
     });
+
+    tradeCoinData[strategyID]?.OC && cancelAll({ tradeCoinData, strategyID })
+
     tradeCoinData[strategyID].OC.orderingStatus = true
 
     client
@@ -121,6 +124,8 @@ const handleSubmitOrderTP = ({
 
     console.log(`Price order TP ( ${candle} ):`, price);
 
+    tradeCoinData[strategyID]?.TP && cancelAll({ tradeCoinData, strategyID })
+
     tradeCoinData[strategyID].TP.orderingStatus = true
 
     const client = new RestClientV5({
@@ -140,7 +145,7 @@ const handleSubmitOrderTP = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(`[+TP] Order TP ${missState ? "( MISS ) " : ' '} ( ${side} - ${symbol} - ${candle} ) successful `)
+                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ' '} ( ${side} - ${symbol} - ${candle} ) successful `)
                 const newOrderID = response.result.orderId
 
                 missTPDataBySymbol[symbol] = {
@@ -166,7 +171,7 @@ const handleSubmitOrderTP = ({
 
             }
             else {
-                console.log(`[!] Order TP ${missState ? "( MISS ) " : ' '} - ( ${side} - ${symbol} - ${candle} ) failed `, response)
+                console.log(`[!] Order TP ${missState ? "( MISS )" : ' '} - ( ${side} - ${symbol} - ${candle} ) failed `, response)
                 tradeCoinData[strategyID].TP.orderingStatus = false
                 if (missState) {
                     console.log(`[X] Không thể xử lý MISS ( ${side} - ${symbol} - ${candle} )`);
@@ -186,7 +191,7 @@ const handleSubmitOrderTP = ({
             }
         })
         .catch((error) => {
-            console.log(`[!] Order TP ${missState ? "( MISS ) " : ' '} - ( ${side} - ${symbol} - ${candle} ) error `, error)
+            console.log(`[!] Order TP ${missState ? "( MISS )" : ' '} - ( ${side} - ${symbol} - ${candle} ) error `, error)
             tradeCoinData[strategyID].TP.orderingStatus = false
             if (missState) {
                 console.log(`[X] Không thể xử lý MISS ( ${side} - ${symbol} - ${candle} )`);
@@ -259,7 +264,7 @@ const handleMoveOrderTP = ({
 
     if (tradeCoinData[strategyID]?.TP.orderID) {
 
-        const TPOld = tradeCoinData[strategyID].TP.price
+        const TPOld = tradeCoinData[strategyID]?.TP.price
 
         let TPNew
         if (strategy.PositionSide === "Long") {
@@ -276,7 +281,7 @@ const handleMoveOrderTP = ({
             tradeCoinData,
             symbol,
             price: TPNew.toFixed(strategy.digit),
-            orderId: tradeCoinData[strategyID].TP.orderID,
+            orderId: tradeCoinData[strategyID]?.TP.orderID,
             candle,
             ApiKey,
             SecretKey
@@ -307,7 +312,7 @@ const handleCancelOrderOC = ({
             .cancelOrder({
                 category: 'linear',
                 symbol,
-                orderId: tradeCoinData[strategyID].OC.orderID,
+                orderId: tradeCoinData[strategyID]?.OC.orderID,
             })
             .then((response) => {
                 if (response.retCode == 0) {
@@ -382,6 +387,7 @@ const handleCancelOrderTP = ({
 const resetMissData = (symbol) => {
     missTPDataBySymbol[symbol] = {
         size: 0,
+        side: "",
         Candlestick: "",
         timeOutFunc: "",
         sizeTotal: 0,
@@ -427,15 +433,15 @@ const sendMessageWithRetry = async ({
     telegramToken,
 }) => {
 
-    // let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramID]
+    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramID]
 
     try {
-        // if (!BOT_TOKEN_RUN_TRADE) {
-        //     const newBotInit = new Telegraf(telegramToken)
-        //     BOT_TOKEN_RUN_TRADE = newBotInit
-        //     await BOT_TOKEN_RUN_TRADE.launch({ allowedUpdates: true });
-        //     botListTelegram[telegramID] = newBotInit
-        // }
+        if (!BOT_TOKEN_RUN_TRADE) {
+            const newBotInit = new Telegraf(telegramToken)
+            BOT_TOKEN_RUN_TRADE = newBotInit
+            BOT_TOKEN_RUN_TRADE.launch();
+            botListTelegram[telegramID] = newBotInit
+        }
         for (let i = 0; i < retries; i++) {
             try {
                 if (messageText) {
@@ -465,7 +471,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
     const objectToArray = Object.values(botApiList);
     const objectToArrayLength = objectToArray.length;
-    console.log("[Bot-API] botApiList Length:", objectToArrayLength);
+    console.log("[New-Bot-API] Length:", objectToArrayLength);
 
     if (objectToArrayLength > 0) {
 
@@ -600,7 +606,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
                                     const botName = strategy.botID.botName
 
-                                    const openTradeOCFilled = tradeCoinData[strategyID].OC.openTrade
+                                    const openTradeOCFilled = tradeCoinData[strategyID]?.OC.openTrade
 
                                     const qty = +dataMain.qty
                                     const priceOldOrder = (botAmountListObject[strategy.botID._id] * strategy.Amount / 100).toFixed(2)
@@ -694,7 +700,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 strategyID,
                                                 symbol: strategy.symbol,
                                                 side,
-                                                orderId: tradeCoinData[strategyID].TP.orderID,
+                                                orderId: tradeCoinData[strategyID]?.TP.orderID,
                                                 candle: strategy.Candlestick,
                                                 ApiKey,
                                                 SecretKey
@@ -778,6 +784,21 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         Pnl: dataMain.unrealisedPnl,
                                     }
 
+                                    if (!missTPDataBySymbol[symbol].orderIDToDB) {
+
+                                        const orderIDToDB = dataCoin.id
+                                        createPositionBE({
+                                            ...newDataToDB,
+                                            orderID: orderIDToDB,
+                                            botID: strategy.botID._id,
+                                        }).then(message => {
+                                            missTPDataBySymbol[symbol].orderIDToDB = orderIDToDB
+                                            console.log(message);
+                                        }).catch(err => {
+                                            console.log(err);
+                                        })
+                                    }
+
                                     if (!missTPDataBySymbol[symbol].gongLai) {
                                         if (missSize > 0) {
                                             if (!tradeCoinData[strategyID]?.TP.orderingStatus && !missTPDataBySymbol[symbol].orderID) {
@@ -796,6 +817,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 // }
 
                                                 missTPDataBySymbol[symbol].prePrice = TPNew
+                                                missTPDataBySymbol[symbol].side = side
 
                                                 const dataInput = {
                                                     tradeCoinData,
@@ -815,6 +837,18 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                         else {
                                             console.log(`[_ Not Miss _] TP ( ${side} - ${symbol}} )`);
+                                            updatePositionBE({
+                                                newDataUpdate: {
+                                                    ...newDataToDB,
+                                                    Miss: false
+                                                },
+                                                orderID: missTPDataBySymbol[symbol].orderIDToDB
+                                            }).then(message => {
+                                                console.log(message);
+                                            }).catch(err => {
+                                                console.log(err);
+                                                missTPDataBySymbol[symbol].orderIDToDB = ""
+                                            })
                                         }
                                     }
                                     else {
@@ -822,6 +856,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         console.log(`[Mongo] UPDATE MISS Position ( ${side} - ${symbol} )`);
                                         updatePositionBE({
                                             newDataUpdate: {
+                                                ...newDataToDB,
                                                 Miss: true
                                             },
                                             orderID: missTPDataBySymbol[symbol].orderIDToDB
@@ -833,35 +868,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         })
                                     }
 
-                                    if (!missTPDataBySymbol[symbol].orderIDToDB) {
 
-                                        const orderIDToDB = dataCoin.id
-                                        createPositionBE({
-                                            ...newDataToDB,
-                                            orderID: orderIDToDB,
-                                            botID: strategy.botID._id,
-                                        }).then(message => {
-                                            missTPDataBySymbol[symbol].orderIDToDB = orderIDToDB
-                                            console.log(message);
-                                        }).catch(err => {
-                                            console.log(err);
-                                        })
-                                    }
-                                    else {
-                                        console.log("[Mongo] Re-Update Position");
-                                        updatePositionBE({
-                                            newDataUpdate: {
-                                                ...newDataToDB,
-                                                Miss: missTPDataBySymbol[symbol].gongLai
-                                            },
-                                            orderID: missTPDataBySymbol[symbol].orderIDToDB
-                                        }).then(message => {
-                                            console.log(message);
-                                        }).catch(err => {
-                                            console.log(err);
-                                            missTPDataBySymbol[symbol].orderIDToDB = ""
-                                        })
-                                    }
 
                                 }, 1500)
                             }
@@ -1037,7 +1044,7 @@ const renderAllStrategies = ({
                                     trichMauTPListObject[symbolCandleID].prePrice = coinCurrent
 
 
-                                    let priceOrder = tradeCoinData[strategyID].OC.dataSend.price
+                                    let priceOrder = tradeCoinData[strategyID]?.OC.dataSend.price
 
                                     if (trichMauTPListObject[symbolCandleID].minPrice.length === 3) {
                                         if (side === "Buy") {
@@ -1053,7 +1060,7 @@ const renderAllStrategies = ({
                                     }
 
                                     handleSubmitOrderTP({
-                                        ...tradeCoinData[strategyID].OC.dataSend,
+                                        ...tradeCoinData[strategyID]?.OC.dataSend,
                                         price: priceOrder.toFixed(strategy.digit)
                                     })
 
@@ -1089,6 +1096,18 @@ const renderAllStrategies = ({
                             })
                         }
 
+                        // console.log(` New Candle ${strategy.PositionSide} `)
+                        tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderFilled && handleCancelOrderOC(
+                            {
+                                tradeCoinData,
+                                strategyID,
+                                symbol: strategy.symbol,
+                                candle: strategy.Candlestick,
+                                side,
+                                ApiKey,
+                                SecretKey,
+                            }
+                        )
 
                         // TP chưa khớp -> Dịch TP mới
 
@@ -1104,18 +1123,7 @@ const renderAllStrategies = ({
                             })
                         }
 
-                        // console.log(` New Candle ${strategy.PositionSide} `)
-                        tradeCoinData[strategyID]?.OC.orderID && !tradeCoinData[strategyID]?.OC.orderFilled && handleCancelOrderOC(
-                            {
-                                tradeCoinData,
-                                strategyID,
-                                symbol: strategy.symbol,
-                                candle: strategy.Candlestick,
-                                side,
-                                ApiKey,
-                                SecretKey,
-                            }
-                        )
+
 
                         trichMauOCListObject[symbolCandleID] = {
                             maxPrice: 0,
@@ -1189,7 +1197,6 @@ const Main = async () => {
             }
             !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
             allStrategiesActiveByBotID[botID][strategyID] = strategyItem
-            resetMissData(symbol)
         }
     })
 
@@ -1207,8 +1214,10 @@ const Main = async () => {
     ]))
 
     allSymbol.forEach(item => {
-        [1, 3, 5, 15].forEach(candle => {
-            const symbolCandleID = `${item.value}-${candle}`
+        const symbol = item.value
+        const listKline = [1, 3, 5, 15]
+        listKline.forEach(candle => {
+            const symbolCandleID = `${symbol}-${candle}`
             listPricePre[symbolCandleID] = []
             listPricePreOne[symbolCandleID] = {
                 open: 0,
@@ -1227,6 +1236,7 @@ const Main = async () => {
                 prePrice: 0,
             }
         })
+        resetMissData(symbol)
     })
 
 
@@ -1286,11 +1296,11 @@ const Main = async () => {
                 const symbol = topic.split(".").slice(-1)?.[0]
 
                 // TP chưa khớp -> Dịch TP MISS mới
-                if (missTPDataBySymbol[symbol].orderID) {
+                if (missTPDataBySymbol[symbol]?.orderID && !missTPDataBySymbol[symbol].gongLai) {
                     const TPOld = missTPDataBySymbol[symbol].prePrice
 
                     let TPNew
-                    if (strategy.PositionSide === "Long") {
+                    if (missTPDataBySymbol[symbol].side === "Buy") {
                         TPNew = TPOld - Math.abs(TPOld - coinOpen) * (50 / 100)
                     }
                     else {
@@ -1375,20 +1385,7 @@ const Main = async () => {
 
                 const botID = newStrategiesData.botID._id
 
-                tradeCoinData[strategyID] = {
-                    "OC": {
-                        orderID: "",
-                        orderingStatus: false,
-                        orderFilled: false,
-                        openTrade: ""
-                    },
-                    "TP": {
-                        orderID: "",
-                        orderingStatus: false,
-                        price: 0,
-                        qty: 0
-                    },
-                }
+                cancelAll({ tradeCoinData, strategyID })
 
                 const ApiKey = newStrategiesData.botID.ApiKey
                 const SecretKey = newStrategiesData.botID.SecretKey
@@ -1448,9 +1445,12 @@ const Main = async () => {
 
     });
 
-    socketRealtime.on('update', (newData = []) => {
+    socketRealtime.on('update', async (newData = []) => {
         console.log("[...] Update Strategies From Realtime", newData.length);
 
+        const newBotApiList = {}
+
+        let updateMongoMiss = false
         newData.map(async strategiesData => {
 
             if (checkConditionBot(strategiesData)) {
@@ -1494,12 +1494,37 @@ const Main = async () => {
                     candle: strategiesData.Candlestick,
                     side,
                 }
-                if (IsActive) {
+
+                !tradeCoinData[strategyID] && cancelAll({ tradeCoinData, strategyID })
+
+                if (IsActive && !botApiList[botID]) {
+                    botApiList[botID] = {
+                        id: botID,
+                        ApiKey,
+                        SecretKey
+                    }
+                    newBotApiList[botID] = {
+                        id: botID,
+                        ApiKey,
+                        SecretKey
+                    }
                     !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
                     allStrategiesActiveByBotID[botID][strategyID] = strategiesData
                 }
                 else {
                     delete allStrategiesActiveByBotID[botID]?.[strategyID]
+                    !updateMongoMiss && missTPDataBySymbol[symbol].orderIDToDB && updatePositionBE({
+                        newDataUpdate: {
+                            Miss: true
+                        },
+                        orderID: missTPDataBySymbol[symbol].orderIDToDB
+                    }).then(message => {
+                        console.log(message);
+                        updateMongoMiss = true
+                    }).catch(err => {
+                        console.log(err);
+                        missTPDataBySymbol[symbol].orderIDToDB = ""
+                    })
                 }
 
                 const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
@@ -1525,6 +1550,8 @@ const Main = async () => {
 
             }
         })
+
+        await handleSocketBotApiList(newBotApiList)
 
 
     });
@@ -1855,7 +1882,7 @@ const Main = async () => {
 
         wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
 
-
+        delete botApiList[botIDMain]
 
     });
 
@@ -1903,9 +1930,6 @@ const Main = async () => {
             `kline.15.${symbolData.value}`,
         ]))
 
-        newData.forEach(symbolData => {
-            resetMissData(symbolData.value)
-        })
 
         await Promise.all(newData.map(async symbol => {
             let result = await Digit(symbol.value)
@@ -1914,8 +1938,10 @@ const Main = async () => {
         }))
 
         newData.forEach(item => {
-            [1, 3, 5, 15].forEach(candle => {
-                const symbolCandleID = `${item.value}-${candle}`
+            const symbol = item.value
+            const listKline = [1, 3, 5, 15]
+            listKline.forEach(candle => {
+                const symbolCandleID = `${symbol}-${candle}`
                 listPricePre[symbolCandleID] = []
                 listPricePreOne[symbolCandleID] = {
                     open: 0,
@@ -1928,7 +1954,13 @@ const Main = async () => {
                     minPrice: [],
                     prePrice: 0
                 }
+                trichMauTPListObject[symbolCandleID] = {
+                    maxPrice: 0,
+                    minPrice: [],
+                    prePrice: 0,
+                }
             })
+            resetMissData(symbol)
         })
 
 
@@ -1964,12 +1996,12 @@ const Main = async () => {
 Main()
 
 process.once('SIGINT', () => {
-    Object.values(botListTelegram).forEach(botData=>{
+    Object.values(botListTelegram).forEach(botData => {
         botData.stop('SIGINT')
     })
 })
 process.once('SIGTERM', () => {
-    Object.values(botListTelegram).forEach(botData=>{
+    Object.values(botListTelegram).forEach(botData => {
         botData.stop('SIGTERM')
     })
 })

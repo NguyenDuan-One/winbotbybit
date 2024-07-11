@@ -134,8 +134,12 @@ const dataCoinByBitController = {
                             }
                         }
                     }
+                },
+                {
+                    $sort: { "label": 1 } // Sắp xếp theo label (tăng dần)
                 }
             ]);
+
             const result = await StrategiesModel.populate(resultFilter, {
                 path: 'children.botID',
             })
