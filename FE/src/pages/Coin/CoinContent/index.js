@@ -74,7 +74,7 @@ function CoinContent() {
                     setTableRows(() => {
                         const key = e.target.value
                         if (key) {
-                            const newList = tableRowsDefault.current.filter(item => item.Coin.toUpperCase().includes(key.toUpperCase().trim()))
+                            const newList = tableRowsDefault.current.filter(item => item.Coin.toUpperCase().includes(key.toUpperCase()?.trim()))
                             return newList.length > 0 ? newList : []
                         }
                         return tableRowsDefault.current

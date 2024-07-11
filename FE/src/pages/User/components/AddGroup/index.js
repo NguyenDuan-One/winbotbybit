@@ -82,7 +82,7 @@ function AddGroup({
     const handleSubmitAddGroup = async (data) => {
         data = {
             ...data,
-            userName: data.userName.trim(),
+            userName: data.userName?.trim(),
             roleName: roleNameSelected,
             groupID: data.groupID ? data.groupID : undefined
         }

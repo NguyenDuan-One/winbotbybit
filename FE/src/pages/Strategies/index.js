@@ -411,7 +411,7 @@ function Strategies() {
                                 searchRef.current = key
                                 let listFilter = filterQuantityRef.current.length ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
                                 if (key) {
-                                    const newList = listFilter.filter(item => item.label.toUpperCase().includes(key.toUpperCase().trim()))
+                                    const newList = listFilter.filter(item => item.label.toUpperCase().includes(key.toUpperCase()?.trim()))
                                     return newList.length > 0 ? newList : []
                                 }
                                 return listFilter

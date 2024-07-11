@@ -1290,10 +1290,12 @@ const Main = async () => {
             })
 
             // Xử lý miss
-            if (dataCoin.data[0].confirm == true) {
+            const dataMain = dataCoin.data[0]
+            if (dataMain.confirm == true) {
 
                 const topic = dataCoin.topic
                 const symbol = topic.split(".").slice(-1)?.[0]
+                const coinOpen = +dataMain.open
 
                 // TP chưa khớp -> Dịch TP MISS mới
                 if (missTPDataBySymbol[symbol]?.orderID && !missTPDataBySymbol[symbol].gongLai) {
@@ -1497,19 +1499,22 @@ const Main = async () => {
 
                 !tradeCoinData[strategyID] && cancelAll({ tradeCoinData, strategyID })
 
-                if (IsActive && !botApiList[botID]) {
-                    botApiList[botID] = {
-                        id: botID,
-                        ApiKey,
-                        SecretKey
+                if (IsActive) {
+                    if (!botApiList[botID]) {
+
+                        botApiList[botID] = {
+                            id: botID,
+                            ApiKey,
+                            SecretKey
+                        }
+                        newBotApiList[botID] = {
+                            id: botID,
+                            ApiKey,
+                            SecretKey
+                        }
+                        !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
+                        allStrategiesActiveByBotID[botID][strategyID] = strategiesData
                     }
-                    newBotApiList[botID] = {
-                        id: botID,
-                        ApiKey,
-                        SecretKey
-                    }
-                    !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
-                    allStrategiesActiveByBotID[botID][strategyID] = strategiesData
                 }
                 else {
                     delete allStrategiesActiveByBotID[botID]?.[strategyID]
@@ -1630,8 +1635,10 @@ const Main = async () => {
     });
 
 
-    socketRealtime.on('bot-update', (newData = []) => {
-        console.log("[...] Update Strategies From Realtime", newData.length);
+    socketRealtime.on('bot-update', async (newData = []) => {
+        console.log("[...] Bot-Update Strategies From Realtime", newData.length);
+
+        const newBotApiList = {}
 
         newData.map(async strategiesData => {
 
@@ -1677,8 +1684,21 @@ const Main = async () => {
                 side,
             }
             if (IsActive) {
-                !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
-                allStrategiesActiveByBotID[botID][strategyID] = strategiesData
+                if (!botApiList[botID]) {
+
+                    botApiList[botID] = {
+                        id: botID,
+                        ApiKey,
+                        SecretKey
+                    }
+                    newBotApiList[botID] = {
+                        id: botID,
+                        ApiKey,
+                        SecretKey
+                    }
+                    !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
+                    allStrategiesActiveByBotID[botID][strategyID] = strategiesData
+                }
             }
             else {
                 delete allStrategiesActiveByBotID[botID]?.[strategyID]
@@ -1707,21 +1727,28 @@ const Main = async () => {
 
         })
 
+        await handleSocketBotApiList(newBotApiList)
+
+
     });
 
     socketRealtime.on('bot-api', async (data) => {
         const { newData, botID: botIDMain, newApiData } = data;
-        console.log("[...] Update Strategies From Realtime", newData.length);
+        console.log("[...] Bot-Api Update Strategies From Realtime", newData.length);
 
         newData.map(async strategiesData => {
 
             if (checkConditionBot(strategiesData)) {
                 const strategyID = strategiesData.value
                 const symbol = strategiesData.symbol
+                const ApiKey = strategiesData.botID.ApiKey
+                const SecretKey = strategiesData.botID.SecretKey
 
                 const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
                 const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
                 const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+
+
 
                 const cancelDataObject = {
                     ApiKey,
@@ -1792,7 +1819,7 @@ const Main = async () => {
 
     socketRealtime.on('bot-delete', (data) => {
         const { newData, botID: botIDMain } = data;
-        console.log("[...] Deleted Strategies From Realtime");
+        console.log("[...] Bot Deleted Strategies From Realtime");
 
         newData.map(async strategiesData => {
             if (checkConditionBot(strategiesData)) {
@@ -1887,7 +1914,7 @@ const Main = async () => {
     });
 
     socketRealtime.on('bot-telegram', async (data) => {
-        console.log("[...] Update Bot Telegram From Realtime");
+        console.log("[...] Bot Telegram Update From Realtime");
 
         const { newData, botID: botIDMain, newApiData } = data;
         const telegramIDOld = newApiData.telegramIDOld

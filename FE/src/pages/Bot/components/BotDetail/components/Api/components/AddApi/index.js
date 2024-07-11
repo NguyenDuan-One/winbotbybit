@@ -32,8 +32,8 @@ function AddApi({
             const res = await updateBot({
                 data: {
                     ...data,
-                    ApiKey: data.ApiKey.trim(),
-                    SecretKey: data.SecretKey.trim(),
+                    ApiKey: data.ApiKey?.trim(),
+                    SecretKey: data.SecretKey?.trim(),
                     type: "Api",
                     checkBot
                 },

@@ -24,7 +24,7 @@ function LoginPage() {
     const handleLogin = async (data) => {
         data = {
             ...data,
-            userName: data.userName.trim(),
+            userName: data.userName?.trim(),
         }
         try {
             const res = await login(data);
