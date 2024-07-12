@@ -23,7 +23,8 @@ import { setTotalFuture } from '../../store/slices/TotalFuture';
 
 function Strategies() {
 
-    const SCROLL_INDEX = 15
+    const SCROLL_INDEX = 5
+    const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
     const botTypeList = [
         {
@@ -104,7 +105,7 @@ function Strategies() {
     const dataCheckTreeRef = useRef([])
     const [dataCheckTree, setDataCheckTree] = useState([]);
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
-    const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX);
+    const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX_FIRST);
 
     // Filter
     const [botTypeSelected, setBotTypeSelected] = useState("All");
@@ -314,7 +315,7 @@ function Strategies() {
 
     const resetAfterSuccess = (setFilterBox = false, filter = false) => {
         dataCheckTreeSelectedRef.current = []
-        setDataTreeViewIndex(SCROLL_INDEX)
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
         searchRef.current = ""
         handleCheckAllCheckBox(false)
         openCreateStrategy.dataChange = false
@@ -352,7 +353,6 @@ function Strategies() {
             if (selectAllRef.current) {
                 document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
                     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
-                        console.log('click all');
                         item.checked = false
                         item.click()
                     }

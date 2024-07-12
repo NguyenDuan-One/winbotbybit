@@ -7,7 +7,7 @@ export const handleCheckAllCheckBox = (check) => {
 }
 
 export const formatNumber = number => {
-    return number > 0 ? number.toFixed(2) : 0
+    // return number > 0 ? number.toFixed(2) : 0
     return (number > 0 ? number : 0).toLocaleString("en-EN")
     return new Intl.NumberFormat("en-EN").format(number > 0 ? number : 0) || 0
 

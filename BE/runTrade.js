@@ -1764,7 +1764,7 @@ const Main = async () => {
             const ApiKey = strategiesData.botID.ApiKey
             const SecretKey = strategiesData.botID.SecretKey
             const botID = strategiesData.botID._id
-            const botName = strategy.botID.botName
+            const botName = strategiesData.botID.botName
 
 
             const symbol = strategiesData.symbol
@@ -1869,8 +1869,8 @@ const Main = async () => {
                 const symbol = strategiesData.symbol
                 const ApiKey = strategiesData.botID.ApiKey
                 const SecretKey = strategiesData.botID.SecretKey
-                const botID = strategy.botID._id
-                const botName = strategy.botID.botName
+                const botID = strategiesData.botID._id
+                const botName = strategiesData.botID.botName
 
                 const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
                 const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
@@ -1963,7 +1963,7 @@ const Main = async () => {
                 const symbol = strategiesData.symbol
                 const strategyID = strategiesData.value
                 const botID = strategiesData.botID._id
-                const botName = strategy.botID.botName
+                const botName = strategiesData.botID.botName
 
                 const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 

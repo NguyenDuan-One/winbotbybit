@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import Transfer from './conmponents/Transfer';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -38,7 +38,7 @@ function Wallet() {
 
         try {
             const res = await getFutureAvailable(botID)
-            const { status, data,message } = res.data
+            const { status, data, message } = res.data
 
             if (status === 200) {
                 const value = +data.result?.list?.[0]?.totalWalletBalance || 0
@@ -65,7 +65,7 @@ function Wallet() {
         // const newSpotTotal = 50000
         try {
             const res = await getSpotTotal(botID)
-            const { status, data,message } = res.data
+            const { status, data, message } = res.data
 
             const newSpotTotal = +data.result?.balance?.[0]?.walletBalance || 0
             spotAvailable.current = {
@@ -196,7 +196,7 @@ function Wallet() {
     return (
         <div className={styles.overview}>
             <div className={styles.overviewHeader}>
-                <p className={styles.text}>Balance : {(futureAvailable + spotTotal).toFixed(2)} $</p>
+                <p className={styles.text}>Balance : {formatNumber(futureAvailable + spotTotal)} $</p>
             </div>
 
             <div className={styles.overviewInfo}>
@@ -211,7 +211,7 @@ function Wallet() {
                     <div className={styles.overviewInfoListItem}>
                         <p className={styles.label}>Spot Savings</p>
 
-                        <CurrencyFormat
+                        {/* <CurrencyFormat
                             value={spotSaving}
                             thousandSeparator={true}
                             isAllowed={({ floatValue }) => {
@@ -232,6 +232,15 @@ function Wallet() {
                             onValueChange={values => {
                                 const { value } = values;
                                 +value <= spotTotal ? setSpotSaving(+value) : setSpotSaving(spotTotal)
+                            }}
+                        /> */}
+                        <TextField
+                            size="small"
+                            value={spotSaving.toLocaleString("en-EN")}
+                            type='number'
+                            onChange={e => {
+                                const value = e.target.value;
+                                value <= spotTotal ? setSpotSaving(value) : setSpotSaving(spotTotal)
                             }}
                         />
                     </div>

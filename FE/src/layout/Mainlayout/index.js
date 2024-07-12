@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import Heading from "./components/Heading";
 import SideBar from "./components/SideBar";
 import styles from "./Mainlayout.module.scss"
@@ -14,6 +14,7 @@ import { verifyLogin } from "../../services/authService";
 import { getByRoleName } from "../../services/roleService";
 import { getUserByID } from "../../services/userService";
 import { addMessageToast } from "../../store/slices/Toast";
+import { removeLocalStorage } from "../../functions";
 
 function MainLayout({ children }) {
 
@@ -103,8 +104,16 @@ function MainLayout({ children }) {
         </Breadcrumbs>
     }
 
+    const navigate = useNavigate()
+
     const handleVerifyLogin = async () => {
-        await verifyLogin()
+        try {
+            await verifyLogin()
+            getRoleList()
+        } catch (error) {
+            removeLocalStorage()
+            navigate("/login")
+        }
     }
 
     const getRoleList = async () => {
@@ -136,7 +145,6 @@ function MainLayout({ children }) {
 
     useEffect(() => {
         handleVerifyLogin()
-        getRoleList()
 
     }, []);
 

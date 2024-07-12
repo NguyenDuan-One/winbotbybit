@@ -175,7 +175,6 @@ function TreeParent({
         }
         closeDeleteDialog()
     }
-
     return (
         <div className={styles.treeParent}  >
             <div style={{
