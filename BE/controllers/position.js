@@ -27,7 +27,7 @@ const PositionController = {
     updatePL: async (req, res) => {
         try {
             const { botListID } = req.body
-            const data = await PositionModel.find({ botID: { $in: botListID } }).populate("botID")
+            const data = await PositionModel.find({ botID: { $in: botListID } }).sort({ Time: -1 }).populate("botID")
 
             if (data.length > 0) {
 
@@ -43,10 +43,13 @@ const PositionController = {
                             symbol: positionData.Symbol
                         })
                         .then((response) => {
-                            const newPnL = response.result.list[0].unrealisedPnl
                             const sizeNew = response.result.list[0].size
-                            
-                            positionData.Pnl = newPnL
+
+                            positionData.Pnl = response.result.list[0].unrealisedPnl
+                            positionData.Side = response.result.list[0].side
+                            positionData.Price = +response.result.list[0].entryPrice
+                            positionData.Quantity = sizeNew
+
                             sizeNew != 0 ? PositionController.updatePositionBE({
                                 newDataUpdate: positionData,
                                 orderID: positionData.orderID
@@ -72,7 +75,7 @@ const PositionController = {
 
     getPriceLimitCurrent: async (req, res) => {
         try {
-            const {symbol} = req.body
+            const { symbol } = req.body
 
             const client = new RestClientV5({
                 testnet: false,
@@ -170,11 +173,6 @@ const PositionController = {
     createPositionBE: async (newData) => {
         try {
 
-            const { Symbol } = newData
-
-            // const checkSymbolExists = await PositionModel.findOne({ Symbol })
-
-            // if (!checkSymbolExists) {
             const newBot = new PositionModel({
                 ...newData,
                 Time: new Date()
@@ -183,7 +181,10 @@ const PositionController = {
             const savedBot = await newBot.save();
 
             if (savedBot) {
-                return "[Mongo] Add Position Successful"
+                return {
+                    message: "[Mongo] Add Position Successful",
+                    id: savedBot._id
+                }
             }
             else {
                 return "[Mongo] Add Position Failed"
@@ -199,11 +200,8 @@ const PositionController = {
         orderID
     }) => {
         try {
-            const result = await PositionModel.updateOne({ orderID: orderID }, {
-                $set: {
-                    ...newDataUpdate,
-                    Time: new Date()
-                }
+            const result = await PositionModel.updateOne({ _id: orderID }, {
+                $set: newDataUpdate
             });
 
             if (result.acknowledged && result.matchedCount !== 0) {
@@ -221,7 +219,7 @@ const PositionController = {
     deletePositionBE: async ({ orderID }) => {
         try {
 
-            const result = await PositionModel.deleteOne({ orderID })
+            const result = await PositionModel.deleteOne({ _id: orderID })
 
             if (result.deletedCount && result.deletedCount !== 0) {
                 return "[Mongo] Delete Position Successful"
