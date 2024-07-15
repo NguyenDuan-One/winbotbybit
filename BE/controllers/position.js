@@ -1,5 +1,6 @@
 const { RestClientV5 } = require('bybit-api');
 const PositionModel = require('../models/position.model');
+const BotModel = require('../models/bot.model');
 
 const PositionController = {
 
@@ -24,45 +25,102 @@ const PositionController = {
         }
     },
 
+
     updatePL: async (req, res) => {
         try {
             const { botListID } = req.body
-            const data = await PositionModel.find({ botID: { $in: botListID } }).sort({ Time: -1 }).populate("botID")
 
-            if (data.length > 0) {
+            const newBotListID = botListID.map(item => item.value)
 
-                const newData = await Promise.allSettled(data.map(positionData => {
+            if (botListID.length > 0) {
+                const dataPosition = await PositionModel.find({ botID: { $in: botListID.map(item => item.value) } }).sort({ Time: -1 }).populate("botID")
+
+                const updatePositionExist = Promise.allSettled(dataPosition.map(positionData => {
                     const client = new RestClientV5({
                         testnet: false,
                         key: positionData.botID.ApiKey,
                         secret: positionData.botID.SecretKey,
                     });
-                    return client
-                        .getPositionInfo({
-                            category: 'linear',
-                            symbol: positionData.Symbol
-                        })
-                        .then((response) => {
-                            const sizeNew = response.result.list[0].size
 
-                            positionData.Pnl = response.result.list[0].unrealisedPnl
-                            positionData.Side = response.result.list[0].side
-                            positionData.Price = +response.result.list[0].entryPrice
-                            positionData.Quantity = sizeNew
+                    return client.getPositionInfo({
+                        category: 'linear',
+                        symbol: positionData.Symbol
+                    }).then((response) => {
 
-                            sizeNew != 0 ? PositionController.updatePositionBE({
-                                newDataUpdate: positionData,
-                                orderID: positionData.orderID
-                            }) : PositionController.deletePositionBE({
-                                orderID: positionData.orderID
+                        const viTheListItem = response.result.list[0];
+
+                        const positionDataNew = {
+                            Pnl: viTheListItem.unrealisedPnl,
+                            Side: viTheListItem.side,
+                            Price: +viTheListItem.avgPrice,
+                            Symbol: viTheListItem.symbol,
+                            Quantity: viTheListItem.size
+                        };
+
+                        if (positionDataNew.Quantity != 0) {
+                            return PositionController.updatePositionBE({
+                                newDataUpdate: positionDataNew,
+                                orderID: positionData._id
                             })
-                            return positionData
-                        })
-                        .catch((error) => {
-                            console.log("Error", error);
-                        });
-                }))
-                res.customResponse(200, "Refresh Position Successful", newData.map(item => item.value));
+                        } else {
+                            return PositionController.deletePositionBE({
+                                orderID: positionData._id
+                            });
+                        }
+
+                    }).catch(error => {
+                        console.log("Error", error);
+                        return []; // For example, return an empty array if you want to continue
+                    });
+                }));
+
+                const createPositionNew = Promise.allSettled(botListID.map(dataBotItem => {
+                    const client = new RestClientV5({
+                        testnet: false,
+                        key: dataBotItem.ApiKey,
+                        secret: dataBotItem.SecretKey,
+                    });
+
+                    return client.getPositionInfo({
+                        category: 'linear',
+                        settleCoin: "USDT"
+                        // symbol: positionData.Symbol
+                    }).then(async response => {
+                        const viTheList = response.result.list;
+
+                        return await Promise.allSettled(viTheList.map(viTheListItem => {
+                            const positionData = {
+                                Pnl: viTheListItem.unrealisedPnl,
+                                Side: viTheListItem.side,
+                                Price: +viTheListItem.avgPrice,
+                                Symbol: viTheListItem.symbol,
+                                Quantity: viTheListItem.size
+                            };
+
+                            const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+
+                            if (!checkPositionExist) {
+                                return PositionController.createPositionBE({
+                                    ...positionData,
+                                    botID: dataBotItem.value,
+                                    Time: new Date(),
+                                    Miss: true
+                                });
+                            }
+                        }));
+                    }).catch(error => {
+                        console.log("Error", error);
+                        // Handle error as per your application's error handling strategy
+                        // Return an appropriate value or handle the error here
+                        return []; // For example, return an empty array if you want to continue
+                    });
+                }));
+
+                await Promise.allSettled([updatePositionExist, createPositionNew])
+
+                const newData = await PositionModel.find({ botID: { $in: newBotListID } }).populate("botID")
+
+                res.customResponse(200, "Refresh Position Successful", newData);
             }
             else {
                 res.customResponse(200, "Refresh Position Successful", "");
@@ -153,6 +211,13 @@ const PositionController = {
                 if (response.retCode == 0) {
                     res.customResponse(200, "Close Limit Successful");
 
+                    PositionController.updatePositionBE({
+                        newDataUpdate: {
+                            Miss: false
+                        },
+                        orderID: positionData.id
+                    })
+
                     PositionController.sendDataRealtime({
                         type: "close-limit",
                         data: {
@@ -170,6 +235,29 @@ const PositionController = {
     },
 
     // OTHER
+
+    getPositionBySymbol: async ({symbol}) => {
+        try {
+            const data = await PositionModel.findOne({ Symbol: symbol })
+
+            if (data) {
+                return {
+                    message: "[Mongo] Re-Get Position Successful",
+                    id: data._id
+                }
+            }
+            else {
+                return {
+                    message: "[Mongo] Re-Get Position Failed",
+                    id: data._id
+                }
+            }
+        } catch (err) {
+            return `[Mongo] Re-Get Position Error: ${error}`
+
+        }
+    },
+
     createPositionBE: async (newData) => {
         try {
 
@@ -187,7 +275,10 @@ const PositionController = {
                 }
             }
             else {
-                return "[Mongo] Add Position Failed"
+                return {
+                    message: "[Mongo] Add Position Failed",
+                    id: ""
+                }
             }
 
         } catch (error) {
@@ -200,6 +291,7 @@ const PositionController = {
         orderID
     }) => {
         try {
+
             const result = await PositionModel.updateOne({ _id: orderID }, {
                 $set: newDataUpdate
             });

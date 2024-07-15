@@ -25,5 +25,6 @@ const botSchema = new mongoose.Schema({
 
 
 const Bot = mongoose.model('Bot', botSchema);
+Bot.createIndexes()
 
 module.exports = Bot;

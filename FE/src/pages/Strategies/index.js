@@ -168,12 +168,12 @@ function Strategies() {
                 total: resData || 0
             }))
 
-            if (status !== 200) {
-                dispatch(addMessageToast({
-                    status,
-                    message
-                }))
-            }
+            // if (status !== 200) {
+            //     dispatch(addMessageToast({
+            //         status,
+            //         message
+            //     }))
+            // }
 
         }
         catch (err) {

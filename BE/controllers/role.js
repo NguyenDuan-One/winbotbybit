@@ -13,7 +13,7 @@ const RoleController = {
             res.status(500).json({ message: err.message });
         }
     },
-    initCreate: async (req, res) => {
+    initCreate: async () => {
         try {
 
             const listRoleDefault = [
@@ -75,16 +75,11 @@ const RoleController = {
 
             await RoleModel.insertMany(newData)
 
-            if (res.statusCode === 200) {
-                console.log("\nInitialization Role Successful");
-            }
-            else {
-                console.log("\nInitialization Role Error");
-            }
+            console.log("\nInitialization Role Successful");
 
         } catch (error) {
             // Xử lý lỗi nếu có
-            console.error("\nERROR: ",error.message);
+            console.log("\nInitialization Role Error", error.message);
         }
     },
 

@@ -85,7 +85,12 @@ const BotController = {
             const userID = req.params.id;
 
             // ref: .populate({ path: "coinID", models: "Coin" })
-            const data = await BotModel.find({ userID, "Status": "Running" }, { telegramToken: 0 }).sort({ Created: -1 }).populate("userID", "userName roleName");
+            const data = await BotModel.find({
+                userID,
+                "Status": "Running",
+                ApiKey: { $exists: true, $ne: null },
+                SecretKey: { $exists: true, $ne: null }
+            }, { telegramToken: 0 }).sort({ Created: -1 }).populate("userID", "userName roleName");
             res.customResponse(res.statusCode, "Get All Bot Successful", data);
 
         } catch (err) {
