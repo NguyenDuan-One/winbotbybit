@@ -124,7 +124,7 @@ const handleSubmitOrderTP = ({
     botID
 }) => {
 
-    // console.log(`Price order TP ( ${candle} ):`, price);
+    console.log(`Price order TP ( ${candle} ):`, price);
 
     !tradeCoinData[strategyID]?.TP && cancelAll({ tradeCoinData, strategyID })
 
@@ -1398,6 +1398,12 @@ const Main = async () => {
                         }
 
                         missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
+
+                        console.log({
+                            testnet: false,
+                            key: missData.ApiKey,
+                            secret: missData.SecretKey,
+                        });
 
                         const client = new RestClientV5({
                             testnet: false,
