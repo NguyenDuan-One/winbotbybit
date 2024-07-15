@@ -6,8 +6,12 @@ const { RestClientV5, WebsocketClient } = require('bybit-api');
 const { getAllStrategiesActive, getAllSymbolBE, getFutureBE } = require('./controllers/dataCoinByBit');
 const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbol } = require('./controllers/position');
 
-const StrategiesModel = require("./models/strategies.model")
+const wsConfig = {
+    market: 'v5',
+    enable_time_sync: true,
+}
 
+const wsSymbol = new WebsocketClient(wsConfig);
 
 // const BOT_TOKEN_RUN_TRADE = new Telegraf("6973355601:AAFucLsDHjE8JIQmtaDJR864o9w9hBhVj-Y");
 // BOT_TOKEN_RUN_TRADE.launch();
@@ -1230,12 +1234,7 @@ const checkConditionBot = (botData) => {
 
 const Main = async () => {
 
-    const wsConfig = {
-        market: 'v5',
-        enable_time_sync: true,
-    }
-
-    const wsSymbol = new WebsocketClient(wsConfig);
+   
 
     let allStrategiesActiveBE = getAllStrategiesActive()
     let allSymbolBE = getAllSymbolBE()
@@ -1382,6 +1381,8 @@ const Main = async () => {
                 const symbol = topic.split(".").slice(-1)?.[0]
                 const coinClose = +dataMain.close
 
+                console.log("missTPDataBySymbol",  Object.values(missTPDataBySymbol).length);
+
                 Object.values(missTPDataBySymbol).map(missData => {
 
                     const botName = missData.botName
@@ -1389,6 +1390,7 @@ const Main = async () => {
 
                     const botSymbolMissID = `${botID}-${symbol}`
 
+                    console.log(missTPDataBySymbol[botSymbolMissID]);
                     // TP chưa khớp -> Dịch TP MISS mới
                     if (missTPDataBySymbol[botSymbolMissID]?.orderID && !missTPDataBySymbol[botSymbolMissID]?.gongLai) {
 
@@ -1454,313 +1456,116 @@ const Main = async () => {
         console.log(changeColorConsole.redBright("[!] Subscribe kline error:", err));
     })
 
-    // REALTIME
-    const socket = require('socket.io-client');
+    
+}
 
-    const socketRealtime = socket(process.env.SOCKET_IP);
+// REALTIME
+const socket = require('socket.io-client');
 
-    socketRealtime.on('connect', () => {
-        console.log('[V] Connected Socket Realtime');
-    });
+const socketRealtime = socket(process.env.SOCKET_IP);
 
-    socketRealtime.on('add', async (newData = []) => {
-        console.log("[...] Add New Strategies From Realtime", newData.length);
+socketRealtime.on('connect', () => {
+    console.log('[V] Connected Socket Realtime');
+});
 
-        const newBotApiList = {}
+socketRealtime.on('add', async (newData = []) => {
+    console.log("[...] Add New Strategies From Realtime", newData.length);
 
-        newData.forEach(newStrategiesData => {
-            if (checkConditionBot(newStrategiesData)) {
+    const newBotApiList = {}
 
-                delete newStrategiesData.TimeTemp
+    newData.forEach(newStrategiesData => {
+        if (checkConditionBot(newStrategiesData)) {
 
-                const symbol = newStrategiesData.symbol
+            delete newStrategiesData.TimeTemp
 
-                const strategyID = newStrategiesData.value
+            const symbol = newStrategiesData.symbol
 
-                const botID = newStrategiesData.botID._id
-                const botName = newStrategiesData.botID.botName
+            const strategyID = newStrategiesData.value
 
-                cancelAll({ tradeCoinData, strategyID })
+            const botID = newStrategiesData.botID._id
+            const botName = newStrategiesData.botID.botName
 
-                const ApiKey = newStrategiesData.botID.ApiKey
-                const SecretKey = newStrategiesData.botID.SecretKey
+            cancelAll({ tradeCoinData, strategyID })
 
-                if (!botApiList[botID]) {
-                    botApiList[botID] = {
-                        id: botID,
-                        botName,
-                        ApiKey,
-                        SecretKey
-                    }
-                    newBotApiList[botID] = {
-                        id: botID,
-                        botName,
-                        ApiKey,
-                        SecretKey
-                    }
-                }
-                !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
-                allStrategiesActiveByBotID[botID][strategyID] = newStrategiesData
+            const ApiKey = newStrategiesData.botID.ApiKey
+            const SecretKey = newStrategiesData.botID.SecretKey
 
-
-                let allStrategiesTemp = {}
-
-                // kline by Candlestick
-                switch (newStrategiesData.Candlestick) {
-                    case "1m": {
-                        allStrategiesTemp = allStrategies1m
-                        break
-                    }
-                    case "3m": {
-                        allStrategiesTemp = allStrategies3m
-                        break
-
-                    }
-                    case "5m": {
-                        allStrategiesTemp = allStrategies5m
-                        break
-
-                    }
-                    case "15m": {
-                        allStrategiesTemp = allStrategies15m
-                        break
-
-                    }
-                }
-
-                allStrategiesTemp[strategyID] = {
-                    ...newStrategiesData,
-                    symbol: symbol,
-                }
-            }
-
-        })
-
-        await handleSocketBotApiList(newBotApiList)
-
-    });
-
-    socketRealtime.on('update', async (newData = []) => {
-        console.log("[...] Update Strategies From Realtime", newData.length);
-
-        const newBotApiList = {}
-
-        let updateMongoMiss = false
-        newData.map(async strategiesData => {
-
-            if (checkConditionBot(strategiesData)) {
-
-                const ApiKey = strategiesData.botID.ApiKey
-                const SecretKey = strategiesData.botID.SecretKey
-                const botID = strategiesData.botID._id
-                const botName = strategiesData.botID.botName
-
-                const symbol = strategiesData.symbol
-                const strategyID = strategiesData.value
-                const IsActive = strategiesData.IsActive
-
-                const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
-
-
-                const botSymbolMissID = `${botID}-${symbol}`
-
-
-                switch (strategiesData.Candlestick) {
-                    case "1m": {
-                        allStrategies1m[strategyID] = strategiesData
-                        break
-                    }
-                    case "3m": {
-                        allStrategies3m[strategyID] = strategiesData
-                        break
-
-                    }
-                    case "5m": {
-                        allStrategies5m[strategyID] = strategiesData
-                        break
-
-                    }
-                    case "15m": {
-                        allStrategies15m[strategyID] = strategiesData
-                        break
-                    }
-                }
-
-                const cancelDataObject = {
-                    ApiKey,
-                    SecretKey,
-                    tradeCoinData,
-                    strategyID,
-                    symbol: symbol,
-                    candle: strategiesData.Candlestick,
-                    side,
+            if (!botApiList[botID]) {
+                botApiList[botID] = {
+                    id: botID,
                     botName,
-                    botID
-                }
-
-                !tradeCoinData[strategyID] && cancelAll({ tradeCoinData, strategyID })
-
-                if (IsActive) {
-                    if (!botApiList[botID]) {
-
-                        botApiList[botID] = {
-                            id: botID,
-                            botName,
-                            ApiKey,
-                            SecretKey
-                        }
-                        newBotApiList[botID] = {
-                            id: botID,
-                            botName,
-                            ApiKey,
-                            SecretKey
-                        }
-                    }
-                    !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
-                    allStrategiesActiveByBotID[botID][strategyID] = strategiesData
-                }
-                else {
-                    delete allStrategiesActiveByBotID[botID]?.[strategyID]
-                    !updateMongoMiss && missTPDataBySymbol[botSymbolMissID]?.orderIDToDB && updatePositionBE({
-                        newDataUpdate: {
-                            Miss: true
-                        },
-                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                    }).then(message => {
-                        console.log(message);
-                        updateMongoMiss = true
-                    }).catch(err => {
-                        console.log(changeColorConsole.redBright(err));
-                    })
-                }
-
-                const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
-
-                if (OCOrderID || !strategiesData.IsActive) {
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
-                    if (!strategiesData.IsActive) {
-                        const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                        const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
-                        TPOrderID && handleCancelOrderTP({
-                            ...cancelDataObject,
-                            orderId: TPOrderID,
-                            gongLai: true
-                        })
-                        TPMissOrderID && handleCancelOrderTP({
-                            ...cancelDataObject,
-                            orderId: TPMissOrderID,
-                            gongLai: true
-                        })
-                    }
-                    await delay(500)
-                }
-
-            }
-        })
-
-        await handleSocketBotApiList(newBotApiList)
-
-
-    });
-
-    socketRealtime.on('delete', (newData) => {
-        console.log("[...] Deleted Strategies From Realtime");
-
-        newData.map(async strategiesData => {
-            if (checkConditionBot(strategiesData)) {
-
-                const ApiKey = strategiesData.botID.ApiKey
-                const SecretKey = strategiesData.botID.SecretKey
-
-                const symbol = strategiesData.symbol
-                const strategyID = strategiesData.value
-                const botID = strategiesData.botID._id
-                const botName = strategiesData.botID.botName
-
-                const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
-
-                const botSymbolMissID = `${botID}-${symbol}`
-
-                switch (strategiesData.Candlestick) {
-                    case "1m": {
-                        delete allStrategies1m[strategyID]
-                        break
-                    }
-                    case "3m": {
-                        delete allStrategies3m[strategyID]
-                        break
-
-                    }
-                    case "5m": {
-                        delete allStrategies5m[strategyID]
-                        break
-
-                    }
-                    case "15m": {
-                        delete allStrategies15m[strategyID]
-                        break
-                    }
-                }
-
-                const cancelDataObject = {
                     ApiKey,
-                    SecretKey,
-                    tradeCoinData,
-                    strategyID,
-                    symbol: symbol,
-                    candle: strategiesData.Candlestick,
-                    side,
-                    botName,
-                    botID
+                    SecretKey
                 }
-
-                delete tradeCoinData[strategyID]
-                delete allStrategiesActiveByBotID[botID]?.[strategyID]
-
-                const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
-                const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
-
-                if (OCOrderID || TPOrderID || TPMissOrderID) {
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
-
-
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
-                    await delay(500)
+                newBotApiList[botID] = {
+                    id: botID,
+                    botName,
+                    ApiKey,
+                    SecretKey
                 }
             }
-        })
+            !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
+            allStrategiesActiveByBotID[botID][strategyID] = newStrategiesData
 
-    });
 
+            let allStrategiesTemp = {}
 
-    socketRealtime.on('bot-update', async (newData = []) => {
-        console.log("[...] Bot-Update Strategies From Realtime", newData.length);
+            // kline by Candlestick
+            switch (newStrategiesData.Candlestick) {
+                case "1m": {
+                    allStrategiesTemp = allStrategies1m
+                    break
+                }
+                case "3m": {
+                    allStrategiesTemp = allStrategies3m
+                    break
 
-        const newBotApiList = {}
+                }
+                case "5m": {
+                    allStrategiesTemp = allStrategies5m
+                    break
 
-        newData.map(async strategiesData => {
+                }
+                case "15m": {
+                    allStrategiesTemp = allStrategies15m
+                    break
 
+                }
+            }
+
+            allStrategiesTemp[strategyID] = {
+                ...newStrategiesData,
+                symbol: symbol,
+            }
+        }
+
+    })
+
+    await handleSocketBotApiList(newBotApiList)
+
+});
+
+socketRealtime.on('update', async (newData = []) => {
+    console.log("[...] Update Strategies From Realtime", newData.length);
+
+    const newBotApiList = {}
+
+    let updateMongoMiss = false
+    newData.map(async strategiesData => {
+
+        if (checkConditionBot(strategiesData)) {
 
             const ApiKey = strategiesData.botID.ApiKey
             const SecretKey = strategiesData.botID.SecretKey
             const botID = strategiesData.botID._id
             const botName = strategiesData.botID.botName
 
-
             const symbol = strategiesData.symbol
             const strategyID = strategiesData.value
             const IsActive = strategiesData.IsActive
+
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
 
             const botSymbolMissID = `${botID}-${symbol}`
 
@@ -1797,20 +1602,23 @@ const Main = async () => {
                 botName,
                 botID
             }
+
+            !tradeCoinData[strategyID] && cancelAll({ tradeCoinData, strategyID })
+
             if (IsActive) {
                 if (!botApiList[botID]) {
 
                     botApiList[botID] = {
                         id: botID,
+                        botName,
                         ApiKey,
-                        SecretKey,
-                        botName
+                        SecretKey
                     }
                     newBotApiList[botID] = {
                         id: botID,
+                        botName,
                         ApiKey,
-                        SecretKey,
-                        botName
+                        SecretKey
                     }
                 }
                 !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
@@ -1818,6 +1626,17 @@ const Main = async () => {
             }
             else {
                 delete allStrategiesActiveByBotID[botID]?.[strategyID]
+                !updateMongoMiss && missTPDataBySymbol[botSymbolMissID]?.orderIDToDB && updatePositionBE({
+                    newDataUpdate: {
+                        Miss: true
+                    },
+                    orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                }).then(message => {
+                    console.log(message);
+                    updateMongoMiss = true
+                }).catch(err => {
+                    console.log(changeColorConsole.redBright(err));
+                })
             }
 
             const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
@@ -1841,188 +1660,253 @@ const Main = async () => {
                 await delay(500)
             }
 
-        })
+        }
+    })
 
-        await handleSocketBotApiList(newBotApiList)
+    await handleSocketBotApiList(newBotApiList)
 
-    });
 
-    socketRealtime.on('bot-api', async (data) => {
-        const { newData, botID: botIDMain, newApiData } = data;
-        console.log("[...] Bot-Api Update Strategies From Realtime", newData.length);
+});
 
-        newData.map(async strategiesData => {
+socketRealtime.on('delete', (newData) => {
+    console.log("[...] Deleted Strategies From Realtime");
 
-            if (checkConditionBot(strategiesData)) {
-                const strategyID = strategiesData.value
-                const symbol = strategiesData.symbol
-                const ApiKey = strategiesData.botID.ApiKey
-                const SecretKey = strategiesData.botID.SecretKey
-                const botID = strategiesData.botID._id
-                const botName = strategiesData.botID.botName
+    newData.map(async strategiesData => {
+        if (checkConditionBot(strategiesData)) {
 
-                const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
-                const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
+            const ApiKey = strategiesData.botID.ApiKey
+            const SecretKey = strategiesData.botID.SecretKey
 
-                const botSymbolMissID = `${botID}-${symbol}`
+            const symbol = strategiesData.symbol
+            const strategyID = strategiesData.value
+            const botID = strategiesData.botID._id
+            const botName = strategiesData.botID.botName
 
-                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+            const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
-                const cancelDataObject = {
-                    ApiKey,
-                    SecretKey,
-                    tradeCoinData,
-                    strategyID,
-                    symbol: symbol,
-                    candle: strategiesData.Candlestick,
-                    side,
-                    botName,
-                    botID
+            const botSymbolMissID = `${botID}-${symbol}`
+
+            switch (strategiesData.Candlestick) {
+                case "1m": {
+                    delete allStrategies1m[strategyID]
+                    break
                 }
+                case "3m": {
+                    delete allStrategies3m[strategyID]
+                    break
 
-                if (OCOrderID || TPOrderID || TPMissOrderID) {
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
-
-
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
-                    await delay(500)
                 }
+                case "5m": {
+                    delete allStrategies5m[strategyID]
+                    break
 
-            }
-        })
-
-        // 
-        try {
-            const botApiData = botApiList[botIDMain]
-            const ApiKeyBot = botApiData.ApiKey
-            const SecretKeyBot = botApiData.SecretKey
-
-            const wsConfigOrder = {
-                key: ApiKeyBot,
-                secret: SecretKeyBot,
-                market: 'v5',
+                }
+                case "15m": {
+                    delete allStrategies15m[strategyID]
+                    break
+                }
             }
 
-            const wsOrder = new WebsocketClient(wsConfigOrder);
-
-            await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
-
-            botApiList[botIDMain] = {
-                ...botApiList[botIDMain],
-                ApiKey: newApiData.ApiKey,
-                SecretKey: newApiData.SecretKey,
+            const cancelDataObject = {
+                ApiKey,
+                SecretKey,
+                tradeCoinData,
+                strategyID,
+                symbol: symbol,
+                candle: strategiesData.Candlestick,
+                side,
+                botName,
+                botID
             }
 
-            const wsConfigOrderNew = {
-                key: newApiData.ApiKey,
-                secret: newApiData.SecretKey,
-                market: 'v5',
+            delete tradeCoinData[strategyID]
+            delete allStrategiesActiveByBotID[botID]?.[strategyID]
+
+            const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
+            const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
+            const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
+
+
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
+                await delay(500)
             }
+        }
+    })
 
-            const wsOrderNew = new WebsocketClient(wsConfigOrderNew);
+});
 
-            await wsOrderNew.subscribeV5(LIST_ORDER, 'linear')
-        } catch (error) {
-            console.log(changeColorConsole.redBright("[!] Error subscribeV5", error));
+
+socketRealtime.on('bot-update', async (newData = []) => {
+    console.log("[...] Bot-Update Strategies From Realtime", newData.length);
+
+    const newBotApiList = {}
+
+    newData.map(async strategiesData => {
+
+
+        const ApiKey = strategiesData.botID.ApiKey
+        const SecretKey = strategiesData.botID.SecretKey
+        const botID = strategiesData.botID._id
+        const botName = strategiesData.botID.botName
+
+
+        const symbol = strategiesData.symbol
+        const strategyID = strategiesData.value
+        const IsActive = strategiesData.IsActive
+        const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
+        const botSymbolMissID = `${botID}-${symbol}`
+
+
+        switch (strategiesData.Candlestick) {
+            case "1m": {
+                allStrategies1m[strategyID] = strategiesData
+                break
+            }
+            case "3m": {
+                allStrategies3m[strategyID] = strategiesData
+                break
+
+            }
+            case "5m": {
+                allStrategies5m[strategyID] = strategiesData
+                break
+
+            }
+            case "15m": {
+                allStrategies15m[strategyID] = strategiesData
+                break
+            }
         }
 
-    });
+        const cancelDataObject = {
+            ApiKey,
+            SecretKey,
+            tradeCoinData,
+            strategyID,
+            symbol: symbol,
+            candle: strategiesData.Candlestick,
+            side,
+            botName,
+            botID
+        }
+        if (IsActive) {
+            if (!botApiList[botID]) {
 
-    socketRealtime.on('bot-delete', (data) => {
-        const { newData, botID: botIDMain } = data;
-        console.log("[...] Bot Deleted Strategies From Realtime");
-
-        newData.map(async strategiesData => {
-            if (checkConditionBot(strategiesData)) {
-
-                const ApiKey = strategiesData.botID.ApiKey
-                const SecretKey = strategiesData.botID.SecretKey
-
-                const symbol = strategiesData.symbol
-                const strategyID = strategiesData.value
-                const botID = strategiesData.botID._id
-                const botName = strategiesData.botID.botName
-
-                const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
-
-                const botSymbolMissID = `${botID}-${symbol}`
-
-
-                switch (strategiesData.Candlestick) {
-                    case "1m": {
-                        delete allStrategies1m[strategyID]
-                        break
-                    }
-                    case "3m": {
-                        delete allStrategies3m[strategyID]
-                        break
-
-                    }
-                    case "5m": {
-                        delete allStrategies5m[strategyID]
-                        break
-
-                    }
-                    case "15m": {
-                        delete allStrategies15m[strategyID]
-                        break
-                    }
-                }
-
-                const cancelDataObject = {
+                botApiList[botID] = {
+                    id: botID,
                     ApiKey,
                     SecretKey,
-                    tradeCoinData,
-                    strategyID,
-                    symbol: symbol,
-                    candle: strategiesData.Candlestick,
-                    side,
-                    botName,
-                    botID
+                    botName
                 }
-
-                delete tradeCoinData[strategyID]
-                delete allStrategiesActiveByBotID[botID]?.[strategyID]
-
-                const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
-                const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
-
-                if (OCOrderID || TPOrderID || TPMissOrderID) {
-
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
-
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
-
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
-
-                    await delay(500)
+                newBotApiList[botID] = {
+                    id: botID,
+                    ApiKey,
+                    SecretKey,
+                    botName
                 }
             }
-        })
-
-        if (botListTelegram[telegramIDOld]) {
-            botListTelegram[telegramIDOld]?.stop()
-            delete botListTelegram[telegramIDOld]
+            !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
+            allStrategiesActiveByBotID[botID][strategyID] = strategiesData
+        }
+        else {
+            delete allStrategiesActiveByBotID[botID]?.[strategyID]
         }
 
+        const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
+
+        if (OCOrderID || !strategiesData.IsActive) {
+            OCOrderID && handleCancelOrderOC(cancelDataObject)
+            if (!strategiesData.IsActive) {
+                const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
+                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
+            }
+            await delay(500)
+        }
+
+    })
+
+    await handleSocketBotApiList(newBotApiList)
+
+});
+
+socketRealtime.on('bot-api', async (data) => {
+    const { newData, botID: botIDMain, newApiData } = data;
+    console.log("[...] Bot-Api Update Strategies From Realtime", newData.length);
+
+    newData.map(async strategiesData => {
+
+        if (checkConditionBot(strategiesData)) {
+            const strategyID = strategiesData.value
+            const symbol = strategiesData.symbol
+            const ApiKey = strategiesData.botID.ApiKey
+            const SecretKey = strategiesData.botID.SecretKey
+            const botID = strategiesData.botID._id
+            const botName = strategiesData.botID.botName
+
+            const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
+            const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
+
+            const botSymbolMissID = `${botID}-${symbol}`
+
+            const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+
+            const cancelDataObject = {
+                ApiKey,
+                SecretKey,
+                tradeCoinData,
+                strategyID,
+                symbol: symbol,
+                candle: strategiesData.Candlestick,
+                side,
+                botName,
+                botID
+            }
+
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
+
+
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
+                await delay(500)
+            }
+
+        }
+    })
+
+    // 
+    try {
         const botApiData = botApiList[botIDMain]
         const ApiKeyBot = botApiData.ApiKey
         const SecretKeyBot = botApiData.SecretKey
@@ -2031,132 +1915,252 @@ const Main = async () => {
             key: ApiKeyBot,
             secret: SecretKeyBot,
             market: 'v5',
-            enable_time_sync: true
         }
 
         const wsOrder = new WebsocketClient(wsConfigOrder);
 
-        wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+        await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
 
-        delete botApiList[botIDMain]
-
-    });
-
-    socketRealtime.on('bot-telegram', async (data) => {
-        console.log("[...] Bot Telegram Update From Realtime");
-
-        const { newData, botID: botIDMain, newApiData } = data;
-        const telegramIDOld = newApiData.telegramIDOld
-        const telegramID = newApiData.telegramID
-        const telegramToken = newApiData.telegramToken
-
-        newData.map(async strategiesData => {
-
-            if (checkConditionBot(strategiesData)) {
-
-                const strategyID = strategiesData.value
-
-                const newStrategiesDataUpdate = {
-                    ...strategiesData,
-                    botID:
-                    {
-                        ...strategiesData.botID,
-                        telegramID,
-                        telegramToken,
-                    }
-                }
-
-                allStrategiesActiveByBotID[botIDMain][strategyID] = newStrategiesDataUpdate
-            }
-        })
-
-        if (botListTelegram[telegramIDOld]) {
-            botListTelegram[telegramIDOld]?.stop()
-            delete botListTelegram[telegramIDOld]
+        botApiList[botIDMain] = {
+            ...botApiList[botIDMain],
+            ApiKey: newApiData.ApiKey,
+            SecretKey: newApiData.SecretKey,
         }
-    });
 
-    socketRealtime.on('sync-symbol', async (newData) => {
-        console.log("[...] Sync Symbol");
+        const wsConfigOrderNew = {
+            key: newApiData.ApiKey,
+            secret: newApiData.SecretKey,
+            market: 'v5',
+        }
 
-        const newListKline = newData.flatMap(symbolData => ([
-            `kline.1.${symbolData.value}`,
-            `kline.3.${symbolData.value}`,
-            `kline.5.${symbolData.value}`,
-            `kline.15.${symbolData.value}`,
-        ]))
+        const wsOrderNew = new WebsocketClient(wsConfigOrderNew);
+
+        await wsOrderNew.subscribeV5(LIST_ORDER, 'linear')
+    } catch (error) {
+        console.log(changeColorConsole.redBright("[!] Error subscribeV5", error));
+    }
+
+});
+
+socketRealtime.on('bot-delete', (data) => {
+    const { newData, botID: botIDMain } = data;
+    console.log("[...] Bot Deleted Strategies From Realtime");
+
+    newData.map(async strategiesData => {
+        if (checkConditionBot(strategiesData)) {
+
+            const ApiKey = strategiesData.botID.ApiKey
+            const SecretKey = strategiesData.botID.SecretKey
+
+            const symbol = strategiesData.symbol
+            const strategyID = strategiesData.value
+            const botID = strategiesData.botID._id
+            const botName = strategiesData.botID.botName
+
+            const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
+            const botSymbolMissID = `${botID}-${symbol}`
 
 
-        await Promise.all(newData.map(async symbol => {
-            let result = await Digit(symbol.value)
-            digitAllCoinObject[symbol.value] = result[0]
-            allSymbolDataObject[symbol.value] = symbol._id
-        }))
-
-        newData.forEach(item => {
-            const symbol = item.value
-            const listKline = [1, 3, 5, 15]
-            listKline.forEach(candle => {
-                const symbolCandleID = `${symbol}-${candle}`
-                listPricePre[symbolCandleID] = []
-                listPricePreOne[symbolCandleID] = {
-                    open: 0,
-                    close: 0,
-                    high: 0,
-                    low: 0,
+            switch (strategiesData.Candlestick) {
+                case "1m": {
+                    delete allStrategies1m[strategyID]
+                    break
                 }
-                trichMauOCListObject[symbolCandleID] = {
-                    maxPrice: 0,
-                    minPrice: [],
-                    prePrice: 0
+                case "3m": {
+                    delete allStrategies3m[strategyID]
+                    break
+
                 }
-                trichMauTPListObject[symbolCandleID] = {
-                    maxPrice: 0,
-                    minPrice: [],
-                    prePrice: 0,
+                case "5m": {
+                    delete allStrategies5m[strategyID]
+                    break
+
                 }
-            })
-            // Object.values(botApiList).forEach(botApiData => {
-            //     resetMissData({
-            //         botID: botApiData.id,
-            //         symbol
-            //     })
-            // })
-        })
+                case "15m": {
+                    delete allStrategies15m[strategyID]
+                    break
+                }
+            }
 
-
-        wsSymbol.subscribeV5(newListKline, 'linear').then(() => {
-            console.log("[V] Subscribe New Kline Successful\n");
-        }).catch(err => {
-            console.log(changeColorConsole.redBright("[!] Subscribe  New Kline Error:", err));
-        })
-    });
-
-    socketRealtime.on("close-limit", async (data) => {
-        const { positionData } = data
-        const symbol = positionData.Symbol
-        const botID = positionData.botID
-
-        const botSymbolMissID = `${botID}-${symbol}`
-
-        await Promise.allSettled(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
-            return handleCancelOrderTP({
-                ApiKey: positionData.botID.ApiKey,
-                SecretKey: positionData.botID.SecretKey,
+            const cancelDataObject = {
+                ApiKey,
+                SecretKey,
                 tradeCoinData,
-                strategyID: orderIdTPData.strategyID,
-                symbol,
-                side: positionData.Side,
-                candle: positionData.Candle,
-                orderId: orderIdTPData.orderID,
-            })
-        }))
+                strategyID,
+                symbol: symbol,
+                candle: strategiesData.Candlestick,
+                side,
+                botName,
+                botID
+            }
+
+            delete tradeCoinData[strategyID]
+            delete allStrategiesActiveByBotID[botID]?.[strategyID]
+
+            const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
+            const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
+            const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
+
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
+
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
+
+                await delay(500)
+            }
+        }
     })
 
-    socketRealtime.on('disconnect', () => {
-        console.log('[V] Disconnected from socket realtime');
-    });
-}
+    if (botListTelegram[telegramIDOld]) {
+        botListTelegram[telegramIDOld]?.stop()
+        delete botListTelegram[telegramIDOld]
+    }
+
+    const botApiData = botApiList[botIDMain]
+    const ApiKeyBot = botApiData.ApiKey
+    const SecretKeyBot = botApiData.SecretKey
+
+    const wsConfigOrder = {
+        key: ApiKeyBot,
+        secret: SecretKeyBot,
+        market: 'v5',
+        enable_time_sync: true
+    }
+
+    const wsOrder = new WebsocketClient(wsConfigOrder);
+
+    wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+
+    delete botApiList[botIDMain]
+
+});
+
+socketRealtime.on('bot-telegram', async (data) => {
+    console.log("[...] Bot Telegram Update From Realtime");
+
+    const { newData, botID: botIDMain, newApiData } = data;
+    const telegramIDOld = newApiData.telegramIDOld
+    const telegramID = newApiData.telegramID
+    const telegramToken = newApiData.telegramToken
+
+    newData.map(async strategiesData => {
+
+        if (checkConditionBot(strategiesData)) {
+
+            const strategyID = strategiesData.value
+
+            const newStrategiesDataUpdate = {
+                ...strategiesData,
+                botID:
+                {
+                    ...strategiesData.botID,
+                    telegramID,
+                    telegramToken,
+                }
+            }
+
+            allStrategiesActiveByBotID[botIDMain][strategyID] = newStrategiesDataUpdate
+        }
+    })
+
+    if (botListTelegram[telegramIDOld]) {
+        botListTelegram[telegramIDOld]?.stop()
+        delete botListTelegram[telegramIDOld]
+    }
+});
+
+socketRealtime.on('sync-symbol', async (newData) => {
+    console.log("[...] Sync Symbol");
+
+    const newListKline = newData.flatMap(symbolData => ([
+        `kline.1.${symbolData.value}`,
+        `kline.3.${symbolData.value}`,
+        `kline.5.${symbolData.value}`,
+        `kline.15.${symbolData.value}`,
+    ]))
+
+
+    await Promise.all(newData.map(async symbol => {
+        let result = await Digit(symbol.value)
+        digitAllCoinObject[symbol.value] = result[0]
+        allSymbolDataObject[symbol.value] = symbol._id
+    }))
+
+    newData.forEach(item => {
+        const symbol = item.value
+        const listKline = [1, 3, 5, 15]
+        listKline.forEach(candle => {
+            const symbolCandleID = `${symbol}-${candle}`
+            listPricePre[symbolCandleID] = []
+            listPricePreOne[symbolCandleID] = {
+                open: 0,
+                close: 0,
+                high: 0,
+                low: 0,
+            }
+            trichMauOCListObject[symbolCandleID] = {
+                maxPrice: 0,
+                minPrice: [],
+                prePrice: 0
+            }
+            trichMauTPListObject[symbolCandleID] = {
+                maxPrice: 0,
+                minPrice: [],
+                prePrice: 0,
+            }
+        })
+        // Object.values(botApiList).forEach(botApiData => {
+        //     resetMissData({
+        //         botID: botApiData.id,
+        //         symbol
+        //     })
+        // })
+    })
+
+
+    wsSymbol.subscribeV5(newListKline, 'linear').then(() => {
+        console.log("[V] Subscribe New Kline Successful\n");
+    }).catch(err => {
+        console.log(changeColorConsole.redBright("[!] Subscribe  New Kline Error:", err));
+    })
+});
+
+socketRealtime.on("close-limit", async (data) => {
+    const { positionData } = data
+    const symbol = positionData.Symbol
+    const botID = positionData.botID
+
+    const botSymbolMissID = `${botID}-${symbol}`
+
+    await Promise.allSettled(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
+        return handleCancelOrderTP({
+            ApiKey: positionData.botID.ApiKey,
+            SecretKey: positionData.botID.SecretKey,
+            tradeCoinData,
+            strategyID: orderIdTPData.strategyID,
+            symbol,
+            side: positionData.Side,
+            candle: positionData.Candle,
+            orderId: orderIdTPData.orderID,
+        })
+    }))
+})
+
+socketRealtime.on('disconnect', () => {
+    console.log('[V] Disconnected from socket realtime');
+});
 
 
 try {
