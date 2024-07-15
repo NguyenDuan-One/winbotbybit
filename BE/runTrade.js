@@ -849,7 +849,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
                                             }
                                             else {
-                                                await getPositionBySymbol({ symbol }).then(data => {
+                                                await getPositionBySymbol({ symbol, botID }).then(data => {
                                                     console.log(data.message);
                                                     missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                 })

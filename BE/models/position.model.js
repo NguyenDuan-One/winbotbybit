@@ -4,7 +4,6 @@ const positionSchema = new mongoose.Schema({
   Symbol: {
     type: String,
     required: true,
-    unique: true,
   },
   Side: String,
   Price: String,

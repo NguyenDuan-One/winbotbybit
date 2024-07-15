@@ -236,9 +236,12 @@ const PositionController = {
 
     // OTHER
 
-    getPositionBySymbol: async ({symbol}) => {
+    getPositionBySymbol: async ({ symbol, botID }) => {
         try {
-            const data = await PositionModel.findOne({ Symbol: symbol })
+            const data = await PositionModel.findOne({
+                Symbol: symbol,
+                botID: botID
+            })
 
             if (data) {
                 return {
