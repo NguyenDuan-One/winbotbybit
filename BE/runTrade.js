@@ -529,9 +529,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 const orderStatus = dataMain.orderStatus
                 const botSymbolMissID = `${botID}-${symbol}`
 
-                if (orderStatus === "Filled") {
-                    console.log(changeColorConsole.greenBright("[Filled] first", symbol));
-                }
+                // if (orderStatus === "Filled") {
+                //     console.log(changeColorConsole.greenBright("[Filled] first", symbol));
+                // }
 
                 Object.values(allStrategiesActiveByBotID[botID]).forEach(async strategy => {
 
@@ -545,7 +545,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                             if (orderStatus === "Filled") {
 
-                                console.log(changeColorConsole.greenBright("[Filled] after", symbol));
+                                // console.log(changeColorConsole.greenBright("[Filled] after", symbol));
 
                                 // console.log(changeColorConsole.greenBright("[-_-] Filled OC"));
 
@@ -837,7 +837,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                     if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
 
-                                        console.log(`\n[Saving->Mongo] Position ( ${side} - ${symbol} )`);
+                                        console.log(`\n[Saving->Mongo] Position ( ${botName} - ${side} - ${symbol} )`);
 
                                         await createPositionBE({
                                             ...newDataToDB,
@@ -866,7 +866,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     if (!missTPDataBySymbol[botSymbolMissID]?.gongLai) {
                                         if (missSize > 0) {
 
-                                            console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${side} - ${symbol} ): ${missSize}\n`));
+                                            console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
 
                                             // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
                                             let TPNew = openTrade
@@ -918,7 +918,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                         }
                                         else {
-                                            console.log(`[_ Not Miss _] TP ( ${side} - ${symbol}} )`);
+                                            console.log(`[_ Not Miss _] TP ( ${botName} - ${side} - ${symbol}} )`);
+                                            console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                             updatePositionBE({
                                                 newDataUpdate: {
                                                     // ...newDataToDB,
@@ -933,8 +934,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                     }
                                     else {
-                                        console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${side} - ${symbol} ): ${missSize}\n`));
-                                        console.log(`[Mongo] UPDATE MISS Position ( ${side} - ${symbol} )`);
+                                        console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                        console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                         updatePositionBE({
                                             newDataUpdate: {
                                                 // ...newDataToDB,
@@ -1400,9 +1401,10 @@ const Main = async () => {
                         missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
 
                         console.log({
-                            testnet: false,
-                            key: missData.ApiKey,
-                            secret: missData.SecretKey,
+                            category: 'linear',
+                            symbol,
+                            price: TPNew.toFixed(digitAllCoinObject[symbol]),
+                            orderId: missData.orderID,
                         });
 
                         const client = new RestClientV5({
