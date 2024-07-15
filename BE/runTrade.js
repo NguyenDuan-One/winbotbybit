@@ -529,6 +529,10 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 const orderStatus = dataMain.orderStatus
                 const botSymbolMissID = `${botID}-${symbol}`
 
+                if (orderStatus === "Filled") {
+                    console.log(changeColorConsole.greenBright("[Filled] first", symbol));
+                }
+
                 Object.values(allStrategiesActiveByBotID[botID]).forEach(async strategy => {
 
                     const strategyID = strategy.value
@@ -540,6 +544,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                         if (dataCoin.topic === "order") {
 
                             if (orderStatus === "Filled") {
+
+                                console.log(changeColorConsole.greenBright("[Filled] after", symbol));
 
                                 // console.log(changeColorConsole.greenBright("[-_-] Filled OC"));
 
@@ -638,11 +644,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             telegramToken
                                         })
 
-                                        return
 
                                     }
                                     return
-
                                 }
                                 // Khớp TP
                                 else if (orderID === tradeCoinData[strategyID]?.TP.orderID) {
@@ -692,6 +696,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         // 
                                         console.log(`[_FULL Filled_] Filled TP ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                         console.log(`[Mongo] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
+
+                                        missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                         deletePositionBE({
                                             orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
@@ -804,10 +810,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                             // if (size > 0 && strategy.Candlestick === missTPDataBySymbol[botSymbolMissID].Candlestick) {
                             !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
-                            missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                             if (size > 0) {
-
+                                missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
                                 missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
 
                                     const dataMain = dataCoin.data[0]
@@ -857,16 +862,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             console.log(changeColorConsole.redBright(err));
                                         })
                                     }
-                                    // else {
-                                    //     updatePositionBE({
-                                    //         newDataUpdate: newDataToDB,
-                                    //         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB,
-                                    //     }).then(message => {
-                                    //         console.log(message);
-                                    //     }).catch(err => {
-                                    //         console.log(changeColorConsole.redBright(err));
-                                    //     })
-                                    // }
 
                                     if (!missTPDataBySymbol[botSymbolMissID]?.gongLai) {
                                         if (missSize > 0) {
@@ -1234,7 +1229,7 @@ const checkConditionBot = (botData) => {
 
 const Main = async () => {
 
-   
+
 
     let allStrategiesActiveBE = getAllStrategiesActive()
     let allSymbolBE = getAllSymbolBE()
@@ -1381,8 +1376,6 @@ const Main = async () => {
                 const symbol = topic.split(".").slice(-1)?.[0]
                 const coinClose = +dataMain.close
 
-                console.log("missTPDataBySymbol",  Object.values(missTPDataBySymbol).length);
-
                 Object.values(missTPDataBySymbol).map(missData => {
 
                     const botName = missData.botName
@@ -1390,7 +1383,6 @@ const Main = async () => {
 
                     const botSymbolMissID = `${botID}-${symbol}`
 
-                    console.log(missTPDataBySymbol[botSymbolMissID]);
                     // TP chưa khớp -> Dịch TP MISS mới
                     if (missTPDataBySymbol[botSymbolMissID]?.orderID && !missTPDataBySymbol[botSymbolMissID]?.gongLai) {
 
@@ -1456,7 +1448,7 @@ const Main = async () => {
         console.log(changeColorConsole.redBright("[!] Subscribe kline error:", err));
     })
 
-    
+
 }
 
 // REALTIME
