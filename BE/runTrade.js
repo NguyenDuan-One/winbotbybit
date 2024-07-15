@@ -2163,7 +2163,7 @@ try {
     Main()
 }
 catch (e) {
-    console.log(changeColorConsole.red("[!] Error Main:", e));
+    console.log(changeColorConsole.red("[!] Error MAIN:", e));
 }
 
 process.once('SIGINT', () => {
