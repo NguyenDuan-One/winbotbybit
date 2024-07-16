@@ -1969,7 +1969,7 @@ try {
     Main()
 }
 catch (e) {
-    console.log(changeColorConsole.red("[!] Error MAIN:", e));
+    console.log(changeColorConsole.red("[!] Error Main:", e));
 }
 
 process.once('SIGINT', () => {
@@ -1982,5 +1982,3 @@ process.once('SIGTERM', () => {
         botData.stop('SIGTERM')
     })
 })
-
-// 
