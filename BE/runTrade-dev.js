@@ -1184,7 +1184,7 @@ const Main = async () => {
                                 qty,
                                 side,
                                 price: priceOrder.toFixed(strategy.digit),
-                                candle,
+                                candle: strategy.Candlestick,
                                 botName,
                                 botID
                             }
@@ -1953,12 +1953,11 @@ socketRealtime.on("close-limit", async (data) => {
 
     await Promise.allSettled(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
         return handleCancelOrderTP({
-            ApiKey: positionData.botID.ApiKey,
-            SecretKey: positionData.botID.SecretKey,
+            ApiKey: positionData.botData.ApiKey,
+            SecretKey: positionData.botData.SecretKey,
             strategyID: orderIdTPData.strategyID,
             symbol,
             side: positionData.Side,
-            candle: positionData.Candle,
             orderId: orderIdTPData.orderID,
             botID,
             botName
