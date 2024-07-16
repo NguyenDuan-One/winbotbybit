@@ -60,7 +60,7 @@ async function Digit(symbol) {// proScale
     return PScale
 }
 
-const handleSubmitOrder = async ({
+const handleSubmitOrder = ({
     strategy,
     strategyID,
     symbol,
@@ -77,6 +77,7 @@ const handleSubmitOrder = async ({
     !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && (
         cancelAll({ strategyID, botID })
     )
+
     const client = new RestClientV5({
         testnet: false,
         key: ApiKey,
@@ -101,10 +102,10 @@ const handleSubmitOrder = async ({
                     strategy,
                     OC: true,
                 }
-                console.log(`\n[+OC] Order OC ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: `, newOrderID)
+                console.log(`\n[+OC] Order OC ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
             }
             else {
-                console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retCode, response.retMsg))
+                console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
             }
 
         })
@@ -178,11 +179,11 @@ const handleSubmitOrderTP = ({
                     orderID: newOrderID,
                     strategyID
                 })
-                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, newOrderID)
+                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
 
             }
             else {
-                console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retCode, response.retMsg))
+                console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
                 if (missState) {
                     console.log(changeColorConsole.yellowBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
                     console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
@@ -247,7 +248,7 @@ const moveOrderTP = ({
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
             }
             else {
-                console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${symbol} - ${candle} ) failed `, response.retCode, response.retMsg))
+                console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${symbol} - ${candle} ) failed `, response.retMsg))
                 // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
             }
         })
@@ -329,7 +330,7 @@ const handleCancelOrderOC = ({
                 console.log(`[V] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) successful `);
             }
             else {
-                console.log(changeColorConsole.yellowBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) failed `, response.retCode, response.retMsg))
+                console.log(changeColorConsole.yellowBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) failed `, response.retMsg))
             }
             cancelAll({ strategyID, botID })
         })
@@ -384,7 +385,7 @@ const handleCancelOrderTP = ({
                 // }
             }
             else {
-                console.log(changeColorConsole.yellowBright(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retCode, response.retMsg))
+                console.log(changeColorConsole.yellowBright(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
             }
             cancelAll({ strategyID, botID })
         })
@@ -429,8 +430,8 @@ const cancelAll = (
     if (data) {
         const OCOrderID = data?.OC?.orderID
         const TPOrderID = data?.TP?.orderID
-        OCOrderID && delete allStrategiesByBotIDAndOrderID[botID][OCOrderID]
-        TPOrderID && delete allStrategiesByBotIDAndOrderID[botID][TPOrderID]
+        OCOrderID && delete allStrategiesByBotIDAndOrderID[botID]?.[OCOrderID]
+        TPOrderID && delete allStrategiesByBotIDAndOrderID[botID]?.[TPOrderID]
     }
     allStrategiesByBotIDAndStrategiesID[botID] = {}
     allStrategiesByBotIDAndStrategiesID[botID][strategyID] = {
@@ -554,7 +555,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
 
                 if (dataCoin.topic === "order") {
-                    console.log('orderID filled', botName, symbol, orderID);
                     const strategyData = allStrategiesByBotIDAndOrderID[botID][orderID]
 
                     const strategy = strategyData?.strategy
