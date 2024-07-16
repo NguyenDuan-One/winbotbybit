@@ -60,7 +60,7 @@ async function Digit(symbol) {// proScale
     return PScale
 }
 
-const handleSubmitOrder = ({
+const handleSubmitOrder = async ({
     strategy,
     strategyID,
     symbol,
@@ -74,9 +74,8 @@ const handleSubmitOrder = ({
     botID
 }) => {
 
-    !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && (
-        cancelAll({ strategyID, botID })
-    )
+    !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
+
 
     const client = new RestClientV5({
         testnet: false,
@@ -433,7 +432,7 @@ const cancelAll = (
         OCOrderID && delete allStrategiesByBotIDAndOrderID[botID]?.[OCOrderID]
         TPOrderID && delete allStrategiesByBotIDAndOrderID[botID]?.[TPOrderID]
     }
-    allStrategiesByBotIDAndStrategiesID[botID] = {}
+    !allStrategiesByBotIDAndStrategiesID[botID] && (allStrategiesByBotIDAndStrategiesID[botID] = {})
     allStrategiesByBotIDAndStrategiesID[botID][strategyID] = {
         "OC": {
             orderID: "",
@@ -569,10 +568,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                         const telegramToken = strategy.botID.telegramToken
 
                         if (orderStatus === "Filled") {
-
-                            // console.log(changeColorConsole.greenBright("[Filled] after", symbol));
-
-                            // console.log(changeColorConsole.greenBright("[-_-] Filled OC"));
 
                             if (OCTrue) {
 
@@ -859,6 +854,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     ...newDataToDB,
                                     botID,
                                 }).then(async data => {
+                                    console.log(data);
                                     console.log(data.message);
                                     const newID = data.id
                                     if (newID) {
@@ -898,7 +894,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     missTPDataBySymbol[botSymbolMissID].side = side
 
                                     const dataInput = {
-                                        strategyID,
                                         symbol,
                                         qty: missSize.toString(),
                                         price: TPNew.toFixed(digitAllCoinObject[symbol]),
@@ -910,12 +905,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         botID,
                                     }
                                     console.log("[ Re-TP ] Order TP Miss");
-                                    console.log({
-                                        symbol,
-                                        qty: missSize.toString(),
-                                        price: TPNew.toFixed(digitAllCoinObject[symbol]),
-                                        side: side === "Buy" ? "Sell" : "Buy",
-                                    });
 
                                     handleSubmitOrderTP(dataInput)
 
@@ -1121,7 +1110,6 @@ const Main = async () => {
                         if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
                             // setTimeout(() => {
 
-                            DefaultLogger
                             const coinCurrent = +dataMain.close
 
                             // const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
@@ -1811,27 +1799,6 @@ socketRealtime.on('bot-delete', (data) => {
 
             const botSymbolMissID = `${botID}-${symbol}`
 
-
-            switch (strategiesData.Candlestick) {
-                case "1m": {
-                    delete allStrategies1m[strategyID]
-                    break
-                }
-                case "3m": {
-                    delete allStrategies3m[strategyID]
-                    break
-
-                }
-                case "5m": {
-                    delete allStrategies5m[strategyID]
-                    break
-
-                }
-                case "15m": {
-                    delete allStrategies15m[strategyID]
-                    break
-                }
-            }
 
             const cancelDataObject = {
                 ApiKey,
