@@ -151,23 +151,6 @@ const handleSubmitOrderTP = ({
             if (response.retCode == 0) {
                 const newOrderID = response.result.orderId
 
-                if (!missState) {
-                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = newOrderID
-                    allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
-                        strategy,
-                        TP: true,
-                    }
-                }
-                else {
-                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilled = true
-                    missTPDataBySymbol[botSymbolMissID].orderID = newOrderID
-                    missTPDataBySymbol[botSymbolMissID].ApiKey = ApiKey
-                    missTPDataBySymbol[botSymbolMissID].SecretKey = SecretKey
-                    missTPDataBySymbol[botSymbolMissID].botID = botID
-                    missTPDataBySymbol[botSymbolMissID].botName = botName
-                }
-
-
                 missTPDataBySymbol[botSymbolMissID] = {
                     ...missTPDataBySymbol[botSymbolMissID],
                     size: missTPDataBySymbol[botSymbolMissID].size + Math.abs(qty),
@@ -178,6 +161,24 @@ const handleSubmitOrderTP = ({
                     orderID: newOrderID,
                     strategyID
                 })
+
+                if (!missState) {
+                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = newOrderID
+                    allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
+                        strategy,
+                        TP: true,
+                    }
+                }
+                else {
+                    // allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilled = true
+                    missTPDataBySymbol[botSymbolMissID].orderID = newOrderID
+                    missTPDataBySymbol[botSymbolMissID].ApiKey = ApiKey
+                    missTPDataBySymbol[botSymbolMissID].SecretKey = SecretKey
+                    missTPDataBySymbol[botSymbolMissID].botID = botID
+                    missTPDataBySymbol[botSymbolMissID].botName = botName
+                }
+
+
                 console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
 
             }
@@ -866,7 +867,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                         })
                                             .catch(error => {
-                                                console.log(changeColorConsole.redBright(err));
+                                                console.log(changeColorConsole.redBright(error));
                                             })
                                     }
 
@@ -878,48 +879,50 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             if (!missTPDataBySymbol[botSymbolMissID]?.gongLai) {
                                 if (missSize > 0) {
 
-                                    console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                    if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
+                                        console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
 
-                                    // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
-                                    let TPNew = openTrade
+                                        // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
+                                        let TPNew = openTrade
 
-                                    if (side === "Buy") {
-                                        TPNew = openTrade + (openTrade * 3 / 100) * (50 / 100)
+                                        if (side === "Buy") {
+                                            TPNew = openTrade + (openTrade * 3 / 100) * (50 / 100)
+                                        }
+                                        else {
+                                            TPNew = openTrade - (openTrade * 3 / 100) * (50 / 100)
+                                        }
+
+                                        missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
+                                        missTPDataBySymbol[botSymbolMissID].side = side
+
+                                        const dataInput = {
+                                            symbol,
+                                            qty: missSize.toString(),
+                                            price: TPNew.toFixed(digitAllCoinObject[symbol]),
+                                            side: side === "Buy" ? "Sell" : "Buy",
+                                            ApiKey,
+                                            SecretKey,
+                                            missState: true,
+                                            botName,
+                                            botID,
+                                        }
+                                        console.log("[ Re-TP ] Order TP Miss");
+
+                                        handleSubmitOrderTP(dataInput)
+
+                                        // updatePositionBE({
+                                        //     newDataUpdate: {
+                                        //         Miss: true
+                                        //     },
+                                        //     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                        // }).then(message => {
+                                        //     console.log(message);
+                                        // }).catch(err => {
+                                        //     console.log(err);
+                                        //     missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
+                                        // })
+
                                     }
-                                    else {
-                                        TPNew = openTrade - (openTrade * 3 / 100) * (50 / 100)
-                                    }
-
-                                    missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
-                                    missTPDataBySymbol[botSymbolMissID].side = side
-
-                                    const dataInput = {
-                                        symbol,
-                                        qty: missSize.toString(),
-                                        price: TPNew.toFixed(digitAllCoinObject[symbol]),
-                                        side: side === "Buy" ? "Sell" : "Buy",
-                                        ApiKey,
-                                        SecretKey,
-                                        missState: true,
-                                        botName,
-                                        botID,
-                                    }
-                                    console.log("[ Re-TP ] Order TP Miss");
-
-                                    handleSubmitOrderTP(dataInput)
-
-                                    // updatePositionBE({
-                                    //     newDataUpdate: {
-                                    //         Miss: true
-                                    //     },
-                                    //     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                    // }).then(message => {
-                                    //     console.log(message);
-                                    // }).catch(err => {
-                                    //     console.log(err);
-                                    //     missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
-                                    // })
-
                                 }
                                 else {
                                     console.log(`[_ Not Miss _] TP ( ${botName} - ${side} - ${symbol}} )`);
@@ -1298,71 +1301,63 @@ const Main = async () => {
 
             // Xử lý miss
 
+            if (dataMain.confirm == true && topic.includes(`kline.1`)) {
 
-            // if (dataMain.confirm == true && topic.includes(`kline.1`)) {
+                const symbol = topic.split(".").slice(-1)?.[0]
+                const coinClose = +dataMain.close
 
-            //     const symbol = topic.split(".").slice(-1)?.[0]
-            //     const coinClose = +dataMain.close
+                Object.values(missTPDataBySymbol).map(missData => {
 
-            //     Object.values(missTPDataBySymbol).map(missData => {
+                    const botName = missData.botName
+                    const botID = missData.botID
 
-            //         const botName = missData.botName
-            //         const botID = missData.botID
+                    const botSymbolMissID = `${botID}-${symbol}`
 
-            //         const botSymbolMissID = `${botID}-${symbol}`
+                    // TP chưa khớp -> Dịch TP MISS mới
+                    if (missTPDataBySymbol[botSymbolMissID]?.orderID && !missTPDataBySymbol[botSymbolMissID]?.gongLai) {
 
-            //         // TP chưa khớp -> Dịch TP MISS mới
-            //         if (missTPDataBySymbol[botSymbolMissID]?.orderID && !missTPDataBySymbol[botSymbolMissID]?.gongLai) {
+                        const TPOld = +missData.prePrice
 
-            //             const TPOld = +missData.prePrice
+                        let TPNew
 
-            //             let TPNew
+                        if (missData.side === "Buy") {
+                            TPNew = TPOld - Math.abs(TPOld - coinClose) * (50 / 100)
+                        }
+                        else {
+                            TPNew = TPOld + Math.abs(TPOld - coinClose) * (50 / 100)
+                        }
 
-            //             if (missData.side === "Buy") {
-            //                 TPNew = TPOld - Math.abs(TPOld - coinClose) * (50 / 100)
-            //             }
-            //             else {
-            //                 TPNew = TPOld + Math.abs(TPOld - coinClose) * (50 / 100)
-            //             }
+                        missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
 
-            //             missTPDataBySymbol[botSymbolMissID].prePrice = TPNew
-
-            //             console.log({
-            //                 category: 'linear',
-            //                 symbol,
-            //                 price: TPNew.toFixed(digitAllCoinObject[symbol]),
-            //                 orderId: missData.orderID,
-            //             });
-
-            //             const client = new RestClientV5({
-            //                 testnet: false,
-            //                 key: missData.ApiKey,
-            //                 secret: missData.SecretKey,
-            //             });
-            //             client
-            //                 .amendOrder({
-            //                     category: 'linear',
-            //                     symbol,
-            //                     price: TPNew.toFixed(digitAllCoinObject[symbol]),
-            //                     orderId: missData.orderID,
-            //                 })
-            //                 .then((response) => {
-            //                     if (response.retCode == 0) {
-            //                         console.log(`[->] Move Order TP Miss ( ${botName} - ${symbol} ) successful`)
-            //                         missTPDataBySymbol[botSymbolMissID].orderID = response.result.orderId
-            //                     }
-            //                     else {
-            //                         console.log(changeColorConsole.yellowBright(`[!] Move Order TP Miss ( ${botName} - ${symbol} ) failed `, response.retMsg))
-            //                         // missTPDataBySymbol[botSymbolMissID].orderID = ""
-            //                     }
-            //                 })
-            //                 .catch((error) => {
-            //                     console.log(changeColorConsole.redBright(`[!] Move Order TP Miss ( ${botName} - ${symbol} ) error `, error))
-            //                     // missTPDataBySymbol[botSymbolMissID].orderID = ""
-            //                 });
-            //         }
-            //     })
-            // }
+                        const client = new RestClientV5({
+                            testnet: false,
+                            key: missData.ApiKey,
+                            secret: missData.SecretKey,
+                        });
+                        client
+                            .amendOrder({
+                                category: 'linear',
+                                symbol,
+                                price: TPNew.toFixed(digitAllCoinObject[symbol]),
+                                orderId: missData.orderID,
+                            })
+                            .then((response) => {
+                                if (response.retCode == 0) {
+                                    console.log(`[->] Move Order TP Miss ( ${botName} - ${symbol} ) successful`)
+                                    missTPDataBySymbol[botSymbolMissID].orderID = response.result.orderId
+                                }
+                                else {
+                                    console.log(changeColorConsole.yellowBright(`[!] Move Order TP Miss ( ${botName} - ${symbol} ) failed `, response.retMsg))
+                                    // missTPDataBySymbol[botSymbolMissID].orderID = ""
+                                }
+                            })
+                            .catch((error) => {
+                                console.log(changeColorConsole.redBright(`[!] Move Order TP Miss ( ${botName} - ${symbol} ) error `, error))
+                                // missTPDataBySymbol[botSymbolMissID].orderID = ""
+                            });
+                    }
+                })
+            }
 
         })
 
