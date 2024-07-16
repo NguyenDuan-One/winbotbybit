@@ -60,7 +60,7 @@ async function Digit(symbol) {// proScale
     return PScale
 }
 
-const handleSubmitOrder = ({
+const handleSubmitOrder = async ({
     strategy,
     strategyID,
     symbol,
@@ -167,7 +167,7 @@ const handleSubmitOrderTP = ({
                     missTPDataBySymbol[botSymbolMissID].botName = botName
                 }
 
-                
+
                 missTPDataBySymbol[botSymbolMissID] = {
                     ...missTPDataBySymbol[botSymbolMissID],
                     size: missTPDataBySymbol[botSymbolMissID].size + Math.abs(qty),
@@ -425,7 +425,7 @@ const cancelAll = (
         botID
     }
 ) => {
-    const data = allStrategiesByBotIDAndStrategiesID[botID][strategyID]
+    const data = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
     if (data) {
         const OCOrderID = data?.OC?.orderID
         const TPOrderID = data?.TP?.orderID
@@ -553,7 +553,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
 
                 if (dataCoin.topic === "order") {
-                    console.log('orderID filled',botName,symbol,orderID);
+                    console.log('orderID filled', botName, symbol, orderID);
                     const strategyData = allStrategiesByBotIDAndOrderID[botID][orderID]
 
                     const strategy = strategyData?.strategy
@@ -678,7 +678,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 console.log(`[V] Filled TP: \n${symbol} | Close ${side} \nBot: ${botName} \nFutures: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${strategy.Amount}`);
                                 const teleText = `${symbol} | Close ${side} \nBot: ${botName} \nFutures: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
-                                const priceWinPercent = ((closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2);
+                                const priceWinPercent = (Math.abs(closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2);
                                 const priceWin = ((closePrice - openTradeOCFilled) * qty).toFixed(2);
 
                                 let textWinLose = ""
@@ -897,7 +897,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     missTPDataBySymbol[botSymbolMissID].side = side
 
                                     const dataInput = {
-                                        strategy,
                                         strategyID,
                                         symbol,
                                         qty: missSize.toString(),
@@ -1014,6 +1013,7 @@ const Main = async () => {
     allStrategiesActiveObject.forEach(strategyItem => {
         if (checkConditionBot(strategyItem)) {
 
+            const strategyID = strategyItem.value
             const botID = strategyItem.botID._id
             const botName = strategyItem.botID.botName
             const symbol = strategyItem.symbol
@@ -1033,8 +1033,8 @@ const Main = async () => {
 
 
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
-            !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = [])
-            allStrategiesByCandleAndSymbol[symbol][Candlestick].push(strategyItem)
+            !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
+            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategyItem
         }
     })
 
@@ -1096,7 +1096,7 @@ const Main = async () => {
             const dataMain = dataCoin.data[0]
             const coinOpen = +dataMain.open
 
-            allStrategiesByCandleAndSymbol?.[symbol]?.[candle]?.forEach(strategy => {
+            Object.values(allStrategiesByCandleAndSymbol?.[symbol]?.[candle])?.forEach(strategy => {
 
                 if (checkConditionBot(strategy)) {
 
@@ -1420,18 +1420,20 @@ socketRealtime.on('add', async (newData = []) => {
 
             const botID = newStrategiesData.botID._id
             const botName = newStrategiesData.botID.botName
-
-            cancelAll({ strategyID, botID })
+            const Candlestick = newStrategiesData.Candlestick.split("")[0]
 
             const ApiKey = newStrategiesData.botID.ApiKey
             const SecretKey = newStrategiesData.botID.SecretKey
+
+            cancelAll({ strategyID, botID })
+
 
             if (!botApiList[botID]) {
                 botApiList[botID] = {
                     id: botID,
                     botName,
                     ApiKey,
-                    SecretKey
+                    SecretKey,
                 }
                 newBotApiList[botID] = {
                     id: botID,
@@ -1440,39 +1442,14 @@ socketRealtime.on('add', async (newData = []) => {
                     SecretKey
                 }
             }
-            !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
-            allStrategiesActiveByBotID[botID][strategyID] = newStrategiesData
+
+            !allStrategiesByBotIDAndOrderID[botID] && (allStrategiesByBotIDAndOrderID[botID] = {})
+            !allStrategiesByBotIDAndStrategiesID[botID] && (allStrategiesByBotIDAndStrategiesID[botID] = {})
 
 
-            let allStrategiesTemp = {}
-
-            // kline by Candlestick
-            switch (newStrategiesData.Candlestick) {
-                case "1m": {
-                    allStrategiesTemp = allStrategies1m
-                    break
-                }
-                case "3m": {
-                    allStrategiesTemp = allStrategies3m
-                    break
-
-                }
-                case "5m": {
-                    allStrategiesTemp = allStrategies5m
-                    break
-
-                }
-                case "15m": {
-                    allStrategiesTemp = allStrategies15m
-                    break
-
-                }
-            }
-
-            allStrategiesTemp[strategyID] = {
-                ...newStrategiesData,
-                symbol: symbol,
-            }
+            !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
+            !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
+            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesData
         }
 
     })
@@ -1502,43 +1479,9 @@ socketRealtime.on('update', async (newData = []) => {
 
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
-
             const botSymbolMissID = `${botID}-${symbol}`
 
-
-            switch (strategiesData.Candlestick) {
-                case "1m": {
-                    allStrategies1m[strategyID] = strategiesData
-                    break
-                }
-                case "3m": {
-                    allStrategies3m[strategyID] = strategiesData
-                    break
-
-                }
-                case "5m": {
-                    allStrategies5m[strategyID] = strategiesData
-                    break
-
-                }
-                case "15m": {
-                    allStrategies15m[strategyID] = strategiesData
-                    break
-                }
-            }
-
-            const cancelDataObject = {
-                ApiKey,
-                SecretKey,
-                strategyID,
-                symbol: symbol,
-                candle: strategiesData.Candlestick,
-                side,
-                botName,
-                botID
-            }
-
-            !allStrategiesByBotIDAndStrategiesID[botID][strategyID] && cancelAll({ strategyID, botID })
+            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesData
 
             if (IsActive) {
                 if (!botApiList[botID]) {
@@ -1556,11 +1499,8 @@ socketRealtime.on('update', async (newData = []) => {
                         SecretKey
                     }
                 }
-                !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
-                allStrategiesActiveByBotID[botID][strategyID] = strategiesData
             }
             else {
-                delete allStrategiesActiveByBotID[botID]?.[strategyID]
                 !updateMongoMiss && missTPDataBySymbol[botSymbolMissID]?.orderIDToDB && updatePositionBE({
                     newDataUpdate: {
                         Miss: true
@@ -1574,12 +1514,24 @@ socketRealtime.on('update', async (newData = []) => {
                 })
             }
 
-            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.orderID
+
+            const cancelDataObject = {
+                ApiKey,
+                SecretKey,
+                strategyID,
+                symbol: symbol,
+                candle: strategiesData.Candlestick,
+                side,
+                botName,
+                botID
+            }
+
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
 
             if (OCOrderID || !strategiesData.IsActive) {
                 OCOrderID && handleCancelOrderOC(cancelDataObject)
                 if (!strategiesData.IsActive) {
-                    const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP?.orderID
+                    const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
                     const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
                     TPOrderID && handleCancelOrderTP({
                         ...cancelDataObject,
@@ -1592,7 +1544,7 @@ socketRealtime.on('update', async (newData = []) => {
                         gongLai: true
                     })
                 }
-                await delay(500)
+                await delay(200)
             }
 
         }
@@ -1621,27 +1573,6 @@ socketRealtime.on('delete', (newData) => {
 
             const botSymbolMissID = `${botID}-${symbol}`
 
-            switch (strategiesData.Candlestick) {
-                case "1m": {
-                    delete allStrategies1m[strategyID]
-                    break
-                }
-                case "3m": {
-                    delete allStrategies3m[strategyID]
-                    break
-
-                }
-                case "5m": {
-                    delete allStrategies5m[strategyID]
-                    break
-
-                }
-                case "15m": {
-                    delete allStrategies15m[strategyID]
-                    break
-                }
-            }
-
             const cancelDataObject = {
                 ApiKey,
                 SecretKey,
@@ -1653,8 +1584,6 @@ socketRealtime.on('delete', (newData) => {
                 botID
             }
 
-            delete allStrategiesByBotIDAndStrategiesID[botID][strategyID]
-            delete allStrategiesActiveByBotID[botID]?.[strategyID]
 
             const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.orderID
             const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP?.orderID
@@ -1676,6 +1605,8 @@ socketRealtime.on('delete', (newData) => {
                 })
                 await delay(500)
             }
+            delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
+            delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
         }
     })
 
@@ -1703,27 +1634,7 @@ socketRealtime.on('bot-update', async (newData = []) => {
 
         const botSymbolMissID = `${botID}-${symbol}`
 
-
-        switch (strategiesData.Candlestick) {
-            case "1m": {
-                allStrategies1m[strategyID] = strategiesData
-                break
-            }
-            case "3m": {
-                allStrategies3m[strategyID] = strategiesData
-                break
-
-            }
-            case "5m": {
-                allStrategies5m[strategyID] = strategiesData
-                break
-
-            }
-            case "15m": {
-                allStrategies15m[strategyID] = strategiesData
-                break
-            }
-        }
+        allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesData
 
         const cancelDataObject = {
             ApiKey,
@@ -1751,11 +1662,6 @@ socketRealtime.on('bot-update', async (newData = []) => {
                     botName
                 }
             }
-            !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
-            allStrategiesActiveByBotID[botID][strategyID] = strategiesData
-        }
-        else {
-            delete allStrategiesActiveByBotID[botID]?.[strategyID]
         }
 
         const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.orderID
@@ -1927,11 +1833,9 @@ socketRealtime.on('bot-delete', (data) => {
                 botID
             }
 
-            delete allStrategiesByBotIDAndStrategiesID[botID][strategyID]
-            delete allStrategiesActiveByBotID[botID]?.[strategyID]
 
-            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.orderID
-            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP?.orderID
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
             const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
 
             if (OCOrderID || TPOrderID || TPMissOrderID) {
@@ -1952,13 +1856,10 @@ socketRealtime.on('bot-delete', (data) => {
 
                 await delay(500)
             }
+            delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
+            delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
         }
     })
-
-    if (botListTelegram[telegramIDOld]) {
-        botListTelegram[telegramIDOld]?.stop()
-        delete botListTelegram[telegramIDOld]
-    }
 
     const botApiData = botApiList[botIDMain]
     const ApiKeyBot = botApiData.ApiKey
@@ -2053,12 +1954,7 @@ socketRealtime.on('sync-symbol', async (newData) => {
                 prePrice: 0,
             }
         })
-        // Object.values(botApiList).forEach(botApiData => {
-        //     resetMissData({
-        //         botID: botApiData.id,
-        //         symbol
-        //     })
-        // })
+
     })
 
 
@@ -2073,6 +1969,7 @@ socketRealtime.on("close-limit", async (data) => {
     const { positionData } = data
     const symbol = positionData.Symbol
     const botID = positionData.botID
+    const botName = positionData.BotName
 
     const botSymbolMissID = `${botID}-${symbol}`
 
@@ -2085,6 +1982,8 @@ socketRealtime.on("close-limit", async (data) => {
             side: positionData.Side,
             candle: positionData.Candle,
             orderId: orderIdTPData.orderID,
+            botID,
+            botName
         })
     }))
 })
