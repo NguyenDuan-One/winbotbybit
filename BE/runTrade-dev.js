@@ -555,7 +555,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
 
                 if (dataCoin.topic === "order") {
-                    const strategyData = allStrategiesByBotIDAndOrderID[botID][orderID]
+                    const strategyData = allStrategiesByBotIDAndOrderID[botID]?.[orderID]
 
                     const strategy = strategyData?.strategy
                     const OCTrue = strategyData?.OC
