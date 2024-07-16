@@ -20,6 +20,5 @@ const groupSchema = new mongoose.Schema({
 
 
 const Group = mongoose.model('Group', groupSchema);
-Group.createIndexes()
 
 module.exports = Group;

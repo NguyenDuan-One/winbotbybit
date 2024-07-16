@@ -7,6 +7,5 @@ const botTypeSchema = new mongoose.Schema({
 
 
 const BotType = mongoose.model('BotType', botTypeSchema);
-BotType.createIndexes()
 
 module.exports = BotType;

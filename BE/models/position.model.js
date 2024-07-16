@@ -20,6 +20,6 @@ const positionSchema = new mongoose.Schema({
 
 
 const Position = mongoose.model('Position', positionSchema);
-Position.createIndexes()
+positionSchema.index({ Symbol: 1, botID: 1 }, { unique: true });
 
 module.exports = Position;
