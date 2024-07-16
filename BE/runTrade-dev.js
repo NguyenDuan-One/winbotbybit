@@ -74,7 +74,7 @@ const handleSubmitOrder = async ({
     botID
 }) => {
 
-    !allStrategiesByBotIDAndStrategiesID[botID][strategyID] && (
+    !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && (
         cancelAll({ strategyID, botID })
     )
     const client = new RestClientV5({
@@ -432,6 +432,7 @@ const cancelAll = (
         OCOrderID && delete allStrategiesByBotIDAndOrderID[botID][OCOrderID]
         TPOrderID && delete allStrategiesByBotIDAndOrderID[botID][TPOrderID]
     }
+    allStrategiesByBotIDAndStrategiesID[botID] = {}
     allStrategiesByBotIDAndStrategiesID[botID][strategyID] = {
         "OC": {
             orderID: "",
@@ -670,7 +671,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                 const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
-                                const openTradeOCFilled = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC.openTrade
+                                const openTradeOCFilled = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC.openTrade
 
                                 const qty = +dataMain.qty
                                 const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
@@ -759,13 +760,13 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             if (dataMain.orderType === "Market") {
                                 const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
                                 console.log('[...] User Clicked Close Vị Thế');
-                                if (allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID) {
+                                if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
                                     handleCancelOrderTP(
                                         {
                                             strategyID,
                                             symbol: strategy.symbol,
                                             side,
-                                            orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID,
+                                            orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID,
                                             candle: strategy.Candlestick,
                                             ApiKey,
                                             SecretKey,
@@ -806,11 +807,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                         else if (orderStatus === "Cancelled") {
                             // console.log("[X] Cancelled");
                             // Khớp TP
-                            if (orderID === allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID) {
+                            if (orderID === allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
                                 console.log(`[-] Cancelled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
                                 // cancelAll({   strategyID, symbol })
                             }
-                            else if (orderID === allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC.orderID) {
+                            else if (orderID === allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC.orderID) {
                                 console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
                                 cancelAll({ strategyID, botID })
                             }
@@ -1076,8 +1077,7 @@ const Main = async () => {
         })
     })
 
-
-    // // ORDER
+    // ORDER
     await handleSocketBotApiList(botApiList)
 
     // KLINE
@@ -1096,7 +1096,9 @@ const Main = async () => {
             const dataMain = dataCoin.data[0]
             const coinOpen = +dataMain.open
 
-            Object.values(allStrategiesByCandleAndSymbol?.[symbol]?.[candle])?.forEach(strategy => {
+            const listData = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
+
+            listData && Object.values(listData)?.forEach(strategy => {
 
                 if (checkConditionBot(strategy)) {
 
@@ -1288,7 +1290,7 @@ const Main = async () => {
 
                         // TP chưa khớp -> Dịch TP mới
 
-                        if (allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID) {
+                        if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
                             handleMoveOrderTP({
                                 ApiKey,
                                 SecretKey,
@@ -1476,12 +1478,16 @@ socketRealtime.on('update', async (newData = []) => {
             const symbol = strategiesData.symbol
             const strategyID = strategiesData.value
             const IsActive = strategiesData.IsActive
+            const Candlestick = strategiesData.Candlestick.split("")[0]
+
 
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
             const botSymbolMissID = `${botID}-${symbol}`
 
-            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesData
+            !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
+            !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
+            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategiesData
 
             if (IsActive) {
                 if (!botApiList[botID]) {
@@ -1568,6 +1574,7 @@ socketRealtime.on('delete', (newData) => {
             const strategyID = strategiesData.value
             const botID = strategiesData.botID._id
             const botName = strategiesData.botID.botName
+            const Candlestick = strategiesData.Candlestick.split("")[0]
 
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
@@ -1585,8 +1592,8 @@ socketRealtime.on('delete', (newData) => {
             }
 
 
-            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.orderID
-            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP?.orderID
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
             const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
 
             if (OCOrderID || TPOrderID || TPMissOrderID) {
@@ -1631,10 +1638,13 @@ socketRealtime.on('bot-update', async (newData = []) => {
         const strategyID = strategiesData.value
         const IsActive = strategiesData.IsActive
         const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+        const Candlestick = strategiesData.Candlestick.split("")[0]
 
         const botSymbolMissID = `${botID}-${symbol}`
 
-        allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesData
+        !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
+        !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
+        allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategiesData
 
         const cancelDataObject = {
             ApiKey,
@@ -1664,12 +1674,12 @@ socketRealtime.on('bot-update', async (newData = []) => {
             }
         }
 
-        const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.orderID
+        const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
 
         if (OCOrderID || !strategiesData.IsActive) {
             OCOrderID && handleCancelOrderOC(cancelDataObject)
             if (!strategiesData.IsActive) {
-                const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP?.orderID
+                const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
                 const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
                 TPOrderID && handleCancelOrderTP({
                     ...cancelDataObject,
@@ -1706,8 +1716,8 @@ socketRealtime.on('bot-api', async (data) => {
             const botName = strategiesData.botID.botName
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
-            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.orderID
-            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP?.orderID
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
 
             const botSymbolMissID = `${botID}-${symbol}`
 
@@ -1797,6 +1807,7 @@ socketRealtime.on('bot-delete', (data) => {
             const botName = strategiesData.botID.botName
 
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+            const Candlestick = strategiesData.Candlestick.split("")[0]
 
             const botSymbolMissID = `${botID}-${symbol}`
 

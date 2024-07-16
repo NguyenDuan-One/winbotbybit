@@ -533,6 +533,16 @@ const dataCoinByBitController = {
                 path: 'children.botID',
             })
 
+            const handleResult = resultGet.flatMap((data) => data.children.map(child => {
+                child.symbol = data.value
+                child.value = `${data._id}-${child._id}`
+                return child
+            })) || []
+
+            handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
+                type: "delete",
+                data: handleResult
+            })
 
             const bulkOperations = strategiesIDList.map(data => ({
                 updateOne: {
