@@ -127,7 +127,8 @@ const handleSubmitOrderTP = ({
     botID
 }) => {
 
-    console.log(`Price order TP:`, price);
+    console.log(changeColorConsole.greenBright(`Price order TP:`, price));
+
 
     const botSymbolMissID = `${botID}-${symbol}`
 
@@ -242,6 +243,8 @@ const moveOrderTP = ({
     botName,
     botID
 }) => {
+    console.log(changeColorConsole.greenBright(`Price Move TP:`, price));
+
     const client = new RestClientV5({
         testnet: false,
         key: ApiKey,
@@ -261,12 +264,12 @@ const moveOrderTP = ({
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
             }
         })
         .catch((error) => {
             console.log(changeColorConsole.redBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-            // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
         });
 
 }
@@ -585,7 +588,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     const OCTrue = strategyData?.OC
                     const TPTrue = strategyData?.TP
 
-                    console.log("orderStatus", orderStatus);
                     if (strategy) {
 
                         const strategyID = strategy.value
@@ -608,7 +610,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                 const qty = dataMain.qty
 
-                                const newOC = strategy.OrderChange
+                                const newOC = Math.abs((openTrade - strategy.coinOpen)) / strategy.coinOpen * 100
+                                // const newOC = strategy.OrderChange
 
                                 const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
@@ -818,7 +821,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             // Khớp TP
                             if (TPTrue) {
                                 console.log(`[-] Cancelled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
-                                // cancelAll({   strategyID, symbol })
+                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
                             }
                             else if (OCTrue) {
                                 console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
@@ -1124,97 +1127,99 @@ const Main = async () => {
 
                     if (dataMain.confirm == false) {
                         if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
-                            // setTimeout(() => {
+                            setTimeout(() => {
 
-                            const coinCurrent = +dataMain.close
+                                const coinCurrent = +dataMain.close
 
-                            // const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+                                const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
-                            // if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
-                            //     trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
-                            //     trichMauOCListObject[symbolCandleID].minPrice = []
-                            // }
-                            // else {
-                            //     if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
-                            //         if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                            //             trichMauOCListObject[symbolCandleID].minPrice.shift()
-                            //         }
-                            //         trichMauOCListObject[symbolCandleID].minPrice.push(khoangGia)
-                            //     }
-                            // }
+                                // X-D-D || D-D-D
 
-                            // trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
-
-                            // if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                            let conditionOrder = 0
-                            let priceOrder = 0
-
-                            // Check pre coin type 
-
-                            let coinPreCoin = ""
-                            let conditionPre = true
-
-                            const pricePreData = listPricePreOne[symbolCandleID]
-                            if (pricePreData.close > pricePreData.open) {
-                                coinPreCoin = "Blue"
-                            }
-                            else {
-                                coinPreCoin = "Red"
-                            }
-                            // BUY
-                            if (side === "Buy") {
-
-                                if (coinPreCoin === "Blue") {
-                                    const preValue = pricePreData.high - pricePreData.open
-                                    const currentValue = coinOpen - coinCurrent
-                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
+                                    trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
+                                    trichMauOCListObject[symbolCandleID].minPrice = []
                                 }
-                                conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
-                                // if (coinCurrent <= priceOrder) {
-                                //     priceOrder = coinCurrent
-                                // }
-                            }
-                            else {
-                                // SELL
-                                if (coinPreCoin === "Red") {
-                                    const preValue = pricePreData.open - pricePreData.low
-                                    const currentValue = coinCurrent - coinOpen
-                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                else {
+                                    if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
+                                        if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                            trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                        }
+                                        trichMauOCListObject[symbolCandleID].minPrice.push(khoangGia)
+                                    }
                                 }
-                                conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-                                // if (coinCurrent >= priceOrder) {
-                                //     priceOrder = coinCurrent
-                                // }
-                            }
 
-                            const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
+                                trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
 
-                            const dataInput = {
-                                strategy,
-                                strategyID,
-                                ApiKey,
-                                SecretKey,
-                                symbol,
-                                qty,
-                                side,
-                                price: priceOrder.toFixed(strategy.digit),
-                                candle: strategy.Candlestick,
-                                botName,
-                                botID
-                            }
+                                if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                    let conditionOrder = 0
+                                    let priceOrder = 0
 
-                            if (side === "Buy") {
-                                +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
-                            }
-                            else {
-                                // SELL
-                                +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
-                            }
-                            // }
+                                    // Check pre coin type 
 
-                            // }, 250)
+                                    let coinPreCoin = ""
+                                    let conditionPre = true
+
+                                    const pricePreData = listPricePreOne[symbolCandleID]
+                                    if (pricePreData.close > pricePreData.open) {
+                                        coinPreCoin = "Blue"
+                                    }
+                                    else {
+                                        coinPreCoin = "Red"
+                                    }
+                                    // BUY
+                                    if (side === "Buy") {
+
+                                        if (coinPreCoin === "Blue") {
+                                            const preValue = pricePreData.high - pricePreData.open
+                                            const currentValue = coinOpen - coinCurrent
+                                            conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                        }
+                                        conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                        priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+                                        if (coinCurrent <= priceOrder) {
+                                            priceOrder = coinCurrent
+                                        }
+                                    }
+                                    else {
+                                        // SELL
+                                        if (coinPreCoin === "Red") {
+                                            const preValue = pricePreData.open - pricePreData.low
+                                            const currentValue = coinCurrent - coinOpen
+                                            conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                        }
+                                        conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                        priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
+                                        if (coinCurrent >= priceOrder) {
+                                            priceOrder = coinCurrent
+                                        }
+                                    }
+
+                                    const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
+
+                                    const dataInput = {
+                                        strategy,
+                                        strategyID,
+                                        ApiKey,
+                                        SecretKey,
+                                        symbol,
+                                        qty,
+                                        side,
+                                        price: priceOrder.toFixed(strategy.digit),
+                                        candle: strategy.Candlestick,
+                                        botName,
+                                        botID
+                                    }
+
+                                    if (side === "Buy") {
+                                        +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
+                                    }
+                                    else {
+                                        // SELL
+                                        +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
+                                    }
+                                }
+
+                            }, 250)
                         }
                         // else if (allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC.orderFilled) {
                         //     if (!allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID && !allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderingStatus && allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.dataSend?.price) {
@@ -1306,6 +1311,12 @@ const Main = async () => {
                                 botName,
                                 botID
                             })
+                        }
+
+                        trichMauOCListObject[symbolCandleID] = {
+                            maxPrice: 0,
+                            minPrice: [],
+                            prePrice: 0
                         }
 
                     }
@@ -1953,14 +1964,14 @@ socketRealtime.on('sync-symbol', async (newData) => {
 });
 
 socketRealtime.on("close-limit", async (data) => {
-    const { positionData } = data
+    const { positionData, closeLimitFunc } = data
     const symbol = positionData.Symbol
     const botID = positionData.botID
     const botName = positionData.BotName
 
     const botSymbolMissID = `${botID}-${symbol}`
 
-    await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
+    Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
         return handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,
@@ -1971,7 +1982,12 @@ socketRealtime.on("close-limit", async (data) => {
             botID,
             botName
         })
-    }))
+    })).then(() => {
+        const message = closeLimitFunc()
+        console.log(closeLimitFunc);
+    }).catch(err => {
+        console.log(changeColorConsole.redBright("[!] Close Limit Error:", err));
+    })
 
     // Hủy thành công tp trước mới đăẹt limit
 })
