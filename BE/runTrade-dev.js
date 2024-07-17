@@ -1963,6 +1963,8 @@ socketRealtime.on("close-limit", async (data) => {
             botName
         })
     }))
+
+    // Hủy thành công tp trước mới đăẹt limit
 })
 
 socketRealtime.on('disconnect', () => {
