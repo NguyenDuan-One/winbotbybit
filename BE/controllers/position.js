@@ -190,7 +190,7 @@ const PositionController = {
     closeLimit: async (req, res) => {
         const { positionData, Quantity, Price } = req.body
 
-        const closeLimitFunc = ({
+        const handleCloseLimitFunc = ({
             positionData,
             Quantity,
             Price
@@ -201,7 +201,7 @@ const PositionController = {
                 key: positionData.botData.ApiKey,
                 secret: positionData.botData.SecretKey,
             });
-            client
+            return client
                 .submitOrder({
                     category: 'linear',
                     symbol,
@@ -211,19 +211,17 @@ const PositionController = {
                     qty: Math.abs(Quantity).toString(),
                     price: Math.abs(Price).toString(),
                 })
-                .then(async (response) => {
+                .then((response) => {
                     if (response.retCode == 0) {
 
-                        await PositionController.updatePositionBE({
+                        PositionController.updatePositionBE({
                             newDataUpdate: {
                                 Miss: false,
                                 TimeUpdated: new Date()
                             },
                             orderID: positionData.id
                         })
-
                         return "Close Limit Successful"
-
 
                     }
                     else {
@@ -231,7 +229,7 @@ const PositionController = {
                     }
                 })
                 .catch((error) => {
-                    return "Close Limit Error"
+                    return `Close Limit Error: ${error}`
                 });
         }
 
@@ -240,7 +238,7 @@ const PositionController = {
             type: "close-limit",
             data: {
                 positionData,
-                closeLimitFunc: closeLimitFunc({
+                closeLimitFunc: handleCloseLimitFunc({
                     positionData,
                     Quantity,
                     Price

@@ -100,7 +100,11 @@ const handleSubmitOrder = async ({
                     strategy,
                     OC: true,
                 }
-                console.log(`\n[+OC] Order OC ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
+
+                const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
+
+                console.log(`\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
+                console.log("Coin open", strategy.coinOpen);
             }
             else {
                 console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
@@ -127,7 +131,7 @@ const handleSubmitOrderTP = ({
     botID
 }) => {
 
-    console.log(changeColorConsole.greenBright(`Price order TP:`, price));
+    console.log(changeColorConsole.greenBright(`Price order TP ( ${botName} - ${side} - ${symbol} - ${candle} ):`, price));
 
 
     const botSymbolMissID = `${botID}-${symbol}`
@@ -243,7 +247,7 @@ const moveOrderTP = ({
     botName,
     botID
 }) => {
-    console.log(changeColorConsole.greenBright(`Price Move TP:`, price));
+    console.log(changeColorConsole.greenBright(`Price Move TP ( ${botName} - ${side} - ${symbol} - ${candle} ):`, price));
 
     const client = new RestClientV5({
         testnet: false,
@@ -389,6 +393,18 @@ const handleCancelOrderTP = ({
 
                 if (gongLai) {
                     missTPDataBySymbol[botSymbolMissID].gongLai = true
+                    missTPDataBySymbol[botSymbolMissID]?.orderIDToDB && updatePositionBE({
+                        newDataUpdate: {
+                            Miss: true,
+                            TimeUpdated: new Date()
+                        },
+                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                    }).then(message => {
+                        console.log(message);
+                        updateMongoMiss = true
+                    }).catch(err => {
+                        console.log(changeColorConsole.redBright(err));
+                    })
                     resetMissData({
                         botID,
                         symbol
@@ -623,10 +639,10 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 let TPNew = 0
 
                                 if (strategy.PositionSide === "Long") {
-                                    TPNew = openTrade + (openTrade * newOC / 100) * (strategy.TakeProfit / 100)
+                                    TPNew = openTrade + Math.abs((openTrade - strategy.coinOpen)) * (strategy.TakeProfit / 100)
                                 }
                                 else {
-                                    TPNew = openTrade - (openTrade * newOC / 100) * (strategy.TakeProfit / 100)
+                                    TPNew = openTrade - Math.abs((openTrade - strategy.coinOpen)) * (strategy.TakeProfit / 100)
                                 }
 
                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = TPNew
@@ -795,7 +811,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             }
                             else (dataMain.orderType === "Limit")
                             {
-                                console.log("[...] Cancel All Current TP");
                                 // Object.values(allStrategiesByCandleAndSymbol[symbol]).forEach(async data => {
                                 //     const item = data[strategyID]
                                 //     console.log(item);
@@ -1113,7 +1128,6 @@ const Main = async () => {
                     const strategyID = strategy.value
 
                     strategy.digit = digitAllCoinObject[strategy.symbol]
-
                     strategy.coinOpen = coinOpen
 
                     const botID = strategy.botID._id
@@ -1214,7 +1228,6 @@ const Main = async () => {
                                         +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
                                     }
                                     else {
-                                        // SELL
                                         +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
                                     }
                                 }
@@ -1513,20 +1526,6 @@ socketRealtime.on('update', async (newData = []) => {
                     }
                 }
             }
-            else {
-                !updateMongoMiss && missTPDataBySymbol[botSymbolMissID]?.orderIDToDB && updatePositionBE({
-                    newDataUpdate: {
-                        Miss: true,
-                        TimeUpdated: new Date()
-                    },
-                    orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                }).then(message => {
-                    console.log(message);
-                    updateMongoMiss = true
-                }).catch(err => {
-                    console.log(changeColorConsole.redBright(err));
-                })
-            }
 
 
             const cancelDataObject = {
@@ -1606,7 +1605,6 @@ socketRealtime.on('delete', (newData) => {
 
             if (OCOrderID || TPOrderID || TPMissOrderID) {
                 OCOrderID && handleCancelOrderOC(cancelDataObject)
-
 
                 TPOrderID && handleCancelOrderTP({
                     ...cancelDataObject,
@@ -1964,6 +1962,7 @@ socketRealtime.on('sync-symbol', async (newData) => {
 });
 
 socketRealtime.on("close-limit", async (data) => {
+    console.log("[...] Close Limit");
     const { positionData, closeLimitFunc } = data
     const symbol = positionData.Symbol
     const botID = positionData.botID
@@ -1984,7 +1983,7 @@ socketRealtime.on("close-limit", async (data) => {
         })
     })).then(() => {
         const message = closeLimitFunc()
-        console.log(closeLimitFunc);
+        console.log(message);
     }).catch(err => {
         console.log(changeColorConsole.redBright("[!] Close Limit Error:", err));
     })
