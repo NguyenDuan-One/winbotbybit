@@ -1998,5 +1998,3 @@ process.once('SIGTERM', () => {
         botData?.stop('SIGTERM')
     })
 })
-
-// check
