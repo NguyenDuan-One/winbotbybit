@@ -264,12 +264,12 @@ const moveOrderTP = ({
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
             }
         })
         .catch((error) => {
             console.log(changeColorConsole.redBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-            // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
         });
 
 }
@@ -821,7 +821,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             // Khớp TP
                             if (TPTrue) {
                                 console.log(`[-] Cancelled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
-                                // cancelAll({   strategyID, symbol })
+                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
                             }
                             else if (OCTrue) {
                                 console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
@@ -1132,6 +1132,8 @@ const Main = async () => {
                                 const coinCurrent = +dataMain.close
 
                                 const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+
+                                // X-D-D || D-D-D
 
                                 if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
                                     trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
@@ -1962,14 +1964,14 @@ socketRealtime.on('sync-symbol', async (newData) => {
 });
 
 socketRealtime.on("close-limit", async (data) => {
-    const { positionData } = data
+    const { positionData, closeLimitFunc } = data
     const symbol = positionData.Symbol
     const botID = positionData.botID
     const botName = positionData.BotName
 
     const botSymbolMissID = `${botID}-${symbol}`
 
-    await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
+    Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
         return handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,
@@ -1980,7 +1982,12 @@ socketRealtime.on("close-limit", async (data) => {
             botID,
             botName
         })
-    }))
+    })).then(() => {
+        const message = closeLimitFunc()
+        console.log(closeLimitFunc);
+    }).catch(err => {
+        console.log(changeColorConsole.redBright("[!] Close Limit Error:", err));
+    })
 
     // Hủy thành công tp trước mới đăẹt limit
 })
