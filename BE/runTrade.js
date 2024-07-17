@@ -435,6 +435,7 @@ const cancelAll = (
 }
 
 // 
+
 const sendMessageWithRetry = async ({
     messageText,
     retries = 5,
@@ -442,6 +443,13 @@ const sendMessageWithRetry = async ({
     telegramToken,
 }) => {
 
+<<<<<<< HEAD
+    const BOT_TOKEN_RUN_TRADE = new Telegraf(telegramToken);
+
+    try {
+        await BOT_TOKEN_RUN_TRADE.launch();
+
+=======
     let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramID]
 
     try {
@@ -451,11 +459,16 @@ const sendMessageWithRetry = async ({
             BOT_TOKEN_RUN_TRADE.launch();
             botListTelegram[telegramID] = newBotInit
         }
+>>>>>>> dev
         for (let i = 0; i < retries; i++) {
             try {
                 if (messageText) {
                     await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
+<<<<<<< HEAD
+                    console.log('Message sent to telegram successfully');
+=======
                     console.log('[->] Message sent to telegram successfully');
+>>>>>>> dev
                     return;
                 }
             } catch (error) {
@@ -468,6 +481,17 @@ const sendMessageWithRetry = async ({
                 }
             }
         }
+<<<<<<< HEAD
+
+        throw new Error('Failed to send message after multiple retries');
+    } catch (error) {
+        console.log("[!] Bot Telegram Error:", error);
+    } finally {
+        await BOT_TOKEN_RUN_TRADE.stop();
+    }
+};
+
+=======
 
         throw new Error('[!] Failed to send message after multiple retries');
     } catch (error) {
@@ -475,6 +499,7 @@ const sendMessageWithRetry = async ({
     } finally {
     }
 };
+>>>>>>> dev
 
 const handleSocketBotApiList = async (botApiList = {}) => {
 
@@ -1805,6 +1830,36 @@ socketRealtime.on('bot-update', async (newData = []) => {
         if (IsActive) {
             if (!botApiList[botID]) {
 
+<<<<<<< HEAD
+    socketRealtime.on('bot-delete', (data) => {
+        const { newData, botID: botIDMain } = data;
+        console.log("[...] Deleted Strategies From Realtime");
+
+        newData.map(async strategiesData => {
+
+            const ApiKey = strategiesData.botID.ApiKey
+            const SecretKey = strategiesData.botID.SecretKey
+
+            const symbol = strategiesData.symbol
+            const strategyID = strategiesData.value
+            const botID = strategiesData.botID._id
+            const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
+
+            switch (strategiesData.Candlestick) {
+                case "1m": {
+                    delete allStrategies1m[strategyID]
+                    break
+                }
+                case "3m": {
+                    delete allStrategies3m[strategyID]
+                    break
+
+                }
+                case "5m": {
+                    delete allStrategies5m[strategyID]
+                    break
+
+=======
                 botApiList[botID] = {
                     id: botID,
                     ApiKey,
@@ -1816,7 +1871,46 @@ socketRealtime.on('bot-update', async (newData = []) => {
                     ApiKey,
                     SecretKey,
                     botName
+>>>>>>> dev
                 }
+                case "15m": {
+                    delete allStrategies15m[strategyID]
+                    break
+                }
+            }
+
+            const cancelDataObject = {
+                ApiKey,
+                SecretKey,
+                tradeCoinData,
+                strategyID,
+                symbol: symbol,
+                candle: strategiesData.Candlestick,
+                side,
+            }
+
+            delete tradeCoinData[strategyID]
+            delete allStrategiesActiveByBotID[botID]?.[strategyID]
+
+            const OCOrderID = tradeCoinData[strategyID]?.OC?.orderID
+            const TPOrderID = tradeCoinData[strategyID]?.TP?.orderID
+            const TPMissOrderID = missTPDataBySymbol[symbol]?.orderID
+
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
+
+
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
+                await delay(500)
             }
             !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
             allStrategiesActiveByBotID[botID][strategyID] = strategiesData
