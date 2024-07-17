@@ -2,7 +2,7 @@ import { FormControl, FormLabel, Select, MenuItem, Button } from "@mui/material"
 import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
 import styles from './Position.module.scss'
 import { useEffect, useRef, useState } from "react";
-import { getAllBotActiveByUserID } from "../../services/botService";
+import { getAllBotOnlyApiKeyByUserID } from "../../services/botService";
 import DataGridCustom from "../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
 import { updatePL } from "../../services/positionService";
@@ -91,7 +91,13 @@ function Position() {
         {
             field: 'Time',
             headerName: 'Time Created',
-            minWidth: 170,
+            minWidth: 200,
+            flex: window.innerWidth <= 740 ? undefined : 1,
+        },
+        {
+            field: 'TimeUpdated',
+            headerName: 'Time Updated',
+            minWidth: 200,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
@@ -189,7 +195,7 @@ function Position() {
 
     const handleGetAllBotByUserID = () => {
         const userData = JSON.parse(localStorage.getItem("user"))
-        getAllBotActiveByUserID(userData._id)
+        getAllBotOnlyApiKeyByUserID(userData._id)
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -256,6 +262,7 @@ function Position() {
                         Side: item.Side,
                         Price: item.Price,
                         Time: new Date(item.Time).toLocaleString(),
+                        TimeUpdated: new Date(item.TimeUpdated).toLocaleString(),
                         Quantity: item.Quantity,
                         Pnl: (+item.Pnl).toFixed(4),
                         Miss: item.Miss,

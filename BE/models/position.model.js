@@ -10,6 +10,7 @@ const positionSchema = new mongoose.Schema({
   Quantity	: String,
   Pnl: String,
   Time: Date,
+  TimeUpdated: Date,
   Miss: Boolean,
   botID: {
     type: mongoose.Types.ObjectId,

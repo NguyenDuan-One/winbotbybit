@@ -54,7 +54,8 @@ const PositionController = {
                             Side: viTheListItem.side,
                             Price: +viTheListItem.avgPrice,
                             Symbol: viTheListItem.symbol,
-                            Quantity: viTheListItem.size
+                            Quantity: viTheListItem.size,
+                            TimeUpdated: new Date()
                         };
 
                         if (positionDataNew.Quantity != 0) {
@@ -103,7 +104,6 @@ const PositionController = {
                                 return PositionController.createPositionBE({
                                     ...positionData,
                                     botID: dataBotItem.value,
-                                    Time: new Date(),
                                     Miss: true
                                 });
                             }
@@ -213,7 +213,8 @@ const PositionController = {
 
                     PositionController.updatePositionBE({
                         newDataUpdate: {
-                            Miss: false
+                            Miss: false,
+                            TimeUpdated: new Date()
                         },
                         orderID: positionData.id
                     })
@@ -255,7 +256,7 @@ const PositionController = {
                     id: data._id
                 }
             }
-        } catch (err) {
+        } catch (error) {
             return `[Mongo] Re-Get Position Error: ${error}`
 
         }
@@ -266,7 +267,8 @@ const PositionController = {
 
             const newBot = new PositionModel({
                 ...newData,
-                Time: new Date()
+                Time: new Date(),
+                TimeUpdated: new Date()
             });
 
             const savedBot = await newBot.save();

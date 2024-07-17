@@ -588,8 +588,8 @@ function EditMulTreeItem({
                                     </TableCell>
                                     <TableCell
                                         style={{
-                                            maxWidth: "130px",
-                                            width: "130px"
+                                            maxWidth: "150px",
+                                            width: "150px"
                                         }}
                                     >
                                         <Select

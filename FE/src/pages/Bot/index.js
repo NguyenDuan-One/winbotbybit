@@ -291,7 +291,8 @@ function Bot() {
                         ...item,
                         id: item?._id,
                         Created: item?.Created && new Date(item?.Created).toLocaleDateString(),
-                        userName: `${item.userID?.userName} ( ${item.userID?.roleName} )`
+                        userName: `${item.userID?.userName} ( ${item.userID?.roleName} )`,
+                        OwnBot:item.userID?._id === userData._id
                     }
                 ))
                 botListDefaultRef.current = newData

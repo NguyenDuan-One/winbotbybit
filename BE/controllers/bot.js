@@ -97,6 +97,22 @@ const BotController = {
             res.status(500).json({ message: err.message });
         }
     },
+    getAllBotOnlyApiKeyByUserID: async (req, res) => {
+        try {
+            const userID = req.params.id;
+
+            // ref: .populate({ path: "coinID", models: "Coin" })
+            const data = await BotModel.find({
+                userID,
+                ApiKey: { $exists: true, $ne: null },
+                SecretKey: { $exists: true, $ne: null }
+            }, { telegramToken: 0 }).sort({ Created: -1 })
+            res.customResponse(res.statusCode, "Get All Bot Successful", data);
+
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
     getAllBotBySameGroup: async (req, res) => {
         try {
             const groupID = req.params.id;
@@ -146,73 +162,86 @@ const BotController = {
 
             const botID = req.params.id;
 
+
             const { type, checkBot, ...data } = req.body;
 
-            const result = await BotModel.updateOne({ _id: botID }, { $set: data })
-
-            if (type === "Active") {
-                if (checkBot) {
-                    const IsActive = data.Status === "Running" ? true : false;
-
-                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                        botID,
-                        IsActive
-                    })
-
-                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                        type: "bot-update",
-                        data: newDataSocketWithBotData
-                    })
-
-                }
+            const dataCheckBotApi = await BotModel.findOne({
+                ApiKey: data.ApiKey
             }
-            else if (type === "Api") {
-                if (checkBot) {
-                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                        botID,
-                        IsActive: true
-                    })
+            ).sort({ Created: -1 })
 
-                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                        type: "bot-api",
-                        data: {
-                            newData: newDataSocketWithBotData,
+
+            if (!dataCheckBotApi) {
+
+                const result = await BotModel.updateOne({ _id: botID }, { $set: data })
+
+                if (type === "Active") {
+                    if (checkBot) {
+                        const IsActive = data.Status === "Running" ? true : false;
+
+                        const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
                             botID,
-                            newApiData: {
-                                ApiKey: data.ApiKey,
-                                SecretKey: data.SecretKey
-                            }
-                        }
-                    })
-                }
-            }
-            else if (type === "telegram") {
-                if (checkBot) {
-                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                        botID,
-                        IsActive: true
-                    })
+                            IsActive
+                        })
 
-                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                        type: "bot-telegram",
-                        data: {
-                            newData: newDataSocketWithBotData,
+                        newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                            type: "bot-update",
+                            data: newDataSocketWithBotData
+                        })
+
+                    }
+                }
+                else if (type === "Api") {
+                    if (checkBot) {
+                        const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
                             botID,
-                            newApiData: {
-                                telegramIDOld: data.telegramIDOld,
-                                telegramID: data.telegramID,
-                                telegramToken: data.telegramToken,
-                            }
-                        }
-                    })
-                }
-            }
+                            IsActive: true
+                        })
 
-            if (result.acknowledged && result.matchedCount !== 0) {
-                res.customResponse(200, "Update Bot Successful", "");
+                        newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                            type: "bot-api",
+                            data: {
+                                newData: newDataSocketWithBotData,
+                                botID,
+                                newApiData: {
+                                    ApiKey: data.ApiKey,
+                                    SecretKey: data.SecretKey
+                                }
+                            }
+                        })
+                    }
+                }
+                else if (type === "telegram") {
+                    if (checkBot) {
+                        const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                            botID,
+                            IsActive: true
+                        })
+
+                        newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                            type: "bot-telegram",
+                            data: {
+                                newData: newDataSocketWithBotData,
+                                botID,
+                                newApiData: {
+                                    telegramIDOld: data.telegramIDOld,
+                                    telegramID: data.telegramID,
+                                    telegramToken: data.telegramToken,
+                                }
+                            }
+                        })
+                    }
+                }
+
+                if (result.acknowledged && result.matchedCount !== 0) {
+                    res.customResponse(200, "Update Bot Successful", "");
+                }
+                else {
+                    res.customResponse(400, "Update Bot failed", "");
+                }
             }
             else {
-                res.customResponse(400, "Update Bot failed", "");
+                res.customResponse(400, "Api Bot Already Exists", "");
             }
 
         } catch (error) {
@@ -280,7 +309,13 @@ const BotController = {
     getAllBotActive: async () => {
         try {
             // ref: .populate({ path: "coinID", models: "Coin" })
-            const data = await BotModel.find({ Status: "Running" }).sort({ Created: -1 })
+            const data = await BotModel.find(
+                {
+                    Status: "Running",
+                    ApiKey: { $exists: true, $ne: null },
+                    SecretKey: { $exists: true, $ne: null }
+                }
+            ).sort({ Created: -1 })
             return data
         } catch (err) {
             return []

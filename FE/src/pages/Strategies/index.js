@@ -352,7 +352,7 @@ function Strategies() {
 
             if (selectAllRef.current) {
                 document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
-                    if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
+                    if (dataTreeViewIndex - SCROLL_INDEX - 1 <= index && index < dataTreeViewIndex) {
                         item.checked = false
                         item.click()
                     }
@@ -379,7 +379,7 @@ function Strategies() {
     }, [filterQuantityRef.current.length]);
 
     useEffect(() => {
-        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && !filterQuantityRef.current.length && handleGetAllStrategies()
+        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange)  && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
     return (
@@ -593,7 +593,7 @@ function Strategies() {
                 <div className={styles.strategiesBtnActionItem}
                     onClick={handleSyncSymbol}
                 >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
+                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
 
                         {
                             !loadingUploadSymbol ? <CloudSyncIcon /> : <CircularProgress style={{ width: "50%", height: "50%" }} color='inherit' />
