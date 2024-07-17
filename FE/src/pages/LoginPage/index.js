@@ -1,6 +1,7 @@
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import styles from "./LoginPage.module.scss"
 import logoImage from "../../assets/logo.png"
-import { Button, FormControl, FormLabel, TextField } from "@mui/material";
+import { Button, FormControl, FormLabel, InputAdornment, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import api from "../../utils/api";
 import { useDispatch } from "react-redux";
@@ -24,7 +25,7 @@ function LoginPage() {
     const handleLogin = async (data) => {
         data = {
             ...data,
-            userName: data.userName.trim(),
+            userName: data.userName?.trim(),
         }
         try {
             const res = await login(data);
@@ -86,6 +87,21 @@ function LoginPage() {
                                 type="password"
                                 size="small"
                                 {...register("password", { required: true, minLength: 5 })}
+                                InputProps={{
+                                    endAdornment:
+                                        <InputAdornment
+                                            position="end"
+                                            style={{
+                                                cursor: "pointer"
+                                            }}
+                                            onClick={e => {
+                                                const typeCurrent = e.currentTarget.parentElement.querySelector("input")
+                                                typeCurrent.type === "password" ? (typeCurrent.type = "text") : (typeCurrent.type = "password")
+                                            }}
+                                        >
+                                            <RemoveRedEyeIcon />
+                                        </InputAdornment>
+                                }}
                             />
                             {errors.password?.type === 'required' && <p className="formControlErrorLabel">The Password field is required.</p>}
                             {errors.password?.type === 'minLength' && <p className="formControlErrorLabel">Minimum length is 5 characters.</p>}

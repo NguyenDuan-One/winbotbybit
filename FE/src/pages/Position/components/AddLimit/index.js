@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, TextField, Select, MenuItem } from "@mui/material";
+import { FormControl, FormLabel, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import DialogCustom from "../../../../components/DialogCustom";
@@ -27,8 +27,8 @@ function AddLimit({
         try {
             const res = await closeLimit({
                 positionData,
-                Quantity: data.Quantity,
-                Price: data.Price
+                Quantity: positionData.Quantity,
+                Price: priceCurrent
             })
             const { status, message } = res.data
 
@@ -59,11 +59,10 @@ function AddLimit({
 
     const handleGetPriceCurrent = async () => {
         try {
-            const symbol = positionData.symbol
-
-            const res = await getPriceLimitCurrent({ symbol })
+            const symbol = positionData.Symbol
+            const res = await getPriceLimitCurrent(symbol)
             const { status, message, data: resData } = res.data
-
+            console.log(res.data);
             if (status === 200) {
                 setPriceCurrent(resData)
             }
@@ -95,14 +94,17 @@ function AddLimit({
             submitBtnColor="warning"
         >
             {
-                priceCurrent != 0 && <form className={styles.dialogForm}>
+               <form className={styles.dialogForm}>
                     <FormControl className={styles.formControl}>
                         <FormLabel className={styles.label}>Price</FormLabel>
                         <TextField
                             {...register("Price", { required: true })}
                             type="number"
                             size="small"
-                            defaultValue={priceCurrent}
+                            value={priceCurrent}
+                            onChange = {e=>{
+                                setPriceCurrent(e.target.value)
+                            }}
                         />
                         {errors.Price && <p className="formControlErrorLabel">The Price field is required.</p>}
 
@@ -110,17 +112,15 @@ function AddLimit({
                     <FormControl className={styles.formControl}>
                         <FormLabel className={styles.label}>Quantity</FormLabel>
                         <TextField
-                            {...register("Quantity", { required: true })}
+                            {...register("Quantity")}
                             type="number"
                             size="small"
-                            value={positionData.Quantity}
+                            value={Math.abs(positionData.Quantity)}
                             disabled
                         />
                         {errors.Quantity && <p className="formControlErrorLabel">The Quantity field is required.</p>}
 
                     </FormControl>
-
-
                 </form>
             }
         </DialogCustom>

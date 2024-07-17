@@ -21,6 +21,7 @@ function DataGridCustom({
     return (
 
         <DataGrid
+            getRowClassName={params => params.row.OwnBot && "own-bot"}
             disableRowSelectionOnClick
             disableMultipleRowSelection={disableMultipleRowSelection}
             isRowSelectable={params => disabledListRow.length > 0 ? !disabledListRow.includes(params.row.id) : params}

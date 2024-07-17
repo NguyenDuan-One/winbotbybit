@@ -190,32 +190,49 @@ function Group() {
     const handleGetAllGroup = async () => {
         try {
             let res
+            let checkUserGroup = true
             if (checkAdminTrue) {
                 res = await getAllGroup()
             }
             else {
-                res = await getGroupByID(userData?.groupID)
+                const groupIDUser = userData?.groupID
+                if (groupIDUser) {
+                    res = await getGroupByID(userData?.groupID)
+                }
+                else {
+                    checkUserGroup = false
+                }
             }
 
-            const { status, data: resData } = res.data
+            if (checkUserGroup) {
+                const { status, data: resData } = res.data
 
-            const newResData = checkAdminTrue ? resData : [resData]
-            if (status === 200) {
-                const newData = newResData?.map(item => (
-                    {
-                        name: item.name,
-                        value: item._id,
+                const newResData = checkAdminTrue ? resData : [resData]
+                if (status === 200) {
+                    const newData = newResData?.map(item => (
+                        {
+                            name: item.name,
+                            value: item._id,
+                        }
+                    ))
+                    if (checkAdminTrue) {
+                        newData.unshift({
+                            name: "All",
+                            value: "All",
+                        })
                     }
-                ))
-                if (checkAdminTrue) {
-                    newData.unshift({
-                        name: "All",
-                        value: "All",
-                    })
+                    setGroupSelected(newData[0].value)
+                    setGroupList(newData)
+                    handleGetUserByGroup(newData[0].value)
                 }
-                setGroupSelected(newData[0].value)
-                setGroupList(newData)
-                handleGetUserByGroup(newData[0].value)
+            }
+            else {
+                setUserList([
+                    {
+                        ...userData,
+                        id: userData._id
+                    }
+                ])
             }
         } catch (error) {
             dispatch(addMessageToast({

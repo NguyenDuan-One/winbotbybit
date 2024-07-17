@@ -1,5 +1,6 @@
 const { RestClientV5 } = require('bybit-api');
 const PositionModel = require('../models/position.model');
+const BotModel = require('../models/bot.model');
 
 const PositionController = {
 
@@ -24,42 +25,102 @@ const PositionController = {
         }
     },
 
+
     updatePL: async (req, res) => {
         try {
             const { botListID } = req.body
-            const data = await PositionModel.find({ botID: { $in: botListID } }).populate("botID")
 
-            if (data.length > 0) {
+            const newBotListID = botListID.map(item => item.value)
 
-                const newData = await Promise.allSettled(data.map(positionData => {
+            if (botListID.length > 0) {
+                const dataPosition = await PositionModel.find({ botID: { $in: botListID.map(item => item.value) } }).sort({ Time: -1 }).populate("botID")
+
+                const updatePositionExist = Promise.allSettled(dataPosition.map(positionData => {
                     const client = new RestClientV5({
                         testnet: false,
                         key: positionData.botID.ApiKey,
                         secret: positionData.botID.SecretKey,
                     });
-                    return client
-                        .getPositionInfo({
-                            category: 'linear',
-                            symbol: positionData.Symbol
-                        })
-                        .then((response) => {
-                            const newPnL = response.result.list[0].unrealisedPnl
-                            const sizeNew = response.result.list[0].size
-                            
-                            positionData.Pnl = newPnL
-                            sizeNew != 0 ? PositionController.updatePositionBE({
-                                newDataUpdate: positionData,
-                                orderID: positionData.orderID
-                            }) : PositionController.deletePositionBE({
-                                orderID: positionData.orderID
+
+                    return client.getPositionInfo({
+                        category: 'linear',
+                        symbol: positionData.Symbol
+                    }).then((response) => {
+
+                        const viTheListItem = response.result.list[0];
+
+                        const positionDataNew = {
+                            Pnl: viTheListItem.unrealisedPnl,
+                            Side: viTheListItem.side,
+                            Price: +viTheListItem.avgPrice,
+                            Symbol: viTheListItem.symbol,
+                            Quantity: viTheListItem.size,
+                            TimeUpdated: new Date()
+                        };
+
+                        if (positionDataNew.Quantity != 0) {
+                            return PositionController.updatePositionBE({
+                                newDataUpdate: positionDataNew,
+                                orderID: positionData._id
                             })
-                            return positionData
-                        })
-                        .catch((error) => {
-                            console.log("Error", error);
-                        });
-                }))
-                res.customResponse(200, "Refresh Position Successful", newData.map(item => item.value));
+                        } else {
+                            return PositionController.deletePositionBE({
+                                orderID: positionData._id
+                            });
+                        }
+
+                    }).catch(error => {
+                        console.log("Error", error);
+                        return []; // For example, return an empty array if you want to continue
+                    });
+                }));
+
+                const createPositionNew = Promise.allSettled(botListID.map(dataBotItem => {
+                    const client = new RestClientV5({
+                        testnet: false,
+                        key: dataBotItem.ApiKey,
+                        secret: dataBotItem.SecretKey,
+                    });
+
+                    return client.getPositionInfo({
+                        category: 'linear',
+                        settleCoin: "USDT"
+                        // symbol: positionData.Symbol
+                    }).then(async response => {
+                        const viTheList = response.result.list;
+
+                        return await Promise.allSettled(viTheList.map(viTheListItem => {
+                            const positionData = {
+                                Pnl: viTheListItem.unrealisedPnl,
+                                Side: viTheListItem.side,
+                                Price: +viTheListItem.avgPrice,
+                                Symbol: viTheListItem.symbol,
+                                Quantity: viTheListItem.size
+                            };
+
+                            const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+
+                            if (!checkPositionExist) {
+                                return PositionController.createPositionBE({
+                                    ...positionData,
+                                    botID: dataBotItem.value,
+                                    Miss: true
+                                });
+                            }
+                        }));
+                    }).catch(error => {
+                        console.log("Error", error);
+                        // Handle error as per your application's error handling strategy
+                        // Return an appropriate value or handle the error here
+                        return []; // For example, return an empty array if you want to continue
+                    });
+                }));
+
+                await Promise.allSettled([updatePositionExist, createPositionNew])
+
+                const newData = await PositionModel.find({ botID: { $in: newBotListID } }).populate("botID")
+
+                res.customResponse(200, "Refresh Position Successful", newData);
             }
             else {
                 res.customResponse(200, "Refresh Position Successful", "");
@@ -84,10 +145,9 @@ const PositionController = {
                 interval: '1',
             }).then(response => {
                 const priceCurrent = response.result.list[0]?.[4]
-                console.log("priceCurrent", priceCurrent);
                 res.customResponse(200, "Get Price Current Successful", priceCurrent);
             }).catch(err => {
-                res.customResponse(200, "Get Price Current Error", "");
+                res.customResponse(400, "Get Price Current Failed", "");
             })
 
         } catch (error) {
@@ -151,6 +211,14 @@ const PositionController = {
                 if (response.retCode == 0) {
                     res.customResponse(200, "Close Limit Successful");
 
+                    PositionController.updatePositionBE({
+                        newDataUpdate: {
+                            Miss: false,
+                            TimeUpdated: new Date()
+                        },
+                        orderID: positionData.id
+                    })
+
                     PositionController.sendDataRealtime({
                         type: "close-limit",
                         data: {
@@ -168,26 +236,54 @@ const PositionController = {
     },
 
     // OTHER
+
+    getPositionBySymbol: async ({ symbol, botID }) => {
+        try {
+            const data = await PositionModel.findOne({
+                Symbol: symbol,
+                botID: botID
+            })
+
+            if (data) {
+                return {
+                    message: "[Mongo] Re-Get Position Successful",
+                    id: data._id
+                }
+            }
+            else {
+                return {
+                    message: "[Mongo] Re-Get Position Failed",
+                    id: data._id
+                }
+            }
+        } catch (error) {
+            return `[Mongo] Re-Get Position Error: ${error}`
+
+        }
+    },
+
     createPositionBE: async (newData) => {
         try {
 
-            const { Symbol } = newData
-
-            // const checkSymbolExists = await PositionModel.findOne({ Symbol })
-
-            // if (!checkSymbolExists) {
             const newBot = new PositionModel({
                 ...newData,
-                Time: new Date()
+                Time: new Date(),
+                TimeUpdated: new Date()
             });
 
             const savedBot = await newBot.save();
 
             if (savedBot) {
-                return "[Mongo] Add Position Successful"
+                return {
+                    message: "[Mongo] Add Position Successful",
+                    id: savedBot._id
+                }
             }
             else {
-                return "[Mongo] Add Position Failed"
+                return {
+                    message: "[Mongo] Add Position Failed",
+                    id: ""
+                }
             }
 
         } catch (error) {
@@ -200,11 +296,9 @@ const PositionController = {
         orderID
     }) => {
         try {
-            const result = await PositionModel.updateOne({ orderID: orderID }, {
-                $set: {
-                    ...newDataUpdate,
-                    Time: new Date()
-                }
+
+            const result = await PositionModel.updateOne({ _id: orderID }, {
+                $set: newDataUpdate
             });
 
             if (result.acknowledged && result.matchedCount !== 0) {
@@ -222,7 +316,7 @@ const PositionController = {
     deletePositionBE: async ({ orderID }) => {
         try {
 
-            const result = await PositionModel.deleteOne({ orderID })
+            const result = await PositionModel.deleteOne({ _id: orderID })
 
             if (result.deletedCount && result.deletedCount !== 0) {
                 return "[Mongo] Delete Position Successful"

@@ -37,14 +37,6 @@ function FilterDialog({
             name: "Min15",
             value: "Min15"
         },
-        {
-            name: "Min30",
-            value: "Min30"
-        },
-        {
-            name: "Min60",
-            value: "Min60"
-        },
 
     ]
 
@@ -204,6 +196,8 @@ function FilterDialog({
     }
 
     const handleCompare = (value1, compareValue, value2) => {
+
+
         if (typeof (value1) === "string") {
             value1 = +value1
         }
@@ -239,8 +233,8 @@ function FilterDialog({
                     value={item.data.value}
                     defaultValue=""
                     size="small"
-                    style = {{
-                        width:"100%"
+                    style={{
+                        width: "100%"
                     }}
                 >
                     {
@@ -256,8 +250,8 @@ function FilterDialog({
                     value={item.data.value}
                     defaultValue=""
                     size="small"
-                    style = {{
-                        width:"100%"
+                    style={{
+                        width: "100%"
                     }}
                 >
                     {
@@ -280,8 +274,8 @@ function FilterDialog({
                     value={item.data.value}
                     onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
                     size="small"
-                    style = {{
-                        width:"100%"
+                    style={{
+                        width: "100%"
                     }}
                 >
                 </TextField>
@@ -319,10 +313,11 @@ function FilterDialog({
         return {
             ...compareItem,
             children: compareItem.children.filter((item, index) => {
-                if (index !== 0) {
-                    return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
-                }
-                return true
+                // if (index !== 0) {
+                //     return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
+                // }
+                // return true
+                return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
             }
             )
         }
@@ -404,8 +399,8 @@ function FilterDialog({
                                 </TableCell>
                                 <TableCell
                                     style={{
-                                        maxWidth: "130px",
-                                        width: "130px"
+                                        maxWidth: "150px",
+                                        width: "150px"
                                     }}
                                 >
                                     <Select

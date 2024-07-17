@@ -2,7 +2,7 @@ import { FormControl, FormLabel, Select, MenuItem, Button } from "@mui/material"
 import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
 import styles from './Position.module.scss'
 import { useEffect, useRef, useState } from "react";
-import { getAllBotActiveByUserID } from "../../services/botService";
+import { getAllBotOnlyApiKeyByUserID } from "../../services/botService";
 import DataGridCustom from "../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
 import { updatePL } from "../../services/positionService";
@@ -91,7 +91,13 @@ function Position() {
         {
             field: 'Time',
             headerName: 'Time Created',
-            minWidth: 170,
+            minWidth: 200,
+            flex: window.innerWidth <= 740 ? undefined : 1,
+        },
+        {
+            field: 'TimeUpdated',
+            headerName: 'Time Updated',
+            minWidth: 200,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
@@ -120,23 +126,25 @@ function Position() {
                 const rowData = params.row; // Dữ liệu của hàng hiện tại
                 return (
                     <div >
-                        <Button
-                            variant="contained"
-                            size="small"
-                            color="inherit"
-                            style={{
-                                margin: "0 6px"
-                            }}
-                            onClick={() => {
-                                setOpenAddLimit({
-                                    isOpen: true,
-                                    dataChange: "",
-                                    data: rowData
-                                })
-                            }}
-                        >
-                            Limit
-                        </Button>
+                        {
+                            <Button
+                                variant="contained"
+                                size="small"
+                                color="inherit"
+                                style={{
+                                    margin: "0 6px"
+                                }}
+                                onClick={() => {
+                                    setOpenAddLimit({
+                                        isOpen: true,
+                                        dataChange: "",
+                                        data: rowData
+                                    })
+                                }}
+                            >
+                                Limit
+                            </Button>
+                        }
                         <Button
                             variant="contained"
                             size="small"
@@ -187,13 +195,15 @@ function Position() {
 
     const handleGetAllBotByUserID = () => {
         const userData = JSON.parse(localStorage.getItem("user"))
-        getAllBotActiveByUserID(userData._id)
+        getAllBotOnlyApiKeyByUserID(userData._id)
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
                     {
                         name: item?.botName,
                         value: item?._id,
+                        ApiKey: item?.ApiKey,
+                        SecretKey: item?.SecretKey,
                     }
                 ))
                 const newMain = [
@@ -239,7 +249,7 @@ function Position() {
 
     const handleRefreshData = async (botListInput = botList) => {
         try {
-            const res = await updatePL(botListInput.slice(1).map(item => item.value))
+            const res = await updatePL(botListInput.slice(1))
             const { status, message, data: resData } = res.data
             if (status === 200) {
                 const data = resData.length > 0 ? resData?.map(item => (
@@ -252,6 +262,7 @@ function Position() {
                         Side: item.Side,
                         Price: item.Price,
                         Time: new Date(item.Time).toLocaleString(),
+                        TimeUpdated: new Date(item.TimeUpdated).toLocaleString(),
                         Quantity: item.Quantity,
                         Pnl: (+item.Pnl).toFixed(4),
                         Miss: item.Miss,
@@ -281,7 +292,7 @@ function Position() {
     }, []);
 
     useEffect(() => {
-        if (openAddLimit.dataChange || openAddMarket.dataChange) {
+        if (openAddLimit.isOpen || openAddMarket.isOpen || openAddLimit.dataChange || openAddMarket.dataChange) {
             handleRefreshData()
         }
     }, [openAddLimit, openAddMarket]);
@@ -357,7 +368,7 @@ function Position() {
             </div>
 
             {
-                openAddLimit.isOpen && (
+                openAddLimit.isOpen && positionData.find(item => item.id == openAddLimit.data?.id) && (
                     <AddLimit
                         onClose={(data) => {
                             setOpenAddLimit({
@@ -371,7 +382,7 @@ function Position() {
             }
 
             {
-                openAddMarket.isOpen && (
+                openAddMarket.isOpen && positionData.find(item => item.id == openAddMarket.data?.id) && (
                     <AddMarket
                         onClose={(data) => {
                             setOpenAddMarket({

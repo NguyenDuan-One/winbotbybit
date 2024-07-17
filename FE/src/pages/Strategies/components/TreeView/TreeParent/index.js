@@ -175,8 +175,6 @@ function TreeParent({
         }
         closeDeleteDialog()
     }
-
-
     return (
         <div className={styles.treeParent}  >
             <div style={{
@@ -188,7 +186,7 @@ function TreeParent({
                 <input
                     className={clsx("nodeParentSelected", styles.checkboxStyle)}
                     type="checkbox"
-                    checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
+                    // checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
                     onClick={e => {
                         const check = e.target.checked
                         e.currentTarget.parentElement.parentElement.querySelectorAll(`.nodeItemSelected-${treeData._id}`)?.forEach(item => {

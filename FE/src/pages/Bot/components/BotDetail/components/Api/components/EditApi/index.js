@@ -27,8 +27,8 @@ function EditApi({
         try {
             data = {
                 ...data,
-                ApiKey: data.ApiKey.trim(),
-                SecretKey: data.SecretKey.trim()
+                ApiKey: data.ApiKey?.trim(),
+                SecretKey: data.SecretKey?.trim()
             }
             const res = await updateBot(
                 {

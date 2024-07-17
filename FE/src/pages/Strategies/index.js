@@ -9,7 +9,7 @@ import AddBreadcrumbs from '../../components/BreadcrumbsCutom';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
-import { getAllStrategies, syncSymbol } from '../../services/dataCoinByBitService';
+import { getAllStrategies, getTotalFutureByBot, syncSymbol } from '../../services/dataCoinByBitService';
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import CreateStrategy from './components/CreateStrategy';
@@ -19,10 +19,12 @@ import TreeParent from './components/TreeView/TreeParent';
 import { handleCheckAllCheckBox } from '../../functions';
 import clsx from 'clsx';
 import { getAllBotActiveByUserID } from '../../services/botService';
+import { setTotalFuture } from '../../store/slices/TotalFuture';
 
 function Strategies() {
 
-    const SCROLL_INDEX = 15
+    const SCROLL_INDEX = 5
+    const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
     const botTypeList = [
         {
@@ -103,7 +105,7 @@ function Strategies() {
     const dataCheckTreeRef = useRef([])
     const [dataCheckTree, setDataCheckTree] = useState([]);
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
-    const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX);
+    const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX_FIRST);
 
     // Filter
     const [botTypeSelected, setBotTypeSelected] = useState("All");
@@ -113,6 +115,7 @@ function Strategies() {
 
     const filterQuantityRef = useRef([])
     const searchRef = useRef("")
+    const selectAllRef = useRef(false)
 
     const dispatch = useDispatch()
 
@@ -155,6 +158,31 @@ function Strategies() {
             }
             )
     }
+    const handleGetTotalFutureByBot = async () => {
+        const userData = JSON.parse(localStorage.getItem("user"))
+        try {
+            const res = await getTotalFutureByBot(userData._id)
+            const { status, message, data: resData } = res.data
+
+            dispatch(setTotalFuture({
+                total: resData || 0
+            }))
+
+            // if (status !== 200) {
+            //     dispatch(addMessageToast({
+            //         status,
+            //         message
+            //     }))
+            // }
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Total Future Error",
+            }))
+        }
+    }
 
     const handleDataTree = (data) => {
         const newDataCheckTree = data.map(item => (
@@ -178,40 +206,11 @@ function Strategies() {
             const res = await getAllStrategies()
             const { status, message, data: resData } = res.data
 
-            // const newDataCheckTree = handleDataTree([
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            //     ...resData,
-            // ])
-
             const newDataCheckTree = handleDataTree(resData)
 
             dataCheckTreeDefaultRef.current = newDataCheckTree
             setDataCheckTree(newDataCheckTree)
+            window.scrollTo(0, 0)
 
         }
         catch (err) {
@@ -301,7 +300,12 @@ function Strategies() {
         const scrollPercentage = (scrollY / (scrollHeight - windowHeight)) * 100;
 
         if (dataTreeViewIndexTemp <= dataCheckTree.length) {
-            scrollPercentage >= 80 && setDataTreeViewIndex(dataTreeViewIndex + SCROLL_INDEX)
+            const newIndex = dataTreeViewIndex + SCROLL_INDEX
+            if (scrollPercentage >= 80) {
+                setDataTreeViewIndex(newIndex)
+
+            }
+
         }
         else {
             window.removeEventListener('scroll', handleScrollData)
@@ -311,7 +315,7 @@ function Strategies() {
 
     const resetAfterSuccess = (setFilterBox = false, filter = false) => {
         dataCheckTreeSelectedRef.current = []
-        setDataTreeViewIndex(SCROLL_INDEX)
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
         searchRef.current = ""
         handleCheckAllCheckBox(false)
         openCreateStrategy.dataChange = false
@@ -333,17 +337,39 @@ function Strategies() {
         return result
     }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
 
+
     useEffect(() => {
 
         handleGetAllBotByUserID()
         handleGetAllStrategies()
+        handleGetTotalFutureByBot()
 
     }, []);
 
     useEffect(() => {
-        if (dataCheckTree.length > 0 && dataTreeViewIndex < dataCheckTree.length) {
-            document.addEventListener('scroll', handleScrollData);
+        if (dataCheckTree.length > 0) {
+
+
+            if (selectAllRef.current) {
+                document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
+                    if (dataTreeViewIndex - SCROLL_INDEX - 1 <= index && index < dataTreeViewIndex) {
+                        item.checked = false
+                        item.click()
+                    }
+                })
+                // document.querySelectorAll(".nodeItemSelected")?.forEach((item, index) => {
+                //     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
+                //         // console.log('gasn child');
+                //         item.checked = true
+                //     }
+                // })
+            }
+            if (dataTreeViewIndex < dataCheckTree.length) {
+
+                document.addEventListener('scroll', handleScrollData);
+            }
             return () => document.removeEventListener('scroll', handleScrollData);
+
         }
     }, [dataCheckTree, dataTreeViewIndex]);
 
@@ -353,7 +379,7 @@ function Strategies() {
     }, [filterQuantityRef.current.length]);
 
     useEffect(() => {
-        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && !filterQuantityRef.current.length && handleGetAllStrategies()
+        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange)  && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
     return (
@@ -381,7 +407,7 @@ function Strategies() {
                                 searchRef.current = key
                                 let listFilter = filterQuantityRef.current.length ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
                                 if (key) {
-                                    const newList = listFilter.filter(item => item.label.toUpperCase().includes(key.toUpperCase().trim()))
+                                    const newList = listFilter.filter(item => item.label.toUpperCase().includes(key.toUpperCase()?.trim()))
                                     return newList.length > 0 ? newList : []
                                 }
                                 return listFilter
@@ -509,12 +535,12 @@ function Strategies() {
 
                                     e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeParentSelected")?.forEach(item => {
                                         item.checked = check
-
                                     })
                                     e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeItemSelected")?.forEach(child => {
                                         child.checked = check
                                     })
 
+                                    selectAllRef.current = check
                                     if (check) {
                                         dataCheckTree.forEach(data => {
                                             data.children?.forEach(child => {
@@ -567,7 +593,7 @@ function Strategies() {
                 <div className={styles.strategiesBtnActionItem}
                     onClick={handleSyncSymbol}
                 >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
+                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
 
                         {
                             !loadingUploadSymbol ? <CloudSyncIcon /> : <CircularProgress style={{ width: "50%", height: "50%" }} color='inherit' />

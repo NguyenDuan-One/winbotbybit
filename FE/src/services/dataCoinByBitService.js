@@ -13,6 +13,11 @@ export const getAllSymbolWith24 = async () => {
 export const getFutureAvailable = async (botID) => {
     return await api.get(`/dataCoinByBit/getFutureAvailable/${botID}`)
 }
+
+export const getTotalFutureByBot = async (userID) => {
+    return await api.get(`/dataCoinByBit/getTotalFutureByBot/${userID}`)
+}
+
 export const getSpotTotal = async (botID) => {
     return await api.get(`/dataCoinByBit/getSpotTotal/${botID}`)
 }

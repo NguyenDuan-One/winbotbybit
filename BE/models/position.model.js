@@ -1,17 +1,17 @@
 const mongoose = require('../index');
 
 const positionSchema = new mongoose.Schema({
-  Symbol: String,
+  Symbol: {
+    type: String,
+    required: true,
+  },
   Side: String,
   Price: String,
   Quantity	: String,
   Pnl: String,
   Time: Date,
+  TimeUpdated: Date,
   Miss: Boolean,
-  orderID:{
-    type:String,
-    required: true,
-  },
   botID: {
     type: mongoose.Types.ObjectId,
     ref: 'Bot',
@@ -21,5 +21,6 @@ const positionSchema = new mongoose.Schema({
 
 
 const Position = mongoose.model('Position', positionSchema);
+positionSchema.index({ Symbol: 1, botID: 1 }, { unique: true });
 
 module.exports = Position;

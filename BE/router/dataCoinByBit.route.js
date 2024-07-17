@@ -8,6 +8,7 @@ router.get('/getAllStrategies', MiddlewareController.verifyToken, dataCoinByBitC
 router.get('/getAllSymbol', MiddlewareController.verifyToken, dataCoinByBitController.getAllSymbol);
 router.get('/getAllSymbolWith24', MiddlewareController.verifyToken, dataCoinByBitController.getAllSymbolWith24);
 router.get('/getFutureAvailable/:id', MiddlewareController.verifyToken, dataCoinByBitController.getFutureAvailable)
+router.get('/getTotalFutureByBot/:id', MiddlewareController.verifyToken, dataCoinByBitController.getTotalFutureByBot)
 router.get('/getSpotTotal/:id', MiddlewareController.verifyToken, dataCoinByBitController.getSpotTotal)
 
 router.post('/createStrategies', MiddlewareController.verifyToken, dataCoinByBitController.createStrategies)

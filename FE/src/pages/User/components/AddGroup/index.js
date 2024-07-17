@@ -1,4 +1,5 @@
-import { FormControl, FormLabel, MenuItem, Select, Switch, TextField } from "@mui/material";
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import { FormControl, FormLabel, InputAdornment, MenuItem, Select, Switch, TextField } from "@mui/material";
 import styles from "./AddBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useEffect, useMemo, useState } from "react";
@@ -82,7 +83,7 @@ function AddGroup({
     const handleSubmitAddGroup = async (data) => {
         data = {
             ...data,
-            userName: data.userName.trim(),
+            userName: data.userName?.trim(),
             roleName: roleNameSelected,
             groupID: data.groupID ? data.groupID : undefined
         }
@@ -152,6 +153,21 @@ function AddGroup({
                         type="password"
                         size="small"
                         {...register("password", { required: true, minLength: 5 })}
+                        InputProps={{
+                            endAdornment:
+                                <InputAdornment
+                                    position="end"
+                                    style={{
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={e => {
+                                        const typeCurrent = e.currentTarget.parentElement.querySelector("input")
+                                        typeCurrent.type === "password" ? (typeCurrent.type = "text") : (typeCurrent.type = "password")
+                                    }}
+                                >
+                                    <RemoveRedEyeIcon />
+                                </InputAdornment>,
+                        }}
                     />
                     {errors.password?.type === 'required' && <p className="formControlErrorLabel">The Password field is required.</p>}
                     {errors.password?.type === 'minLength' && <p className="formControlErrorLabel">Minimum length is 5 characters.</p>}

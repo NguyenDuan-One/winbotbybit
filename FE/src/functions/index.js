@@ -7,12 +7,12 @@ export const handleCheckAllCheckBox = (check) => {
 }
 
 export const formatNumber = number => {
-    return number > 0 ? number.toFixed(2) : 0
+    // return number > 0 ? number.toFixed(2) : 0
     return (number > 0 ? number : 0).toLocaleString("en-EN")
     return new Intl.NumberFormat("en-EN").format(number > 0 ? number : 0) || 0
 
 }
-export const formatNumberString = number => {
+export const formatNumberString = (number = 0) => {
     if (number >= 1000000000) {
         return (number / 1000000000).toFixed(2) + 'B';
     } else if (number >= 1000000) {

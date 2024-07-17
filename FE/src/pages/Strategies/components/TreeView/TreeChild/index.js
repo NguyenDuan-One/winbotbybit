@@ -174,7 +174,7 @@ function TreeChild({
                     <input
                         type='checkbox'
                         className={clsx("nodeItemSelected", `nodeItemSelected-${treeData._id}`, styles.checkboxStyle)}
-                        checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
+                        // checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
                         onClick={(e) => {
                             const check = e.target.checked;
                             if (check) {
@@ -187,14 +187,16 @@ function TreeChild({
                                 const newDataCheckTreeSelected = [];
                                 const targetString = JSON.stringify({ ...treeNode, parentID: treeData._id });
 
-                                for (let i = 0; i < dataCheckTreeSelectedRef.current.length; i++) {
-                                    const currentItem = dataCheckTreeSelectedRef.current[i];
-                                    if (currentItem !== targetString) {
-                                        newDataCheckTreeSelected.push(currentItem);
-                                    }
-                                }
+                                // for (let i = 0; i < dataCheckTreeSelectedRef.current.length; i++) {
+                                //     const currentItem = dataCheckTreeSelectedRef.current[i];
+                                //     if (currentItem !== targetString) {
+                                //         newDataCheckTreeSelected.push(currentItem);
+                                //     }
+                                // }
 
-                                dataCheckTreeSelectedRef.current = newDataCheckTreeSelected;
+                                // dataCheckTreeSelectedRef.current = newDataCheckTreeSelected;
+                                dataCheckTreeSelectedRef.current = dataCheckTreeSelectedRef.current.filter(currentItem=>currentItem !== targetString);
+
                             }
                         }}
                     />

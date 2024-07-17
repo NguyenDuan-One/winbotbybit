@@ -5,7 +5,7 @@ const GroupModel = require('../models/group.model')
 
 const UserController = {
 
-    initCreateAccount: async (req, res) => {
+    initCreateAccount: async () => {
         try {
             const userName = "SuperAdmin"
             const password = "SuperAdmin$$T.;"

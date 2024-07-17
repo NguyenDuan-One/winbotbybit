@@ -24,6 +24,7 @@ function Api() {
         {
             field: 'ApiKey',
             headerName: 'ApiKey',
+            minWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: () => {
                 return "ByBit"
@@ -32,6 +33,7 @@ function Api() {
         {
             field: 'SecretKey',
             headerName: 'SecretKey',
+            minWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: () => {
                 return "***** ***** *****"

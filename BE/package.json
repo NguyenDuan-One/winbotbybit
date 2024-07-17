@@ -2,6 +2,7 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "bybit-api": "^3.10.3",
+    "cli-color": "^2.0.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",

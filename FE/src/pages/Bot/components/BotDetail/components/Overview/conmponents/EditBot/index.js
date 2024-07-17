@@ -23,8 +23,6 @@ function EditBot({
 
     const dispatch = useDispatch();
 
-    console.log(botData);
-
     const newBotDataRef = useRef(false)
 
     const formDataChangeRef = useRef(false)
@@ -32,14 +30,19 @@ function EditBot({
     const handleSubmitEditBot = async formData => {
         if (formDataChangeRef.current) {
             try {
+                const telegramID = formData.telegramID?.trim()
+                const telegramToken = formData.telegramToken?.trim()
+                const checkTeleInfor = telegramID && telegramToken
+
                 const res = await updateBot({
                     id: botData.id,
                     data: {
                         ...formData,
-                        telegramID:formData.telegramID.trim(),
-                        telegramToken:formData.telegramToken.trim(),
-                        type: "telegram",
-                        checkBot:botData.Status === "Running" && botData.ApiKey
+                        telegramIDOld: botData.telegramID?.trim(),
+                        telegramID,
+                        telegramToken,
+                        type: checkTeleInfor ? "telegram" : "",
+                        checkBot: botData.Status === "Running" && botData.ApiKey
                     }
                 })
                 const { status, message } = res.data
@@ -52,6 +55,7 @@ function EditBot({
                 }))
             }
             catch (err) {
+                console.log(err);
                 dispatch(addMessageToast({
                     status: 500,
                     message: "Update Bot Error",
@@ -84,7 +88,7 @@ function EditBot({
                     <FormLabel className={styles.label}>Name</FormLabel>
                     <TextField
                         defaultValue={botData?.botName}
-                        {...register("botName", { required: true, pattern: /\S/  })}
+                        {...register("botName", { required: true, pattern: /\S/ })}
                         size="small"
                     />
                     {errors.botName && <p className="formControlErrorLabel">The Bot Name field is required.</p>}

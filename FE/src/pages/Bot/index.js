@@ -55,9 +55,7 @@ function Bot() {
 
     const userData = JSON.parse(localStorage.getItem("user"))
 
-    const roleName = useMemo(() => {
-        return userData?.roleName
-    }, [])
+    const roleName = userData?.roleName
 
     const tableColumns = [
         {
@@ -277,14 +275,14 @@ function Bot() {
     const handleGetAllBot = async () => {
         try {
             let res
-            if (roleName === "Trader") {
-                res = await getAllBotByUserID(userData._id)
+            if (roleName === "Admin" || roleName === "SuperAdmin") {
+                res = await getAllBot()
             }
-            else if (roleName === "ManagerTrader") {
+            else if (roleName === "ManagerTrader" && userData.groupID) {
                 res = await getAllBotBySameGroup(userData.groupID)
             }
             else {
-                res = await getAllBot()
+                res = await getAllBotByUserID(userData._id)
             }
             const { status, message, data: resData } = res.data
             if (status === 200) {
@@ -293,7 +291,8 @@ function Bot() {
                         ...item,
                         id: item?._id,
                         Created: item?.Created && new Date(item?.Created).toLocaleDateString(),
-                        userName: `${item.userID?.userName} ( ${item.userID?.roleName} )`
+                        userName: `${item.userID?.userName} ( ${item.userID?.roleName} )`,
+                        OwnBot:item.userID?._id === userData._id
                     }
                 ))
                 botListDefaultRef.current = newData

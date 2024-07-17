@@ -28,6 +28,13 @@
         cursor: pointer;
     }
 
+    .totalMoneyFutureBot {
+        margin: 0px 24px ;
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--blueColor);
+    }
+
     &Infor {
         display: flex;
         align-items: center;
@@ -113,6 +120,11 @@
             .text {
                 display: none;
             }
+        }
+        .totalMoneyFutureBot
+        {
+            font-size: 1.3rem;
+            margin-left: 16px;
         }
     }
 }

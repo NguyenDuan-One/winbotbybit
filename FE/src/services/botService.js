@@ -9,6 +9,9 @@ export const getAllBotByUserID = async (userID) => {
 export const getAllBotActiveByUserID = async (userID) => {
     return await api.get(`/bot/getAllBotActiveByUserID/${userID}`)
 }
+export const getAllBotOnlyApiKeyByUserID = async (userID) => {
+    return await api.get(`/bot/getAllBotOnlyApiKeyByUserID/${userID}`)
+}
 export const getAllBotBySameGroup = async (groupID) => {
     return await api.get(`/bot/getAllBotBySameGroup/${groupID}`)
 }
