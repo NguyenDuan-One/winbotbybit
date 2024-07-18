@@ -585,14 +585,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 const orderID = dataMain.orderId
                 const orderStatus = dataMain.orderStatus
 
-                console.log(changeColorConsole.greenBright("orderStatus", orderStatus))
-                console.log(changeColorConsole.greenBright("dataCoin.topic", dataCoin.topic))
                 const botSymbolMissID = `${botID}-${symbol}`
 
                 // if (orderStatus === "Filled") {
                 //     console.log(changeColorConsole.greenBright("[Filled] first", symbol));
                 // }
-
 
                 if (dataCoin.topic === "order") {
                     const strategyData = allStrategiesByBotIDAndOrderID[botID]?.[orderID]
@@ -1124,6 +1121,7 @@ const Main = async () => {
             trichMauOCListObject[symbolCandleID] = {
                 maxPrice: 0,
                 minPrice: [],
+                coinColor: [],
                 prePrice: 0
             }
             trichMauTPListObject[symbolCandleID] = {
@@ -1182,6 +1180,16 @@ const Main = async () => {
                                 const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
                                 // X-D-D || D-D-D
+                                const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
+
+                                let checkColorListTrue = false
+
+                                if (trichMauOCListObject[symbolCandleID].coinColor.length > 0) {
+                                    checkColorListTrue = coinColor === "Red"
+                                }
+                                else {
+                                    checkColorListTrue = true
+                                }
 
                                 if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
                                     trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
@@ -1196,9 +1204,19 @@ const Main = async () => {
                                     }
                                 }
 
+                                if (!checkColorListTrue) {
+                                    trichMauOCListObject[symbolCandleID].coinColor = []
+                                }
+                                else {
+                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                        trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                    }
+                                    trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                }
+
                                 trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
 
-                                if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
                                     let conditionOrder = 0
                                     let priceOrder = 0
 
@@ -1363,6 +1381,7 @@ const Main = async () => {
                         trichMauOCListObject[symbolCandleID] = {
                             maxPrice: 0,
                             minPrice: [],
+                            coinColor: [],
                             prePrice: 0
                         }
 
@@ -2005,13 +2024,14 @@ socketRealtime.on("close-limit", async (data) => {
     const botSymbolMissID = `${botID}-${symbol}`
 
     const result = await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
+        console.log("orderIdTPData.orderID: ", orderIdTPData.orderID);
         return handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,
-            strategyID: orderIdTPData.strategyID,
+            strategyID: orderIdTPData?.strategyID,
             symbol,
             side: positionData.Side,
-            orderId: orderIdTPData.orderID,
+            orderId: orderIdTPData?.orderID,
             botID,
             botName
         })
@@ -2027,6 +2047,21 @@ socketRealtime.on("close-limit", async (data) => {
             .submitOrder(submitOrderObject)
             .then((response) => {
                 if (response.retCode == 0) {
+                    const newOrderID = response.result.orderId
+
+                    missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
+
+                    missTPDataBySymbol[botSymbolMissID] = {
+                        ...missTPDataBySymbol[botSymbolMissID],
+                        priceOrderTP: submitOrderObject.price
+                    }
+
+                    missTPDataBySymbol[botSymbolMissID].orderIDOfListTP = []
+                    
+                    missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
+                        orderID: newOrderID,
+                    })
+
                     updatePositionBE({
                         newDataUpdate: {
                             Miss: false,
@@ -2034,15 +2069,16 @@ socketRealtime.on("close-limit", async (data) => {
                         },
                         orderID: positionData.id
                     })
-                    console.log("Close Limit Successful")
+
+                    console.log("[V] Close Limit Successful")
 
                 }
                 else {
-                    console.log("Close Limit Failed")
+                    console.log("[V] Close Limit Failed")
                 }
             })
             .catch((error) => {
-                console.log(`Close Limit Error: ${error}`)
+                console.log(`[V] Close Limit Error: ${error}`)
             });
     }
     else {

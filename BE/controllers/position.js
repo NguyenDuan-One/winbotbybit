@@ -58,14 +58,12 @@ const PositionController = {
                             TimeUpdated: new Date()
                         };
 
-                        console.log(positionDataNew);
                         if (+positionDataNew.Quantity != 0) {
                             return PositionController.updatePositionBE({
                                 newDataUpdate: positionDataNew,
                                 orderID: positionData._id
                             })
                         } else {
-                            console.log('delete');
                             return PositionController.deletePositionBE({
                                 orderID: positionData._id
                             });
