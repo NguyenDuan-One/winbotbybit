@@ -119,26 +119,46 @@ const dataCoinByBitController = {
                     $match: { "children.userID": new mongoose.Types.ObjectId(userID) }
                 },
                 {
-                    $project: {
-                        label: 1,
-                        value: 1,
-                        volume24h: 1,
+                    $addFields: {
                         children: {
                             $filter: {
                                 input: "$children",
                                 as: "child",
                                 cond: {
                                     $eq: ["$$child.userID", new mongoose.Types.ObjectId(userID)],
-
                                 }
                             }
                         }
                     }
                 },
                 {
-                    $sort: { "label": 1 } // Sắp xếp theo label (tăng dần)
+                    $addFields: {
+                        childrenSorted: {
+                            $function: {
+                                body: function(children) {
+                                    return children.sort((a, b) => a.OrderChange - b.OrderChange);
+                                },
+                                args: ["$children"],
+                                lang: "js"
+                            }
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        label: 1,
+                        value: 1,
+                        volume24h: 1,
+                        children: "$childrenSorted"
+                    }
+                },
+                {
+                    $sort: { "label": 1 } 
                 }
             ]);
+            
+
+
 
             const result = await StrategiesModel.populate(resultFilter, {
                 path: 'children.botID',

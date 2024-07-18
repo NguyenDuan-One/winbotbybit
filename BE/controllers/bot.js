@@ -165,11 +165,14 @@ const BotController = {
 
             const { type, checkBot, ...data } = req.body;
 
-            const dataCheckBotApi = await BotModel.findOne({
-                ApiKey: data.ApiKey
-            }
-            ).sort({ Created: -1 })
+            let dataCheckBotApi = false
 
+            if (data.ApiKey) {
+                dataCheckBotApi = await BotModel.findOne({
+                    ApiKey: data.ApiKey
+                }
+                ).sort({ Created: -1 })
+            }
 
             if (!dataCheckBotApi) {
 

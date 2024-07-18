@@ -50,6 +50,7 @@ const PositionController = {
                         const viTheListItem = response.result.list[0];
 
                         const positionDataNew = {
+                            Side: viTheListItem.side,
                             Pnl: viTheListItem.unrealisedPnl,
                             Side: viTheListItem.side,
                             Price: +viTheListItem.avgPrice,
@@ -190,25 +191,50 @@ const PositionController = {
     closeLimit: async (req, res) => {
         const { positionData, Quantity, Price } = req.body
 
-        PositionController.sendDataRealtime({
-            type: "close-limit",
-            data: {
-                positionData,
-                submitOrderObject: {
-                    category: 'linear',
-                    symbol:positionData.Symbol,
-                    side: positionData.Side === "Sell" ? "Buy" : "Sell",
-                    positionIdx: 0,
-                    orderType: 'Limit',
-                    qty: Math.abs(Quantity).toString(),
-                    price: Math.abs(Price).toString(),
+        const symbol = positionData.Symbol
+        const client = new RestClientV5({
+            testnet: false,
+            key: positionData.botData.ApiKey,
+            secret: positionData.botData.SecretKey,
+        });
+        client
+            .submitOrder({
+                category: 'linear',
+                symbol,
+                side: positionData.Side === "Sell" ? "Buy" : "Sell",
+                positionIdx: 0,
+                orderType: 'Limit',
+                qty: Math.abs(Quantity).toString(),
+                price: Math.abs(Price).toString(),
+            })
+            .then((response) => {
+                if (response.retCode == 0) {
+
+                    PositionController.updatePositionBE({
+                        newDataUpdate: {
+                            Miss: false,
+                            TimeUpdated: new Date()
+                        },
+                        orderID: positionData.id
+                    })
+
+                    PositionController.sendDataRealtime({
+                        type: "close-limit",
+                        data: {
+                            positionData,
+
+                        }
+                    })
+                    res.customResponse(200, "Close Limit Successful");
+
                 }
-            }
-        })
-
-        res.customResponse(200, "Close Limit Successful");
-
-
+                else {
+                    res.customResponse(400, "Close Limit Failed");
+                }
+            })
+            .catch((error) => {
+                res.customResponse(500, `Close Limit Error: ${error}`);
+            });
 
     },
 
