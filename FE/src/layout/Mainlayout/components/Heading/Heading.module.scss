@@ -12,8 +12,8 @@
         cursor: pointer;
 
         img {
-            max-height: 26px;
-            margin-right: 12px;
+            max-height: 35px;
+            margin-right: 6px;
         }
 
         .text {
@@ -29,7 +29,7 @@
     }
 
     .totalMoneyFutureBot {
-        margin: 0px 24px ;
+        margin: 0px 24px;
         font-size: 1.5rem;
         font-weight: 500;
         color: var(--blueColor);
@@ -121,8 +121,8 @@
                 display: none;
             }
         }
-        .totalMoneyFutureBot
-        {
+
+        .totalMoneyFutureBot {
             font-size: 1.3rem;
             margin-left: 16px;
         }
