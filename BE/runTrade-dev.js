@@ -284,6 +284,7 @@ const handleMoveOrderTP = ({
     botID
 }) => {
 
+    const sideText = side === "Buy" ? "Sell" : "buy"
     const symbol = strategy.symbol
 
     if (allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID) {
@@ -306,7 +307,7 @@ const handleMoveOrderTP = ({
             price: TPNew.toFixed(strategy.digit),
             orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID,
             candle,
-            side,
+            side: sideText,
             ApiKey,
             SecretKey,
             botName,
@@ -487,6 +488,7 @@ const cancelAll = (
             side: "",
             priceCompare: 0,
             minMaxTempPrice: 0,
+            coinClose: 0,
             moveAfterCompare: false,
             moveSuccess: false
         },
@@ -801,6 +803,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     console.log(`[_Part Filled_] Filled TP ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                 }
 
+                                cancelAll({ strategyID, botID })
 
                                 sendMessageWithRetry({
                                     messageText: `${teleText} \n${textWinLose}`,
@@ -808,7 +811,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     telegramToken
                                 })
 
-                                cancelAll({ strategyID, botID })
 
                             }
                         }
@@ -830,54 +832,50 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 }
                 // User cancel vị thế
                 if (dataMain.orderType === "Market") {
-                    console.log('[...] User Clicked Close Vị Thế');
-                    Object.values(allStrategiesByBotIDAndStrategiesID[botID]).forEach(strategy => {
-                        const strategyID = strategy.value
-                        const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
+                    const side = dataMain.side
+                    console.log('[...] User Clicked Close Vị Thế')
+                    missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP?.length > 0 &&
+                     await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
+                        return handleCancelOrderTP({
+                            ApiKey,
+                            SecretKey,
+                            strategyID: orderIdTPData?.strategyID,
+                            symbol,
+                            side,
+                            orderId: orderIdTPData?.orderID,
+                            botID,
+                            botName
+                        })
+                    }))
 
-                        if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
-                            handleCancelOrderTP(
-                                {
-                                    strategyID,
-                                    symbol: strategy.symbol,
-                                    side,
-                                    orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID,
-                                    candle: strategy.Candlestick,
-                                    ApiKey,
-                                    SecretKey,
-                                    botName,
-                                    botID
-                                }
-                            )
-                        }
-                        if (missTPDataBySymbol[botSymbolMissID]?.orderID) {
-                            console.log(`[...] Cancel Position MISS`);
-                            handleCancelOrderTP(
-                                {
-                                    strategyID,
-                                    symbol: strategy.symbol,
-                                    side,
-                                    orderId: missTPDataBySymbol[botSymbolMissID].orderID,
-                                    candle: strategy.Candlestick,
-                                    ApiKey,
-                                    SecretKey,
-                                    botName,
-                                    botID
-                                }
-                            )
-                        }
 
-                        if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                            console.log(`[Mongo] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
-                            deletePositionBE({
-                                orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                            }).then(message => {
-                                console.log(message);
-                            }).catch(err => {
-                                console.log(changeColorConsole.redBright(err));
-                            })
-                        }
-                    })
+                    if (missTPDataBySymbol[botSymbolMissID]?.orderID) {
+                        console.log(`[...] Cancel Position MISS`);
+                        handleCancelOrderTP(
+                            {
+                                strategyID,
+                                symbol: strategy.symbol,
+                                side,
+                                orderId: missTPDataBySymbol[botSymbolMissID].orderID,
+                                candle: strategy.Candlestick,
+                                ApiKey,
+                                SecretKey,
+                                botName,
+                                botID
+                            }
+                        )
+                    }
+
+                    if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+                        console.log(`[Mongo] Delete Position ( ${side} - ${symbol})`);
+                        deletePositionBE({
+                            orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                        }).then(message => {
+                            console.log(message);
+                        }).catch(err => {
+                            console.log(changeColorConsole.redBright(err));
+                        })
+                    }
                 }
 
                 else if (dataCoin.topic === "position") {
@@ -922,6 +920,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     console.log(data);
                                     console.log(data.message);
                                     const newID = data.id
+                                    !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
+
                                     if (newID) {
                                         missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
                                     }
@@ -1304,33 +1304,35 @@ const Main = async () => {
                         }
                         else {
                             // if have TP
-                            if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID && !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare) {
-                                let checkMoveMain = false
-                                const PercentCheck = 2 / 100
-                                const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
-                                if (sideCheck === "Buy") {
-                                    if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare) || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess) {
-                                        if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
-                                            checkMoveMain = true
+                            if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare) {
+                                let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
+
+                                if (!checkMoveMain) {
+                                    const PercentCheck = 2 / 100
+                                    const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
+
+                                    const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
+                                    if (sideCheck === "Buy") {
+                                        if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                                            if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
+                                                checkMoveMain = true
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                                            if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
+                                                checkMoveMain = true
+                                            }
                                         }
                                     }
                                 }
                                 else {
-                                    if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare) || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess) {
-                                        if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
-                                            checkMoveMain = true
-                                        }
-                                    }
-                                }
-                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
-
-
-                                if (checkMoveMain) {
-
                                     console.log(changeColorConsole.blueBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
 
                                     const client = new RestClientV5({
@@ -1442,7 +1444,18 @@ const Main = async () => {
                         // TP chưa khớp -> Dịch TP mới
 
                         if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
-                            handleMoveOrderTP({
+
+                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose = coinClose
+
+                            if (strategy.PositionSide === "Long") {
+                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = coinClose + Math.abs(allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - coinClose) * 40 / 100
+                            }
+                            else {
+                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = coinClose - Math.abs(allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - coinClose) * 40 / 100
+                            }
+
+
+                            !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID].TP.moveSuccess && handleMoveOrderTP({
                                 ApiKey,
                                 SecretKey,
                                 strategyID,
@@ -2117,7 +2130,6 @@ socketRealtime.on("close-limit", async (data) => {
     const botSymbolMissID = `${botID}-${symbol}`
 
     await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
-        console.log("orderIdTPData.orderID: ", orderIdTPData.orderID);
         return handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,

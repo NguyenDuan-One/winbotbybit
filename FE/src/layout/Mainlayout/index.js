@@ -164,7 +164,7 @@ function MainLayout({ children }) {
                 "--marginLeft": marginLeft
             }}
         >
-            <Helmet title={`${getRouteName() || "Dashboard"} - Trading Bot`} />
+            <Helmet title={`${getRouteName() || "Dashboard"} - CyberBot`} />
             <div className={styles.heading}>
                 <Heading
                     toggleSidebar={toggleSidebar}

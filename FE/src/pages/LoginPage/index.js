@@ -59,7 +59,7 @@ function LoginPage() {
             <div className={styles.loginPageBody}>
                 <div className={styles.headingLogo} >
                     <img src={logoImage} style={{ width: "28px" }} />
-                    <span className={styles.text}>Trading Bot</span>
+                    <span className={styles.text}>CyberBot</span>
                 </div>
                 <form className={styles.form}>
                     <div className={styles.formTitle}>

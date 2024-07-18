@@ -38,7 +38,7 @@ function Heading({
         <div className={styles.heading}>
             <NavLink className={styles.headingLogo} to="/">
                 <img src={logoImage} />
-                <span className={styles.text}>CryptoBot</span>
+                <span className={styles.text}>CyberBot</span>
             </NavLink>
             <DensityMediumIcon
                 className={styles.navbar}
