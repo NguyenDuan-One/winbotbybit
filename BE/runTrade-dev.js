@@ -104,7 +104,6 @@ const handleSubmitOrder = async ({
                 const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
 
                 console.log(`\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
-                console.log("Coin open", strategy.coinOpen);
             }
             else {
                 console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
@@ -155,6 +154,9 @@ const handleSubmitOrderTP = ({
             if (response.retCode == 0) {
                 const newOrderID = response.result.orderId
 
+                missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
+
+
                 missTPDataBySymbol[botSymbolMissID] = {
                     ...missTPDataBySymbol[botSymbolMissID],
                     size: missTPDataBySymbol[botSymbolMissID].size + Math.abs(qty),
@@ -182,19 +184,10 @@ const handleSubmitOrderTP = ({
                     missTPDataBySymbol[botSymbolMissID].botName = botName
                 }
 
+
                 console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
                 console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
-                updatePositionBE({
-                    newDataUpdate: {
-                        Miss: false,
-                        TimeUpdated: new Date()
-                    },
-                    orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                }).then(message => {
-                    console.log(message);
-                }).catch(err => {
-                    console.log(changeColorConsole.redBright(err));
-                })
+
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
@@ -459,6 +452,7 @@ const resetMissData = ({
         botName: "",
         botID: "",
     }
+
 }
 
 const cancelAll = (
@@ -590,6 +584,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 const symbol = dataMain.symbol
                 const orderID = dataMain.orderId
                 const orderStatus = dataMain.orderStatus
+
+                console.log(changeColorConsole.greenBright("orderStatus", orderStatus))
+                console.log(changeColorConsole.greenBright("dataCoin.topic", dataCoin.topic))
                 const botSymbolMissID = `${botID}-${symbol}`
 
                 // if (orderStatus === "Filled") {
@@ -633,6 +630,43 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                 console.log(`[V] Filled OC: \n${symbol} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`);
                                 const teleText = `${symbol} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+
+                                if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+
+                                    const Quantity = dataMain.side === "Buy" ? qty : (qty * -1)
+
+                                    const newDataToDB = {
+                                        Symbol: symbol,
+                                        Side: dataMain.side,
+                                        Quantity,
+                                        Price: openTrade,
+                                    }
+
+                                    console.log(`\n[Saving->Mongo] Position When Filled OC ( ${botName} - ${dataMain.side} - ${symbol} )`);
+
+                                    await createPositionBE({
+                                        ...newDataToDB,
+                                        botID,
+                                    }).then(async data => {
+                                        console.log(data);
+                                        console.log(data.message);
+                                        const newID = data.id
+                                        if (newID) {
+                                            missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
+                                        }
+                                        else {
+                                            await getPositionBySymbol({ symbol, botID }).then(data => {
+                                                console.log(data.message);
+                                                missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
+                                            }).catch(error => {
+                                                console.log(changeColorConsole.redBright(error));
+                                            })
+                                        }
+
+                                    }).catch(err => {
+                                        console.log(changeColorConsole.redBright(err));
+                                    })
+                                }
 
                                 // Create TP
 
@@ -869,17 +903,18 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                             const Quantity = side === "Buy" ? size : (size * -1)
 
-                            const newDataToDB = {
-                                Symbol: symbol,
-                                Side: side,
-                                Quantity,
-                                Price: openTrade,
-                                Pnl: dataMain.unrealisedPnl,
-                            }
 
                             if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
 
-                                console.log(`\n[Saving->Mongo] Position ( ${botName} - ${side} - ${symbol} )`);
+                                const newDataToDB = {
+                                    Symbol: symbol,
+                                    Side: side,
+                                    Quantity,
+                                    Price: openTrade,
+                                    Pnl: dataMain.unrealisedPnl,
+                                }
+
+                                console.log(`\n[Saving->Mongo] Position When Check Miss ( ${botName} - ${side} - ${symbol} )`);
 
                                 await createPositionBE({
                                     ...newDataToDB,
@@ -952,7 +987,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             console.log(err);
                                             missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                                         })
-
                                     }
                                 }
                                 else {
@@ -987,7 +1021,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 })
                             }
 
-                        }, 2000)
+                        }, 3000)
                     }
                     else {
                         missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
@@ -1963,14 +1997,14 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
 socketRealtime.on("close-limit", async (data) => {
     console.log("[...] Close Limit");
-    const { positionData, closeLimitFunc } = data
+    const { positionData, submitOrderObject } = data
     const symbol = positionData.Symbol
     const botID = positionData.botID
     const botName = positionData.BotName
 
     const botSymbolMissID = `${botID}-${symbol}`
 
-    Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
+    const result = await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
         return handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,
@@ -1981,12 +2015,40 @@ socketRealtime.on("close-limit", async (data) => {
             botID,
             botName
         })
-    })).then(() => {
-        const message = closeLimitFunc()
-        console.log(message);
-    }).catch(err => {
+    }))
+
+    if (result) {
+        const client = new RestClientV5({
+            testnet: false,
+            key: positionData.botData.ApiKey,
+            secret: positionData.botData.SecretKey,
+        });
+        return client
+            .submitOrder(submitOrderObject)
+            .then((response) => {
+                if (response.retCode == 0) {
+                    updatePositionBE({
+                        newDataUpdate: {
+                            Miss: false,
+                            TimeUpdated: new Date()
+                        },
+                        orderID: positionData.id
+                    })
+                    console.log("Close Limit Successful")
+
+                }
+                else {
+                    console.log("Close Limit Failed")
+                }
+            })
+            .catch((error) => {
+                console.log(`Close Limit Error: ${error}`)
+            });
+    }
+    else {
         console.log(changeColorConsole.redBright("[!] Close Limit Error:", err));
-    })
+    }
+
 
     // Hủy thành công tp trước mới đăẹt limit
 })

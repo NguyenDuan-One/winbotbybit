@@ -22,20 +22,20 @@ function FilterDialog({
 
     const candlestickValueList = [
         {
-            name: "Min1",
-            value: "Min1"
+            name: "1m",
+            value: "1m"
         },
         {
-            name: "Min3",
-            value: "Min3"
+            name: "3m",
+            value: "3m"
         },
         {
-            name: "Min5",
-            value: "Min5"
+            name: "5m",
+            value: "5m"
         },
         {
-            name: "Min15",
-            value: "Min15"
+            name: "15m",
+            value: "15m"
         },
 
     ]
@@ -121,7 +121,7 @@ function FilterDialog({
         {
             data: {
                 compare: "=",
-                value: "Min1"
+                value: "1m"
             },
             name: "Candlestick",
             value: "Candlestick",
@@ -179,6 +179,10 @@ function FilterDialog({
         setFilterDataRowList(filterRowList => filterRowList.filter((value, index) => index !== indexRow))
     }
 
+    const checkFloatString = value => {
+        return !isNaN(parseFloat(value)) && isFinite(value);
+    }
+
     const handleChangeValue = (value, indexInput) => {
 
         setFilterDataRowList(filterDataRowList => filterDataRowList.map((item, index) => {
@@ -197,13 +201,13 @@ function FilterDialog({
 
     const handleCompare = (value1, compareValue, value2) => {
 
-
-        if (typeof (value1) === "string") {
+        if (checkFloatString(value1)) {
             value1 = +value1
         }
-        if (typeof (value2) === "string") {
+        if (checkFloatString(value2)) {
             value2 = +value2
         }
+
         switch (compareValue) {
             case "=":
                 return value1 == value2
@@ -328,7 +332,7 @@ function FilterDialog({
 
         filterQuantityRef.current = filterDataRowList
         setDataCheckTree(filterDataRowList.length > 0
-            ? dataCheckTreeDefaultRef.current.map(dataItem => handleFilterExpression(dataItem)).filter(dataItem => dataItem.children.length > 1)
+            ? dataCheckTreeDefaultRef.current.map(dataItem => handleFilterExpression(dataItem)).filter(dataItem => dataItem.children.length > 0)
             : dataCheckTreeDefaultRef.current)
         handleCheckAllCheckBox(false)
         onClose()
