@@ -1,6 +1,8 @@
 require('dotenv').config();
 
 const { Telegraf } = require('telegraf');
+const TelegramBot = require('node-telegram-bot-api');
+
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 var cron = require('node-cron');
 // const { getAllBotActive } = require('./controllers/bot');
@@ -8,11 +10,11 @@ var cron = require('node-cron');
 
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
-const bot = new Telegraf(process.env.BOT_TOKEN_THONG_KE);
+const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE);
 const CHANNEL_ID = process.env.CHANNEL_ID_THONG_KE
 
 // Bắt đầu bot
-bot.launch();
+// bot.launch();
 
 
 
@@ -43,7 +45,7 @@ let CoinInfo = new RestClientV5(wsInfo);
 async function sendMessageWithRetry(messageText, retries = 5) {
     for (let i = 0; i < retries; i++) {
         try {
-            messageText && await bot.telegram.sendMessage(CHANNEL_ID, messageText);
+            messageText && await bot.sendMessage(CHANNEL_ID, messageText);
             return;
         } catch (error) {
             if (error.code === 429) {
