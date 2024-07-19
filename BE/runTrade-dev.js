@@ -2,6 +2,8 @@ require('dotenv').config();
 const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
 const { Telegraf } = require('telegraf');
+const TelegramBot = require('node-telegram-bot-api');
+
 const { RestClientV5, WebsocketClient, DefaultLogger } = require('bybit-api');
 const { getAllStrategiesActive, getAllSymbolBE, getFutureBE } = require('./controllers/dataCoinByBit');
 const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbol } = require('./controllers/position');
@@ -506,19 +508,22 @@ const sendMessageWithRetry = async ({
     telegramToken,
 }) => {
 
-    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramID]
+    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
 
     try {
         if (!BOT_TOKEN_RUN_TRADE) {
-            const newBotInit = new Telegraf(telegramToken)
+            const newBotInit = new TelegramBot(telegramToken)
             BOT_TOKEN_RUN_TRADE = newBotInit
-            BOT_TOKEN_RUN_TRADE.launch();
-            botListTelegram[telegramID] = newBotInit
+            // BOT_TOKEN_RUN_TRADE.launch();
+            // botListTelegram[telegramID] = newBotInit
         }
         for (let i = 0; i < retries; i++) {
             try {
                 if (messageText) {
-                    await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
+                    // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
+                    await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText,{
+                        parse_mode:"HTML"
+                    });
                     console.log('[->] Message sent to telegram successfully');
                     return;
                 }
@@ -2168,15 +2173,13 @@ socketRealtime.on('disconnect', () => {
 });
 
 
-
-
-process.once('SIGINT', () => {
-    Object.values(botListTelegram).forEach(botData => {
-        botData?.stop('SIGINT')
-    })
-})
-process.once('SIGTERM', () => {
-    Object.values(botListTelegram).forEach(botData => {
-        botData?.stop('SIGTERM')
-    })
-})
+// process.once('SIGINT', () => {
+//     Object.values(botListTelegram).forEach(botData => {
+//         botData?.stop('SIGINT')
+//     })
+// })
+// process.once('SIGTERM', () => {
+//     Object.values(botListTelegram).forEach(botData => {
+//         botData?.stop('SIGTERM')
+//     })
+// })
