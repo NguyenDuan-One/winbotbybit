@@ -3,8 +3,8 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 var cron = require('node-cron');
-const { getAllBotActive } = require('./controllers/bot');
-const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
+// const { getAllBotActive } = require('./controllers/bot');
+// const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
 
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
@@ -437,44 +437,44 @@ const handleStatistic = async (statisticLabel) => {
 }
 
 
-const handleWalletBalance = async () => {
+// const handleWalletBalance = async () => {
 
-    const botListDataActiveRes = await getAllBotActive()
-    if (botListDataActiveRes.length > 0) {
-        const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
-            const result = await getFutureSpotBE(item._id)
+//     const botListDataActiveRes = await getAllBotActive()
+//     if (botListDataActiveRes.length > 0) {
+//         const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
+//             const result = await getFutureSpotBE(item._id)
 
-            // Trả về đối tượng mới cho mỗi item trong mảng
-            return {
-                id: item._id,
-                spotSavings: item?.spotSavings || 0,
-                future: result.future || 0,
-                spotTotal: result.spotTotal || 0,
-                API_KEY: result.API_KEY,
-                SECRET_KEY: result.SECRET_KEY,
-            };
+//             // Trả về đối tượng mới cho mỗi item trong mảng
+//             return {
+//                 id: item._id,
+//                 spotSavings: item?.spotSavings || 0,
+//                 future: result.future || 0,
+//                 spotTotal: result.spotTotal || 0,
+//                 API_KEY: result.API_KEY,
+//                 SECRET_KEY: result.SECRET_KEY,
+//             };
 
-        }))
-        botListDataActive = botListDataActiveObject.map(item => item.value)
+//         }))
+//         botListDataActive = botListDataActiveObject.map(item => item.value)
 
-        const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
-            const newSpotAvailable = botData.spotTotal - botData.spotSavings
-            const average = (newSpotAvailable + botData.future) / 2
+//         const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
+//             const newSpotAvailable = botData.spotTotal - botData.spotSavings
+//             const average = (newSpotAvailable + botData.future) / 2
 
-            if (Math.abs(botData.future - newSpotAvailable) >= 1) {
-                await balanceWalletBE({
-                    amount: Math.abs(newSpotAvailable - average),
-                    futureLarger: botData.future - newSpotAvailable > 0,
-                    API_KEY: botData.API_KEY,
-                    SECRET_KEY: botData.SECRET_KEY,
-                })
-            }
-        }))
-        if (resultBalance.some(item => item.status === "fulfilled")) {
-            console.log("-> Saving Successful");
-        }
-    }
-}
+//             if (Math.abs(botData.future - newSpotAvailable) >= 1) {
+//                 await balanceWalletBE({
+//                     amount: Math.abs(newSpotAvailable - average),
+//                     futureLarger: botData.future - newSpotAvailable > 0,
+//                     API_KEY: botData.API_KEY,
+//                     SECRET_KEY: botData.SECRET_KEY,
+//                 })
+//             }
+//         }))
+//         if (resultBalance.some(item => item.status === "fulfilled")) {
+//             console.log("-> Saving Successful");
+//         }
+//     }
+// }
 
 let Main = async () => {
 
@@ -547,7 +547,7 @@ let Main = async () => {
                     !statistic1 && statisticTimeLoop1.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 1...")
-                            handleWalletBalance()
+                            // handleWalletBalance()
                         });
                     })
                     statistic1 = true
