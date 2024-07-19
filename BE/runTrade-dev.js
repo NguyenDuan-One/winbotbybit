@@ -1316,9 +1316,12 @@ const Main = async () => {
 
                                     const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
 
+                                    console.log(changeColorConsole.cyanBright("priceCompare",allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                                            console.log(changeColorConsole.cyanBright('[->] Vào khoảng quan sát'));
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+                                                console.log(changeColorConsole.cyanBright('[->] Quay đầu'));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1327,7 +1330,9 @@ const Main = async () => {
                                     }
                                     else {
                                         if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                                            console.log(changeColorConsole.cyanBright('[->] Vào khoảng quan sát'));
                                             if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+                                                console.log(changeColorConsole.cyanBright('[->] Quay đầu'));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1458,7 +1463,7 @@ const Main = async () => {
                             else {
                                 TPNew = oldPriceCompare + Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
                             }
-                            
+
                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = newPriceCompare
 
 
