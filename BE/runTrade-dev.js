@@ -779,7 +779,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
                                     // 
                                     console.log(`[_FULL Filled_] Filled TP ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
-                                    
+
                                     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                     if (missTPDataBySymbol[botSymbolMissID].orderIDToDB) {
@@ -1313,7 +1313,7 @@ const Main = async () => {
                                     const PercentCheck = 2 / 100
                                     const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
                                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
-                                    
+
                                     const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
 
                                     if (sideCheck === "Buy") {
@@ -1450,12 +1450,16 @@ const Main = async () => {
 
                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose = coinClose
 
+                            let newPriceCompare = 0
+                            const oldPriceCompare = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare
                             if (strategy.PositionSide === "Long") {
-                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = coinClose + Math.abs(allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - coinClose) * 40 / 100
+                                TPNew = oldPriceCompare - Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
                             }
                             else {
-                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = coinClose - Math.abs(allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - coinClose) * 40 / 100
+                                TPNew = oldPriceCompare + Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
                             }
+                            
+                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = newPriceCompare
 
 
                             !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID].TP.moveSuccess && handleMoveOrderTP({

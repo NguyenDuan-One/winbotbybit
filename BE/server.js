@@ -2,7 +2,7 @@ const { server,socketServer } = require('./serverConfig');
 
 require('dotenv').config();
 
-const PORT = 80
+const PORT = 3001
 
 server.listen(PORT, process.env.BASE_URL, () => {
   console.log(`Server is running on port ${PORT}`);

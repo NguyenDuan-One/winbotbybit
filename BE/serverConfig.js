@@ -13,10 +13,8 @@ const socketServer = new Server(server);
 
 const PAYLOAD_LIMIT_SIZE = "100MB";
 
-app.use(express.json({ limit: PAYLOAD_LIMIT_SIZE }));
-app.use(cors({
-  origin: process.env.SOCKET_IP
-}));
+app.use(express.json({limit: PAYLOAD_LIMIT_SIZE}));
+app.use(cors());
 app.use(cookieParser());
 
 app.use((req, res, next) => {
@@ -29,7 +27,7 @@ app.use((req, res, next) => {
   }
   next();
 })
-app.use('/', routes); // Sử dụng route chung
+app.use('/api', routes); // Sử dụng route chung
 // app.use(express.static(path.join(__dirname, '../FE/build')));
 
 // app.get('/', function (req, res) {
