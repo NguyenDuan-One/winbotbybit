@@ -13,7 +13,7 @@
 
         img {
             max-height: 35px;
-            margin-right: 6px;
+            margin-right: 10px;
         }
 
         .text {
@@ -49,12 +49,15 @@
             cursor: pointer;
 
             .name {
-                font-size: 14px;
                 font-weight: 600;
                 margin-left: 10px;
                 display: flex;
                 align-items: center;
                 text-transform: capitalize;
+
+                span {
+                    font-size: 1.1rem;
+                }
 
             }
         }

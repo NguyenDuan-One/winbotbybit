@@ -1,4 +1,5 @@
 import { Button } from "@mui/material";
+import { Helmet } from "react-helmet";
 import { NavLink } from "react-router-dom";
 
 function NotFound() {
@@ -12,6 +13,7 @@ function NotFound() {
             display: 'flex',
             flexDirection: "column"
         }}>
+            <Helmet title={`404 | CyberBot`} />
             <div style={{
                 margin: "auto",
                 textAlign: "center"

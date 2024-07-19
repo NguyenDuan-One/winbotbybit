@@ -187,14 +187,14 @@ const handleSubmitOrderTP = ({
 
 
                 console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
-                console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
+                console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
 
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
                 if (missState) {
                     console.log(changeColorConsole.yellowBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
-                    console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
+                    console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                     updatePositionBE({
                         newDataUpdate: {
                             Miss: true,
@@ -213,7 +213,7 @@ const handleSubmitOrderTP = ({
             console.log(changeColorConsole.redBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
             if (missState) {
                 console.log(changeColorConsole.redBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
-                console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
+                console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                 updatePositionBE({
                     newDataUpdate: {
                         Miss: true,
@@ -640,7 +640,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                 const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
-                                console.log(`[V] Filled OC: \n${symbol} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`);
+                                console.log(`\n[V] Filled OC: \n${symbol} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}\n`);
                                 const teleText = `${symbol} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
 
                                 if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
@@ -744,7 +744,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
 
-                                console.log(`[V] Filled TP: \n${symbol} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`);
+                                console.log(`\n[V] Filled TP: \n${symbol} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`);
                                 const teleText = `${symbol} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
                                 const priceWinPercent = (Math.abs(closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
@@ -759,13 +759,13 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }
                                     else {
                                         textWinLose = `\n=> [LOSE - Buy]: ${priceWin} | ${priceWinPercent}%\n`
-                                        console.log(changeColorConsole.greenBright(textWinLose));
+                                        console.log(changeColorConsole.magentaBright(textWinLose));
                                     }
                                 }
                                 else {
                                     if (priceWin > 0 && priceWinPercent > 0) {
                                         textWinLose = `\n=> [LOSE - SELL]: ${-1 * priceWin} | ${priceWinPercent}%\n`
-                                        console.log(changeColorConsole.greenBright(textWinLose));
+                                        console.log(changeColorConsole.magentaBright(textWinLose));
                                     }
                                     else {
                                         textWinLose = `\n=> [WIN - SELL]: ${Math.abs(priceWin)} | ${priceWinPercent}%\n`
@@ -779,17 +779,19 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
                                     // 
                                     console.log(`[_FULL Filled_] Filled TP ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
-                                    console.log(`[Mongo] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
-
+                                    
                                     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
-                                    deletePositionBE({
-                                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                    }).then(message => {
-                                        console.log(message);
-                                    }).catch(err => {
-                                        console.log(changeColorConsole.redBright(err));
-                                    })
+                                    if (missTPDataBySymbol[botSymbolMissID].orderIDToDB) {
+                                        console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
+                                        deletePositionBE({
+                                            orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                        }).then(message => {
+                                            console.log(message);
+                                        }).catch(err => {
+                                            console.log(changeColorConsole.redBright(err));
+                                        })
+                                    }
 
                                     console.log("[...] Reset All");
 
@@ -835,18 +837,18 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     const side = dataMain.side
                     console.log('[...] User Clicked Close Vị Thế')
                     missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP?.length > 0 &&
-                     await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
-                        return handleCancelOrderTP({
-                            ApiKey,
-                            SecretKey,
-                            strategyID: orderIdTPData?.strategyID,
-                            symbol,
-                            side,
-                            orderId: orderIdTPData?.orderID,
-                            botID,
-                            botName
-                        })
-                    }))
+                        await Promise.all(missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP.map(orderIdTPData => {
+                            return handleCancelOrderTP({
+                                ApiKey,
+                                SecretKey,
+                                strategyID: orderIdTPData?.strategyID,
+                                symbol,
+                                side,
+                                orderId: orderIdTPData?.orderID,
+                                botID,
+                                botName
+                            })
+                        }))
 
 
                     if (missTPDataBySymbol[botSymbolMissID]?.orderID) {
@@ -867,7 +869,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     }
 
                     if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                        console.log(`[Mongo] Delete Position ( ${side} - ${symbol})`);
+                        console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol})`);
                         deletePositionBE({
                             orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                         }).then(message => {
@@ -990,7 +992,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 }
                                 else {
                                     console.log(`[_ Not Miss _] TP ( ${botName} - ${side} - ${symbol}} )`);
-                                    console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
+                                    console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                     updatePositionBE({
                                         newDataUpdate: {
                                             Miss: false,
@@ -1006,7 +1008,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             }
                             else {
                                 console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
-                                console.log(`[Mongo] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
+                                console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                 updatePositionBE({
                                     newDataUpdate: {
                                         Miss: true,
@@ -1311,8 +1313,9 @@ const Main = async () => {
                                     const PercentCheck = 2 / 100
                                     const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
                                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
+                                    
+                                    const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
 
-                                    const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
@@ -1333,7 +1336,7 @@ const Main = async () => {
                                     }
                                 }
                                 else {
-                                    console.log(changeColorConsole.blueBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
+                                    console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
 
                                     const client = new RestClientV5({
                                         testnet: false,

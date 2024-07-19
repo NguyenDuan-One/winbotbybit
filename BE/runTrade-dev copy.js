@@ -1,5 +1,4 @@
-var cron = require('node-cron');
+const changeColorConsole = require('cli-color');
 
-cron.schedule(`*/1 * * * * *`, () => {
-    console.log('ok');
-});
+console.log(changeColorConsole.cyanBright("dfd"));
+console.log(changeColorConsole.blueBright("dfd"));

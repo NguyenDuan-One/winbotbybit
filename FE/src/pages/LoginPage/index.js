@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../store/slices/Toast";
 import { login, signUp } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from 'react-helmet';
 
 function LoginPage() {
 
@@ -56,9 +57,10 @@ function LoginPage() {
                 handleSubmit(handleLogin)()
             }
         }}>
+            <Helmet title={`Login | CyberBot`} />
             <div className={styles.loginPageBody}>
                 <div className={styles.headingLogo} >
-                    <img src={logoImage} style={{ width: "28px" }} />
+                    <img src={logoImage} style={{ width: "50px" }} />
                     <span className={styles.text}>CyberBot</span>
                 </div>
                 <form className={styles.form}>

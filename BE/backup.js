@@ -1,17 +1,17 @@
-const backup = require('mongodb-backup');
+const { exec } = require('child_process');
 
-const uri = 'mongodb://localhost:27017/crypto-bot';
-const root = "backup"
+function backupDatabase() {
+    const dbName = 'crypto-bot';
+    const backupDir = 'backup'; // Thư mục lưu trữ file backup
 
-backup({
-    uri, 
-    root,
-    callback: function(err) {
-
-        if (err) {
-          console.error(err);
+    exec(`mongodump --db ${dbName} --host localhost --port 27017  --out ${backupDir}`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Backup process error: ${error}`);
         } else {
-          console.log('finish');
+            console.log(`Backup process completed successfully: ${stdout}`);
         }
-      }
-})
+    });
+}
+
+// Gọi hàm backup
+backupDatabase();
