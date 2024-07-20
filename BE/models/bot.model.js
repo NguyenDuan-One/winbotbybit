@@ -13,10 +13,7 @@ const botSchema = new mongoose.Schema({
   spotSavings: Number,
   Created: Date,
   // Bot Api
-  ApiKey: {
-    type: String,
-    unique: true,
-  },
+  ApiKey: String,
   SecretKey: String,
   UTA: Boolean,
   // 
