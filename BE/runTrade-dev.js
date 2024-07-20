@@ -1337,7 +1337,7 @@ const Main = async () => {
                                    let textQuayDau = ""
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
+                                            textQuanSat = `🙈 Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
                                             console.log(changeColorConsole.cyanBright(textQuanSat));
                                             sendMessageWithRetry({
                                                 messageText:textQuanSat,
@@ -1346,7 +1346,7 @@ const Main = async () => {
                                             })
                                             await delay(200)
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                textQuayDau = `\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
+                                                textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                                 console.log(changeColorConsole.greenBright(textQuayDau));
                                                 sendMessageWithRetry({
                                                     messageText:textQuayDau,
@@ -1362,7 +1362,7 @@ const Main = async () => {
                                     }
                                     else {
                                         if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
+                                            textQuanSat = `🙈 Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
                                             console.log(changeColorConsole.cyanBright(textQuanSat));
                                             sendMessageWithRetry({
                                                 messageText:textQuanSat,
@@ -1371,7 +1371,7 @@ const Main = async () => {
                                             })
                                             await delay(200)
                                             if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                textQuayDau = `\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
+                                                textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                                 console.log(changeColorConsole.greenBright(textQuayDau));
                                                 sendMessageWithRetry({
                                                     messageText:textQuayDau,
