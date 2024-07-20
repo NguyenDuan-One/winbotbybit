@@ -46,10 +46,10 @@ function Wallet() {
                 futureAvailableDefault.current = value
             }
             else {
-                dispatch(addMessageToast({
-                    status: status,
-                    message: message,
-                }))
+                // dispatch(addMessageToast({
+                //     status: status,
+                //     message: message,
+                // }))
             }
 
         } catch (error) {
@@ -80,10 +80,10 @@ function Wallet() {
                 setSpotTotal(newSpotTotal)
             }
             else {
-                dispatch(addMessageToast({
-                    status: status,
-                    message: message,
-                }))
+                // dispatch(addMessageToast({
+                //     status: status,
+                //     message: message,
+                // }))
             }
         } catch (error) {
             dispatch(addMessageToast({

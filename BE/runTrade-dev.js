@@ -512,9 +512,9 @@ const sendMessageWithRetry = async ({
 
     try {
         if (!BOT_TOKEN_RUN_TRADE) {
-            const newBotInit = new TelegramBot(telegramToken,{
-                polling:true,
-                request:{
+            const newBotInit = new TelegramBot(telegramToken, {
+                polling: true,
+                request: {
                     agentOptions: {
                         keepAlive: true,
                         family: 4
@@ -541,6 +541,7 @@ const sendMessageWithRetry = async ({
                     console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
                     await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
                 } else {
+                    console.log("Send Telegram Error:");
                     throw error;
                 }
             }
@@ -1812,8 +1813,8 @@ socketRealtime.on('delete', (newData) => {
 });
 
 
-socketRealtime.on('bot-update', async (data = []) => {
-    const { newData, botID: botIDMain, botActive } = data;
+socketRealtime.on('bot-update', async (data = {}) => {
+    const { newData, botIDMain, botActive } = data;
 
     console.log("[...] Bot-Update Strategies From Realtime", newData.length);
 
@@ -1892,6 +1893,7 @@ socketRealtime.on('bot-update', async (data = []) => {
     })
 
     const botApiData = botApiList[botIDMain]
+    
     if (botApiData) {
         const ApiKeyBot = botApiData.ApiKey
         const SecretKeyBot = botApiData.SecretKey
@@ -1912,8 +1914,7 @@ socketRealtime.on('bot-update', async (data = []) => {
             await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
         }
     }
-    else 
-    {
+    else {
         await handleSocketBotApiList(newBotApiList)
     }
 

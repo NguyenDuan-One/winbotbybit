@@ -148,10 +148,6 @@ function MainLayout({ children }) {
 
     }, []);
 
-
-
-
-
     useEffect(() => {
         window.innerWidth <= 740 && setMarginLeft("")
         window.scrollTo(0, 0)
