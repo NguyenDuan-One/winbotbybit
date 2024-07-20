@@ -506,10 +506,9 @@ const sendMessageWithRetry = async ({
     retries = 5,
     telegramID,
     telegramToken,
-    botID
 }) => {
 
-    let BOT_TOKEN_RUN_TRADE = botListTelegram[botID]
+    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
 
     try {
         if (!BOT_TOKEN_RUN_TRADE) {
@@ -524,7 +523,7 @@ const sendMessageWithRetry = async ({
             })
             newBotInit.stopPoll()
             BOT_TOKEN_RUN_TRADE = newBotInit
-            botListTelegram[botID] = newBotInit
+            botListTelegram[telegramToken] = newBotInit
             // BOT_TOKEN_RUN_TRADE.launch();
         }
         for (let i = 0; i < retries; i++) {
@@ -543,17 +542,15 @@ const sendMessageWithRetry = async ({
                     console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
                     await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
                 } else {
-                    console.log("Send Telegram Error:");
-                    throw error;
+                    throw new Error("Send Telegram Error");
                 }
             }
         }
 
         throw new Error('[!] Failed to send message after multiple retries');
     } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Bot Telegram Error:", error))
-    } finally {
-    }
+        console.log(changeColorConsole.redBright("[!] Bot Telegram Error"))
+    } 
 };
 
 const getMoneyFuture = async (botApiList) => {
@@ -745,7 +742,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     messageText: teleText,
                                     telegramID,
                                     telegramToken,
-                                    botID
                                 })
                             }
                             // Khớp TP
@@ -828,7 +824,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     messageText: `${teleText} \n${textWinLose}`,
                                     telegramID,
                                     telegramToken,
-                                    botID
                                 })
 
 
@@ -1361,8 +1356,7 @@ const Main = async () => {
                                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
 
                                 }
-                                if(checkMoveMain)
-                                {
+                                if (checkMoveMain) {
                                     // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
                                     const client = new RestClientV5({
                                         testnet: false,
@@ -1898,7 +1892,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
     })
 
     const botApiData = botApiList[botIDMain]
-    
+
     if (botApiData) {
         const ApiKeyBot = botApiData.ApiKey
         const SecretKeyBot = botApiData.SecretKey
@@ -1917,10 +1911,6 @@ socketRealtime.on('bot-update', async (data = {}) => {
         }
         else {
             await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
-            if (botListTelegram[botIDMain]) {
-                botListTelegram[botIDMain]?.stopPolling()
-                delete botListTelegram[botIDMain]
-            }
         }
     }
     else {
@@ -2103,7 +2093,7 @@ socketRealtime.on('bot-telegram', async (data) => {
     console.log("[...] Bot Telegram Update From Realtime");
 
     const { newData, botID: botIDMain, newApiData } = data;
-    const telegramIDOld = newApiData.telegramIDOld
+    const telegramTokenOld = newApiData.telegramTokenOld
     const telegramID = newApiData.telegramID
     const telegramToken = newApiData.telegramToken
 
@@ -2126,9 +2116,9 @@ socketRealtime.on('bot-telegram', async (data) => {
         }
     })
 
-    if (botListTelegram[botIDMain]) {
-        botListTelegram[botIDMain]?.stopPolling()
-        delete botListTelegram[botIDMain]
+    if (botListTelegram[telegramTokenOld]) {
+        botListTelegram[telegramTokenOld]?.stopPolling()
+        delete botListTelegram[telegramTokenOld]
     }
 });
 

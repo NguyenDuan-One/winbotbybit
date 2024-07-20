@@ -63,8 +63,7 @@ async function sendMessageWithRetry(messageText, retries = 5) {
                 console.log(`Rate limited. Retrying after ${retryAfter} seconds...`);
                 await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
             } else {
-                console.log("Send Telegram Error:");
-                throw error;
+                throw new Error("Send Telegram Error");
             }
         }
     }
@@ -375,18 +374,31 @@ async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coi
             const winLong = winCountLong && totalLong ? `${winCountLong} / ${totalLong}` : 0
 
 
-            if (shortPercent > 80 && longPercent > 80) {
-                let messageText = `${symbol} ( OC: ${percentDefault}% ):\n`
-                if (shortPercent > 80) {
+            // if (shortPercent > 80 && longPercent > 80) {
+            //     let messageText = `${symbol} ( OC: ${percentDefault}% ):\n`
+            //     if (shortPercent > 80) {
+
+            //         messageText += `Short: ${winShort} - `
+            //     }
+            //     if (longPercent > 80) {
+            //         messageText += `Long: ${winLong} - `
+            //     }
+            //     console.log(messageText);
+            //     coinListWin50.push(messageText.slice(0, -2))
+            //     // bot.telegram.sendMessage(CHANNEL_ID, messageText.slice(0, -2));
+            // }
+            const percentDefaultWin = 80
+            if (shortPercent > percentDefaultWin || longPercent > percentDefaultWin) {
+                let messageText = `🚀 <b>${symbol} ( OC: ${percentDefault}% ):</b>\n`
+                if (shortPercent > percentDefaultWin) {
 
                     messageText += `Short: ${winShort} - `
                 }
-                if (shortPercent > 80) {
+                if (longPercent > percentDefaultWin) {
                     messageText += `Long: ${winLong} - `
                 }
                 console.log(messageText);
                 coinListWin50.push(messageText.slice(0, -2))
-                // bot.telegram.sendMessage(CHANNEL_ID, messageText.slice(0, -2));
             }
             // else{
             //     console.log("Not Coin Win > 80%");
@@ -433,20 +445,19 @@ const handleStatistic = async (statisticLabel) => {
     console.log(statisticLabel, new Date().toLocaleString("vi-vn"));
 
     const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
-    console.log(get2);
-    sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
+    sendMessageWithRetry(get2.join("\n"))
     await delay(1000)
     
     const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
-    sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
+    sendMessageWithRetry(get25.join("\n"))
     await delay(1000)
 
     const get3 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault3, nenCount)
-    sendMessageWithRetry(get3.flatMap(item => item.value).join("\n"))
+    sendMessageWithRetry(get3.join("\n"))
     await delay(1000)
 
     const get35 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault35, nenCount)
-    sendMessageWithRetry(get35.flatMap(item => item.value).join("\n"))
+    sendMessageWithRetry(get35.join("\n"))
     await delay(1000)
 }
 

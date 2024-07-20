@@ -131,7 +131,7 @@ function EditUser({
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitUpdateUser)}
-            dialogTitle="Add User"
+            dialogTitle="Edit User"
         >
 
             <form className={styles.dialogForm}>

@@ -38,7 +38,7 @@ function EditBot({
                     id: botData.id,
                     data: {
                         ...formData,
-                        telegramIDOld: botData.telegramID?.trim(),
+                        telegramTokenOld: botData.telegramTokenOld?.trim(),
                         telegramID,
                         telegramToken,
                         type: checkTeleInfor ? "telegram" : "",

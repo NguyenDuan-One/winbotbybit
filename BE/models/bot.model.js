@@ -9,10 +9,7 @@ const botSchema = new mongoose.Schema({
   Version: String,
   note: String,
   telegramID: String,
-  telegramToken: {
-    type: String,
-    unique: true,
-  },
+  telegramToken: String,
   spotSavings: Number,
   Created: Date,
   // Bot Api
@@ -32,6 +29,5 @@ const botSchema = new mongoose.Schema({
 
 const Bot = mongoose.model('Bot', botSchema);
 Bot.createIndexes();
-
 
 module.exports = Bot;

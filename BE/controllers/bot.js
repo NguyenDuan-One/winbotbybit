@@ -231,7 +231,7 @@ const BotController = {
                                 newData: newDataSocketWithBotData,
                                 botID,
                                 newApiData: {
-                                    telegramIDOld: data.telegramIDOld,
+                                    telegramTokenOld: data.telegramTokenOld,
                                     telegramID: data.telegramID,
                                     telegramToken: data.telegramToken,
                                 }
@@ -252,6 +252,7 @@ const BotController = {
             }
 
         } catch (error) {
+            console.log(error);
             // Xử lý lỗi nếu có
             res.status(500).json({ message: "Update Bot Error" });
         }
