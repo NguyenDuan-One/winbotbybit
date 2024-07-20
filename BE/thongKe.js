@@ -55,6 +55,7 @@ async function sendMessageWithRetry(messageText, retries = 5) {
                 console.log(`Rate limited. Retrying after ${retryAfter} seconds...`);
                 await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
             } else {
+                console.log("Send Telegram Error");
                 throw error;
             }
         }
