@@ -1172,7 +1172,7 @@ const Main = async () => {
 
             const listData = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
-            listData && Object.values(listData)?.forEach(strategy => {
+            listData && Object.values(listData)?.forEach(async strategy => {
 
                 if (checkConditionBot(strategy)) {
 
@@ -1186,6 +1186,9 @@ const Main = async () => {
 
                     const ApiKey = strategy.botID.ApiKey
                     const SecretKey = strategy.botID.SecretKey
+                    const telegramID = strategy.botID.telegramID
+                    const telegramToken = strategy.botID.telegramToken
+
                     const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
                     const symbolCandleID = `${symbol}-${candle}`
@@ -1330,11 +1333,27 @@ const Main = async () => {
                                     !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
 
                                     console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
+                                   let textQuanSat = ""
+                                   let textQuayDau = ""
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            console.log(changeColorConsole.cyanBright(`[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `));
+                                            textQuanSat = `[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
+                                            console.log(changeColorConsole.cyanBright(textQuanSat));
+                                            sendMessageWithRetry({
+                                                messageText:textQuanSat,
+                                                telegramID,
+                                                telegramToken
+                                            })
+                                            await delay(200)
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.greenBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
+                                                textQuayDau = `\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
+                                                console.log(changeColorConsole.greenBright(textQuayDau));
+                                                sendMessageWithRetry({
+                                                    messageText:textQuayDau,
+                                                    telegramID,
+                                                    telegramToken
+                                                })
+                                                await delay(200)
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1343,9 +1362,23 @@ const Main = async () => {
                                     }
                                     else {
                                         if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            console.log(changeColorConsole.cyanBright(`[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `));
+                                            textQuanSat = `[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
+                                            console.log(changeColorConsole.cyanBright(textQuanSat));
+                                            sendMessageWithRetry({
+                                                messageText:textQuanSat,
+                                                telegramID,
+                                                telegramToken
+                                            })
+                                            await delay(200)
                                             if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.greenBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
+                                                textQuayDau = `\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
+                                                console.log(changeColorConsole.greenBright(textQuayDau));
+                                                sendMessageWithRetry({
+                                                    messageText:textQuayDau,
+                                                    telegramID,
+                                                    telegramToken
+                                                })
+                                                await delay(200)
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
