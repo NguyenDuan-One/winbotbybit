@@ -390,15 +390,16 @@ async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coi
             const percentDefaultWin = 80
             if (shortPercent > percentDefaultWin || longPercent > percentDefaultWin) {
                 let messageText = `🚀 <b>${symbol} ( OC: ${percentDefault}% ):</b>\n`
+                let messageTextItem = ``
                 if (shortPercent > percentDefaultWin) {
 
-                    messageText += `Short: ${winShort} - `
+                    messageTextItem += `Short: ${winShort} - `
                 }
                 if (longPercent > percentDefaultWin) {
-                    messageText += `Long: ${winLong} - `
+                    messageTextItem += `Long: ${winLong} - `
                 }
-                console.log(messageText);
-                coinListWin50.push(`<i>${messageText.slice(0, -2)}</i>`)
+                console.log(messageText + messageTextItem);
+                coinListWin50.push(`${messageText}<i>${messageTextItem.slice(0, -2)}</i>`)
             }
             // else{
             //     console.log("Not Coin Win > 80%");
