@@ -398,7 +398,7 @@ async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coi
                     messageText += `Long: ${winLong} - `
                 }
                 console.log(messageText);
-                coinListWin50.push(messageText.slice(0, -2))
+                coinListWin50.push(`<i>${messageText.slice(0, -2)}</i>`)
             }
             // else{
             //     console.log("Not Coin Win > 80%");
