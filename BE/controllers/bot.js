@@ -154,6 +154,7 @@ const BotController = {
 
         } catch (error) {
             // Xử lý lỗi nếu có
+            console.log(error);
             res.status(500).json({ message: "Add New Bot Error" });
         }
     },
