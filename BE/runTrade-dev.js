@@ -521,7 +521,6 @@ const sendMessageWithRetry = async ({
                     }
                 }
             })
-            newBotInit.stopPoll()
             BOT_TOKEN_RUN_TRADE = newBotInit
             botListTelegram[telegramToken] = newBotInit
             // BOT_TOKEN_RUN_TRADE.launch();
@@ -1335,7 +1334,7 @@ const Main = async () => {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                             console.log(changeColorConsole.cyanBright(`[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `));
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.blueBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
+                                                console.log(changeColorConsole.greenBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1346,7 +1345,7 @@ const Main = async () => {
                                         if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                             console.log(changeColorConsole.cyanBright(`[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `));
                                             if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.blueBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
+                                                console.log(changeColorConsole.greenBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
