@@ -435,7 +435,7 @@ const handleStatistic = async (statisticLabel) => {
     const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
     sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
     await delay(1000)
-
+    
     const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
     sendMessageWithRetry(get25.flatMap(item => item.value).join("\n"))
     await delay(1000)

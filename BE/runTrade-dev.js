@@ -506,9 +506,10 @@ const sendMessageWithRetry = async ({
     retries = 5,
     telegramID,
     telegramToken,
+    botID
 }) => {
 
-    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
+    let BOT_TOKEN_RUN_TRADE = botListTelegram[botID]
 
     try {
         if (!BOT_TOKEN_RUN_TRADE) {
@@ -521,9 +522,10 @@ const sendMessageWithRetry = async ({
                     }
                 }
             })
+            newBotInit.stopPoll()
             BOT_TOKEN_RUN_TRADE = newBotInit
+            botListTelegram[botID] = newBotInit
             // BOT_TOKEN_RUN_TRADE.launch();
-            // botListTelegram[telegramID] = newBotInit
         }
         for (let i = 0; i < retries; i++) {
             try {
@@ -742,7 +744,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 sendMessageWithRetry({
                                     messageText: teleText,
                                     telegramID,
-                                    telegramToken
+                                    telegramToken,
+                                    botID
                                 })
                             }
                             // Khớp TP
@@ -824,7 +827,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 sendMessageWithRetry({
                                     messageText: `${teleText} \n${textWinLose}`,
                                     telegramID,
-                                    telegramToken
+                                    telegramToken,
+                                    botID
                                 })
 
 
@@ -1912,6 +1916,10 @@ socketRealtime.on('bot-update', async (data = {}) => {
         }
         else {
             await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+            if (botListTelegram[botIDMain]) {
+                botListTelegram[botIDMain]?.stopPolling()
+                delete botListTelegram[botIDMain]
+            }
         }
     }
     else {
@@ -2117,9 +2125,9 @@ socketRealtime.on('bot-telegram', async (data) => {
         }
     })
 
-    if (botListTelegram[telegramIDOld]) {
-        botListTelegram[telegramIDOld]?.stop()
-        delete botListTelegram[telegramIDOld]
+    if (botListTelegram[botIDMain]) {
+        botListTelegram[botIDMain]?.stopPolling()
+        delete botListTelegram[botIDMain]
     }
 });
 
