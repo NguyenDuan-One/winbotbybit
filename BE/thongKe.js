@@ -433,6 +433,7 @@ const handleStatistic = async (statisticLabel) => {
     console.log(statisticLabel, new Date().toLocaleString("vi-vn"));
 
     const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
+    console.log(get2);
     sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
     await delay(1000)
     
@@ -556,6 +557,7 @@ let Main = async () => {
             if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
                     console.log("Trade 1 Closed: ", new Date().toLocaleString("vi-vn"));
+                    handleStatistic("Statistic 1...")
                     !statistic1 && statisticTimeLoop1.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 1...")

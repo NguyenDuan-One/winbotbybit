@@ -1335,12 +1335,12 @@ const Main = async () => {
 
                                     !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
 
-                                    console.log(changeColorConsole.cyanBright("priceCompare", allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
+                                    console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            console.log(changeColorConsole.cyanBright('[->] Vào khoảng quan sát'));
+                                            console.log(changeColorConsole.cyanBright(`[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `));
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.blueBright('\n[->] Quay đầu\n'));
+                                                console.log(changeColorConsole.blueBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1349,9 +1349,9 @@ const Main = async () => {
                                     }
                                     else {
                                         if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            console.log(changeColorConsole.cyanBright('[->] Vào khoảng quan sát'));
+                                            console.log(changeColorConsole.cyanBright(`[->] Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `));
                                             if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.blueBright('\n[->] Quay đầu\n'));
+                                                console.log(changeColorConsole.blueBright(`\n[->] Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1361,7 +1361,8 @@ const Main = async () => {
                                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
 
                                 }
-                                else {
+                                if(checkMoveMain)
+                                {
                                     // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
                                     const client = new RestClientV5({
                                         testnet: false,
