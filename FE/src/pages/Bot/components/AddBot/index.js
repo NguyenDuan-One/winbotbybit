@@ -32,7 +32,8 @@ function AddBot({
     const newBotDataRef = useRef()
 
     const checkRoleNameAdmin = ()=>{
-        return roleName === "Admin" || roleName === "SuperAdmin"
+        // return roleName === "Admin" || roleName === "SuperAdmin"
+        return roleName !== "Trader"
     }
 
     const handleSubmitAddBot = async formData => {

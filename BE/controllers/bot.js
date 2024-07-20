@@ -189,7 +189,11 @@ const BotController = {
 
                         newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
                             type: "bot-update",
-                            data: newDataSocketWithBotData
+                            data: {
+                                newData: newDataSocketWithBotData,
+                                botIDMain: botID,
+                                botActive: IsActive
+                            }
                         })
 
                     }

@@ -243,7 +243,7 @@ const moveOrderTP = ({
     botName,
     botID
 }) => {
-    console.log(changeColorConsole.greenBright(`Price Move TP ( ${botName} - ${side} - ${symbol} - ${candle} ):`, price));
+    // console.log(changeColorConsole.greenBright(`Price Move TP ( ${botName} - ${side} - ${symbol} - ${candle} ):`, price));
 
     const client = new RestClientV5({
         testnet: false,
@@ -521,8 +521,8 @@ const sendMessageWithRetry = async ({
             try {
                 if (messageText) {
                     // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
-                    await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText,{
-                        parse_mode:"HTML"
+                    await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
+                        parse_mode: "HTML"
                     });
                     console.log('[->] Message sent to telegram successfully');
                     return;
@@ -1317,16 +1317,17 @@ const Main = async () => {
                                 if (!checkMoveMain) {
                                     const PercentCheck = 2 / 100
                                     const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
-                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
 
                                     const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
 
-                                    console.log(changeColorConsole.cyanBright("priceCompare",allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
+                                    !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
+
+                                    console.log(changeColorConsole.cyanBright("priceCompare", allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                             console.log(changeColorConsole.cyanBright('[->] Vào khoảng quan sát'));
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.cyanBright('[->] Quay đầu'));
+                                                console.log(changeColorConsole.blueBright('\n[->] Quay đầu\n'));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1337,17 +1338,18 @@ const Main = async () => {
                                         if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                             console.log(changeColorConsole.cyanBright('[->] Vào khoảng quan sát'));
                                             if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                console.log(changeColorConsole.cyanBright('[->] Quay đầu'));
+                                                console.log(changeColorConsole.blueBright('\n[->] Quay đầu\n'));
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
                                             }
                                         }
                                     }
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
+
                                 }
                                 else {
-                                    console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
-
+                                    // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
                                     const client = new RestClientV5({
                                         testnet: false,
                                         key: ApiKey,
@@ -1463,10 +1465,10 @@ const Main = async () => {
                             let newPriceCompare = 0
                             const oldPriceCompare = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare
                             if (strategy.PositionSide === "Long") {
-                                TPNew = oldPriceCompare - Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
+                                newPriceCompare = oldPriceCompare - Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
                             }
                             else {
-                                TPNew = oldPriceCompare + Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
+                                newPriceCompare = oldPriceCompare + Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
                             }
 
                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = newPriceCompare
@@ -1802,7 +1804,9 @@ socketRealtime.on('delete', (newData) => {
 });
 
 
-socketRealtime.on('bot-update', async (newData = []) => {
+socketRealtime.on('bot-update', async (data = []) => {
+    const { newData, botID: botIDMain, botActive } = data;
+
     console.log("[...] Bot-Update Strategies From Realtime", newData.length);
 
     const newBotApiList = {}
@@ -1879,7 +1883,31 @@ socketRealtime.on('bot-update', async (newData = []) => {
 
     })
 
-    await handleSocketBotApiList(newBotApiList)
+    const botApiData = botApiList[botIDMain]
+    if (botApiData) {
+        const ApiKeyBot = botApiData.ApiKey
+        const SecretKeyBot = botApiData.SecretKey
+
+        const wsConfigOrder = {
+            key: ApiKeyBot,
+            secret: SecretKeyBot,
+            market: 'v5',
+            enable_time_sync: true
+        }
+
+        const wsOrder = new WebsocketClient(wsConfigOrder);
+
+        if (botActive) {
+            await wsOrder.subscribeV5(LIST_ORDER, 'linear')
+        }
+        else {
+            await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+        }
+    }
+    else 
+    {
+        await handleSocketBotApiList(newBotApiList)
+    }
 
 });
 
