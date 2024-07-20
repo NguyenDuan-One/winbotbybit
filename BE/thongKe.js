@@ -569,7 +569,6 @@ let Main = async () => {
             if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
                     console.log("Trade 1 Closed: ", new Date().toLocaleString("vi-vn"));
-                    handleStatistic("Statistic 1...")
                     !statistic1 && statisticTimeLoop1.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 1...")
