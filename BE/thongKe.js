@@ -10,7 +10,15 @@ var cron = require('node-cron');
 
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
-const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE);
+const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE, {
+    polling: true,
+    request: {
+        agentOptions: {
+            keepAlive: true,
+            family: 4
+        }
+    }
+});
 const CHANNEL_ID = process.env.CHANNEL_ID_THONG_KE
 
 // Bắt đầu bot
@@ -45,8 +53,8 @@ let CoinInfo = new RestClientV5(wsInfo);
 async function sendMessageWithRetry(messageText, retries = 5) {
     for (let i = 0; i < retries; i++) {
         try {
-            messageText && await bot.sendMessage(CHANNEL_ID, messageText,{
-                parse_mode:"HTML"
+            messageText && await bot.sendMessage(CHANNEL_ID, messageText, {
+                parse_mode: "HTML",
             });
             return;
         } catch (error) {
@@ -422,7 +430,7 @@ const handleStatistic = async (statisticLabel) => {
     // Số cây nến
     const nenCount = 100;
 
-    console.log(statisticLabel,new Date().toLocaleString("vi-vn"));
+    console.log(statisticLabel, new Date().toLocaleString("vi-vn"));
 
     const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
     sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
@@ -547,7 +555,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 1 Closed: ",new Date().toLocaleString("vi-vn"));
+                    console.log("Trade 1 Closed: ", new Date().toLocaleString("vi-vn"));
                     !statistic1 && statisticTimeLoop1.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 1...")
@@ -571,7 +579,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 3 Closed: ",new Date().toLocaleString("vi-vn"));
+                    console.log("Trade 3 Closed: ", new Date().toLocaleString("vi-vn"));
                     !statistic3 && statisticTimeLoop3.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 3...")
@@ -594,7 +602,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 5 Closed: ",new Date().toLocaleString("vi-vn"));
+                    console.log("Trade 5 Closed: ", new Date().toLocaleString("vi-vn"));
                     !statistic5 && statisticTimeLoop5.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 5...")
@@ -613,9 +621,8 @@ let Main = async () => {
                 }
             }
         }
-        if(messageList.length)
-        {
-            console.log(`Send telegram tính OC: `,new Date().toLocaleString("vi-vn"));
+        if (messageList.length) {
+            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
             sendMessageWithRetry(messageList.join("\n"))
         }
 
