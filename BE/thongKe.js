@@ -389,7 +389,7 @@ async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coi
             // }
             const percentDefaultWin = 80
             if (shortPercent > percentDefaultWin || longPercent > percentDefaultWin) {
-                let messageText = `🚀 <b>${symbol.replace("USDT", "")} ( OC: ${percentDefault}% ):</b>\n`
+                let messageText = `🌎 <b>${symbol.replace("USDT", "")} ( OC: ${percentDefault}% ):</b>\n`
                 let messageTextItem = ``
                 if (shortPercent > percentDefaultWin) {
 
