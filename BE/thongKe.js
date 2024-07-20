@@ -45,7 +45,9 @@ let CoinInfo = new RestClientV5(wsInfo);
 async function sendMessageWithRetry(messageText, retries = 5) {
     for (let i = 0; i < retries; i++) {
         try {
-            messageText && await bot.sendMessage(CHANNEL_ID, messageText);
+            messageText && await bot.sendMessage(CHANNEL_ID, messageText,{
+                parse_mode:"HTML"
+            });
             return;
         } catch (error) {
             if (error.code === 429) {
@@ -182,12 +184,12 @@ async function tinhOC(symbol, data, messageList) {
     const OCLongRound = roundNumber(OCLong)
 
     if (OCRound > 2) {
-        const ht = (`${symbol.replace("USDT", "")} - (${interval} min) - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
+        const ht = (`<b>${symbol.replace("USDT", "")}</b> - (${interval} min) - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
     if (OCLongRound > 2) {
-        const htLong = (`${symbol.replace("USDT", "")} - (${interval} min) - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
+        const htLong = (`<b>${symbol.replace("USDT", "")}</b> - (${interval} min) - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
     return messageList
@@ -419,7 +421,7 @@ const handleStatistic = async (statisticLabel) => {
     // Số cây nến
     const nenCount = 100;
 
-    console.log(statisticLabel,new Date().toLocaleString());
+    console.log(statisticLabel,new Date().toLocaleString("vi-vn"));
 
     const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
     sendMessageWithRetry(get2.flatMap(item => item.value).join("\n"))
@@ -544,8 +546,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-
-                    console.log("Trade 1 Closed: ",new Date().toLocaleString());
+                    console.log("Trade 1 Closed: ",new Date().toLocaleString("vi-vn"));
                     !statistic1 && statisticTimeLoop1.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 1...")
@@ -569,7 +570,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 3 Closed: ",new Date().toLocaleString());
+                    console.log("Trade 3 Closed: ",new Date().toLocaleString("vi-vn"));
                     !statistic3 && statisticTimeLoop3.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 3...")
@@ -592,7 +593,7 @@ let Main = async () => {
 
             if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
                 if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 5 Closed: ",new Date().toLocaleString());
+                    console.log("Trade 5 Closed: ",new Date().toLocaleString("vi-vn"));
                     !statistic5 && statisticTimeLoop5.map(item => {
                         cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
                             handleStatistic("Statistic 5...")
@@ -611,7 +612,11 @@ let Main = async () => {
                 }
             }
         }
-        messageList.length && sendMessageWithRetry(messageList.join("\n"))
+        if(messageList.length)
+        {
+            console.log(`Send telegram tính OC: `,new Date().toLocaleString("vi-vn"));
+            sendMessageWithRetry(messageList.join("\n"))
+        }
 
     });
 
