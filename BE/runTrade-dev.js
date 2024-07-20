@@ -1333,11 +1333,11 @@ const Main = async () => {
                                     !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
 
                                     console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
-                                   let textQuanSat = ""
-                                   let textQuayDau = ""
+                                   let textQuanSat = ``
+                                   let textQuayDau = ``
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `🙈 Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
+                                            textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                             console.log(changeColorConsole.cyanBright(textQuanSat));
                                             sendMessageWithRetry({
                                                 messageText:textQuanSat,
@@ -1362,7 +1362,7 @@ const Main = async () => {
                                     }
                                     else {
                                         if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `🙈 Vào khoảng quan sát ${botName} - ${side} - ${symbol} - ${candle} `
+                                            textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                             console.log(changeColorConsole.cyanBright(textQuanSat));
                                             sendMessageWithRetry({
                                                 messageText:textQuanSat,
