@@ -1,7 +1,6 @@
 require('dotenv').config();
 const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
-const { Telegraf } = require('telegraf');
 const TelegramBot = require('node-telegram-bot-api');
 
 const { RestClientV5, WebsocketClient, DefaultLogger } = require('bybit-api');
@@ -10,13 +9,9 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
-    enable_time_sync: true,
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
-
-// const BOT_TOKEN_RUN_TRADE = new Telegraf("6973355601:AAFucLsDHjE8JIQmtaDJR864o9w9hBhVj-Y");
-// BOT_TOKEN_RUN_TRADE.launch();
 
 const LIST_ORDER = ["order", "position"]
 
@@ -259,7 +254,7 @@ const moveOrderTP = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
+                console.log(changeColorConsole.magentaBright(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
             }
             else {
@@ -593,7 +588,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 key: ApiKey,
                 secret: SecretKey,
                 market: 'v5',
-                enable_time_sync: true
             }
 
             const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -958,7 +952,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                     if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
-                                        console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                        console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
 
                                         // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
                                         let TPNew = openTrade
@@ -1019,7 +1013,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 }
                             }
                             else {
-                                console.log(changeColorConsole.blueBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
                                 console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                 updatePositionBE({
                                     newDataUpdate: {
@@ -1933,7 +1927,6 @@ socketRealtime.on('bot-update', async (data = {}) => {
             key: ApiKeyBot,
             secret: SecretKeyBot,
             market: 'v5',
-            enable_time_sync: true
         }
 
         const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2110,7 +2103,6 @@ socketRealtime.on('bot-delete', (data) => {
         key: ApiKeyBot,
         secret: SecretKeyBot,
         market: 'v5',
-        enable_time_sync: true
     }
 
     const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2206,11 +2198,11 @@ socketRealtime.on('sync-symbol', async (newData) => {
 });
 
 socketRealtime.on("close-limit", async (data) => {
-    console.log("[...] Close Limit");
+    const botName = positionData.BotName
+    console.log(`[...] Close Limit ( ${botName} )`);
     const { positionData } = data
     const symbol = positionData.Symbol
     const botID = positionData.botID
-    const botName = positionData.BotName
 
     const botSymbolMissID = `${botID}-${symbol}`
 

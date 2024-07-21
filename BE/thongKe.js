@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-const { Telegraf } = require('telegraf');
 const TelegramBot = require('node-telegram-bot-api');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
@@ -35,17 +34,18 @@ let OpenTimem1 = []
 let wsConfig = {
     // key: API_KEY,
     // secret: PRIVATE_KEY,
-    market: 'v5'
+    market: 'v5',
+    recvWindow:60000,
 }
+let wsSymbol = new WebsocketClient(wsConfig);
 let wsInfo = {
     // key: API_KEY,
     // secret: PRIVATE_KEY,
     testnet: false,
-    enable_time_sync: true,
-    timestamp: new Date().toISOString(),
-    recvWindow: 200000,
+    timestamp: new Date().toISOString(),   
+    recv_window:60000,
+    enable_time_sync:true 
 }
-let wsSymbol = new WebsocketClient(wsConfig);
 let CoinInfo = new RestClientV5(wsInfo);
 
 //Funcition

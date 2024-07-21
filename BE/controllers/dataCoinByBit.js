@@ -70,15 +70,17 @@ const dataCoinByBitController = {
             let wsConfig = {
                 // key: API_KEY,
                 // secret: PRIVATE_KEY,
-                market: 'v5'
+                market: 'v5',
+                recvWindow: 60000,
+
             }
             let wsInfo = {
                 // key: API_KEY,
                 // secret: PRIVATE_KEY,
                 testnet: false,
-                enable_time_sync: true,
                 timestamp: new Date().toLocaleString(),
-                recvWindow: 200000,
+                recv_window: 60000,
+                enable_time_sync: true
             }
             let wsSymbol = new WebsocketClient(wsConfig);
             let CoinInfo = new RestClientV5(wsInfo);
@@ -135,7 +137,7 @@ const dataCoinByBitController = {
                     $addFields: {
                         childrenSorted: {
                             $function: {
-                                body: function(children) {
+                                body: function (children) {
                                     return children.sort((a, b) => a.OrderChange - b.OrderChange);
                                 },
                                 args: ["$children"],
@@ -153,10 +155,10 @@ const dataCoinByBitController = {
                     }
                 },
                 {
-                    $sort: { "label": 1 } 
+                    $sort: { "label": 1 }
                 }
             ]);
-            
+
 
 
 
@@ -760,6 +762,8 @@ const dataCoinByBitController = {
         const client = new RestClientV5({
             key: API_KEY,
             secret: SECRET_KEY,
+            recv_window: 60000,
+            enable_time_sync: true
         });
 
         let myUUID = uuidv4();
@@ -804,6 +808,8 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
+                    recv_window: 60000,
+                    enable_time_sync: true
                 });
 
                 let myUUID = uuidv4();
@@ -861,7 +867,8 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
-                    enable_time_sync: true,
+                    recv_window: 60000,
+                    enable_time_sync: true
                 });
 
                 // get field totalWalletBalance
@@ -898,7 +905,8 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
-                    enable_time_sync: true,
+                    recv_window: 60000,
+                    enable_time_sync: true
                 });
 
                 await client.getAllCoinsBalance({
@@ -938,6 +946,8 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: API_KEY,
                     secret: SECRET_KEY,
+                    recv_window: 60000,
+                    enable_time_sync: true
                 });
 
                 // get field totalWalletBalance
@@ -984,6 +994,8 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: API_KEY,
                     secret: SECRET_KEY,
+                    recv_window: 60000,
+                    enable_time_sync: true
                 });
 
                 // get field totalWalletBalance
@@ -1025,6 +1037,8 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: API_KEY,
                     secret: SECRET_KEY,
+                    recv_window: 60000,
+                    enable_time_sync: true
                 });
 
                 let myUUID = uuidv4();

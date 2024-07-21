@@ -8,7 +8,6 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
-    enable_time_sync: true,
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
@@ -513,7 +512,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 key: ApiKey,
                 secret: SecretKey,
                 market: 'v5',
-                enable_time_sync: true
             }
 
             const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2106,7 +2104,6 @@ socketRealtime.on('bot-delete', (data) => {
         key: ApiKeyBot,
         secret: SecretKeyBot,
         market: 'v5',
-        enable_time_sync: true
     }
 
     const wsOrder = new WebsocketClient(wsConfigOrder);

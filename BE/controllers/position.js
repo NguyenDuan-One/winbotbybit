@@ -40,6 +40,8 @@ const PositionController = {
                         testnet: false,
                         key: positionData.botID.ApiKey,
                         secret: positionData.botID.SecretKey,
+                        recv_window: 60000,
+                        enable_time_sync: true
                     });
 
                     return client.getPositionInfo({
@@ -47,19 +49,18 @@ const PositionController = {
                         symbol: positionData.Symbol
                     }).then((response) => {
 
-                        const viTheListItem = response.result.list[0];
+                        const viTheListItem = response.result.list?.[0];
 
-                        const positionDataNew = {
-                            Side: viTheListItem.side,
-                            Pnl: viTheListItem.unrealisedPnl,
-                            Side: viTheListItem.side,
-                            Price: +viTheListItem.avgPrice,
-                            Symbol: viTheListItem.symbol,
-                            Quantity: viTheListItem.size,
-                            TimeUpdated: new Date()
-                        };
-
-                        if (+positionDataNew.Quantity != 0) {
+                        if (viTheListItem && +viTheListItem?.size != 0) {
+                            const positionDataNew = {
+                                Side: viTheListItem.side,
+                                Pnl: viTheListItem.unrealisedPnl,
+                                Side: viTheListItem.side,
+                                Price: +viTheListItem.avgPrice,
+                                Symbol: viTheListItem.symbol,
+                                Quantity: viTheListItem.size,
+                                TimeUpdated: new Date()
+                            };
                             return PositionController.updatePositionBE({
                                 newDataUpdate: positionDataNew,
                                 orderID: positionData._id
@@ -81,6 +82,8 @@ const PositionController = {
                         testnet: false,
                         key: dataBotItem.ApiKey,
                         secret: dataBotItem.SecretKey,
+                        recv_window: 60000,
+                        enable_time_sync: true
                     });
 
                     return client.getPositionInfo({
@@ -90,25 +93,29 @@ const PositionController = {
                     }).then(async response => {
                         const viTheList = response.result.list;
 
-                        return await Promise.allSettled(viTheList.map(viTheListItem => {
-                            const positionData = {
-                                Pnl: viTheListItem.unrealisedPnl,
-                                Side: viTheListItem.side,
-                                Price: +viTheListItem.avgPrice,
-                                Symbol: viTheListItem.symbol,
-                                Quantity: viTheListItem.size
-                            };
 
-                            const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+                        if (viTheList?.length > 0) {
+                            return await Promise.allSettled(viTheList?.map(viTheListItem => {
+                                const positionData = {
+                                    Pnl: viTheListItem.unrealisedPnl,
+                                    Side: viTheListItem.side,
+                                    Price: +viTheListItem.avgPrice,
+                                    Symbol: viTheListItem.symbol,
+                                    Quantity: viTheListItem.size
+                                };
 
-                            if (!checkPositionExist) {
-                                return PositionController.createPositionBE({
-                                    ...positionData,
-                                    botID: dataBotItem.value,
-                                    Miss: true
-                                });
-                            }
-                        }));
+                                const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+
+                                if (!checkPositionExist) {
+                                    return PositionController.createPositionBE({
+                                        ...positionData,
+                                        botID: dataBotItem.value,
+                                        Miss: true
+                                    });
+                                }
+                            }))
+                        }
+                        return []
                     }).catch(error => {
                         console.log("Error", error);
                         // Handle error as per your application's error handling strategy
@@ -138,6 +145,8 @@ const PositionController = {
 
             const client = new RestClientV5({
                 testnet: false,
+                recv_window: 60000,
+                enable_time_sync: true
             });
 
             await client.getKline({
@@ -164,6 +173,8 @@ const PositionController = {
             testnet: false,
             key: positionData.botData.ApiKey,
             secret: positionData.botData.SecretKey,
+            recv_window: 60000,
+            enable_time_sync: true
         });
         client
             .submitOrder({
@@ -196,6 +207,8 @@ const PositionController = {
             testnet: false,
             key: positionData.botData.ApiKey,
             secret: positionData.botData.SecretKey,
+            recv_window: 60000,
+            enable_time_sync: true
         });
         client
             .submitOrder({
@@ -308,7 +321,7 @@ const PositionController = {
                 return "[Mongo] Update Position Successful"
             }
             else {
-                return `[Mongo] Update Position Failed ${orderID}`
+                return `[Mongo] Update Position Failed`
             }
 
         } catch (error) {
