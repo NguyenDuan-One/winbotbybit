@@ -92,7 +92,6 @@ const PositionController = {
                         // symbol: positionData.Symbol
                     }).then(async response => {
                         const viTheList = response.result.list;
-console.log("viTheList",viTheList);
 
                         if (viTheList?.length > 0) {
                             return await Promise.allSettled(viTheList?.map(viTheListItem => {
@@ -115,7 +114,10 @@ console.log("viTheList",viTheList);
                                 }
                             }))
                         }
+                       else 
+                       {
                         return []
+                       }
                     }).catch(error => {
                         console.log("Error", error);
                         // Handle error as per your application's error handling strategy
