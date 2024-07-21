@@ -564,7 +564,7 @@ const sendMessageWithRetry = async ({
 
         throw new Error('[!] Failed to send message after multiple retries');
     } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Bot Telegram Error"))
+        console.log(changeColorConsole.redBright("[!] Bot Telegram Error",error))
     } finally {
         await delay(200)
     }
@@ -2190,10 +2190,10 @@ socketRealtime.on('bot-telegram', async (data) => {
         }
     })
 
-    if (botListTelegram[telegramTokenOld]) {
-        botListTelegram[telegramTokenOld]?.stopPolling()
-        delete botListTelegram[telegramTokenOld]
-    }
+    // if (botListTelegram[telegramTokenOld]) {
+    //     botListTelegram[telegramTokenOld]?.stopPolling()
+    //     delete botListTelegram[telegramTokenOld]
+    // }
 });
 
 socketRealtime.on('sync-symbol', async (newData) => {
