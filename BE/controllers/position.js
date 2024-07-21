@@ -92,7 +92,7 @@ const PositionController = {
                         // symbol: positionData.Symbol
                     }).then(async response => {
                         const viTheList = response.result.list;
-
+console.log("viTheList",viTheList);
 
                         if (viTheList?.length > 0) {
                             return await Promise.allSettled(viTheList?.map(viTheListItem => {

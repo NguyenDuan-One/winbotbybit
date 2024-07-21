@@ -277,12 +277,12 @@ const moveOrderTP = ({
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
             }
         })
         .catch((error) => {
             console.log(changeColorConsole.redBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-            // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
         });
 
 }
