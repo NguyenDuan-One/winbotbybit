@@ -1212,9 +1212,7 @@ const Main = async () => {
 
             const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
-            const listData = Object.values(listDataObject)
-
-            listDataObject && listData?.length > 0 && await Promise.allSettled(listData.map(async strategy => {
+            listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
                 if (checkConditionBot(strategy)) {
 
