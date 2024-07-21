@@ -565,6 +565,8 @@ const sendMessageWithRetry = async ({
         throw new Error('[!] Failed to send message after multiple retries');
     } catch (error) {
         console.log(changeColorConsole.redBright("[!] Bot Telegram Error"))
+    } finally {
+        await delay(200)
     }
 };
 
@@ -1364,7 +1366,6 @@ const Main = async () => {
                                                 telegramID,
                                                 telegramToken
                                             })
-                                            await delay(200)
                                             if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
                                                 textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                                 console.log(changeColorConsole.greenBright(textQuayDau));
@@ -1373,7 +1374,6 @@ const Main = async () => {
                                                     telegramID,
                                                     telegramToken
                                                 })
-                                                await delay(200)
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
@@ -1389,7 +1389,6 @@ const Main = async () => {
                                                 telegramID,
                                                 telegramToken
                                             })
-                                            await delay(200)
                                             if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
                                                 textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                                 console.log(changeColorConsole.greenBright(textQuayDau));
@@ -1398,7 +1397,6 @@ const Main = async () => {
                                                     telegramID,
                                                     telegramToken
                                                 })
-                                                await delay(200)
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
                                                 checkMoveMain = true
