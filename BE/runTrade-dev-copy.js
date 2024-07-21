@@ -2247,9 +2247,9 @@ socketRealtime.on('sync-symbol', async (newData) => {
 });
 
 socketRealtime.on("close-limit", async (data) => {
+    const { positionData } = data
     const botName = positionData.BotName
     console.log(`[...] Close Limit ( ${botName} )`);
-    const { positionData } = data
     const symbol = positionData.Symbol
     const botID = positionData.botID
 
