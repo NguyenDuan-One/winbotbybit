@@ -10,7 +10,7 @@ var cron = require('node-cron');
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
 const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE, {
-    polling: true,
+    polling: false,
     request: {
         agentOptions: {
             keepAlive: true,
