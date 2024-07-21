@@ -170,9 +170,9 @@ const BotController = {
 
             if (data.ApiKey) {
                 dataCheckBotApi = await BotModel.findOne({
-                    ApiKey: data.ApiKey
-                }
-                ).sort({ Created: -1 })
+                    ApiKey: data.ApiKey,
+                    _id: { $ne: botID }
+                }).sort({ Created: -1 })
             }
 
             if (!dataCheckBotApi) {

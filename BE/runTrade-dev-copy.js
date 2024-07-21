@@ -1035,7 +1035,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 console.log(message);
                                             }).catch(err => {
                                                 console.log(err);
-                                                missTPDataBySymbol[botSymbolMissID].orderIDToDB = ""
                                             })
                                         }
                                     }

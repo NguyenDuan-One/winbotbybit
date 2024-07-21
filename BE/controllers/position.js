@@ -114,10 +114,9 @@ const PositionController = {
                                 }
                             }))
                         }
-                       else 
-                       {
-                        return []
-                       }
+                        else {
+                            return []
+                        }
                     }).catch(error => {
                         console.log("Error", error);
                         // Handle error as per your application's error handling strategy
