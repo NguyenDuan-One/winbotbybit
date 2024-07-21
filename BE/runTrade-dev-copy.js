@@ -854,6 +854,24 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                 if (TPTrue) {
                                     console.log(`[-] Cancelled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
                                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                                    const qty = +dataMain.qty
+                                    missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
+
+                                    if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal - missTPDataBySymbol[botSymbolMissID].size > 0 )
+                                    {
+                                        updatePositionBE({
+                                            newDataUpdate: {
+                                                Miss: true,
+                                                TimeUpdated: new Date()
+                                            },
+                                            orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                        }).then(message => {
+                                            console.log(message);
+                                        }).catch(err => {
+                                            console.log(changeColorConsole.redBright(err));
+                                        })
+                                    }
+
                                 }
                                 else if (OCTrue) {
                                     console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
