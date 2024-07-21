@@ -557,14 +557,14 @@ const sendMessageWithRetry = async ({
                     console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
                     await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
                 } else {
-                    throw new Error("Send Telegram Error");
+                    throw new Error(error);
                 }
             }
         }
 
         throw new Error('[!] Failed to send message after multiple retries');
     } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Bot Telegram Error",error))
+        console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
     } finally {
         await delay(200)
     }
@@ -693,6 +693,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }).then(async data => {
                                             console.log(data);
                                             console.log(data.message);
+
+                                            !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
+
                                             const newID = data.id
                                             if (newID) {
                                                 missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
@@ -809,7 +812,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     // Fill toàn bộ
                                     if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
                                         // 
-                                        console.log(`[_FULL Filled_] Filled TP ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
+                                        console.log(`[_FULL Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
 
                                         missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
@@ -833,7 +836,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                     }
                                     else {
-                                        console.log(`[_Part Filled_] Filled TP ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
+                                        console.log(`[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                     }
 
                                     cancelAll({ strategyID, botID })
@@ -857,8 +860,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     const qty = +dataMain.qty
                                     missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
 
-                                    if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal - missTPDataBySymbol[botSymbolMissID].size > 0 )
-                                    {
+                                    if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal - missTPDataBySymbol[botSymbolMissID].size > 0) {
                                         updatePositionBE({
                                             newDataUpdate: {
                                                 Miss: true,
@@ -971,6 +973,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         console.log(data);
                                         console.log(data.message);
                                         const newID = data.id
+
                                         !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                         if (newID) {
@@ -1873,7 +1876,7 @@ socketRealtime.on('delete', (newData) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
             delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
             delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
@@ -1957,7 +1960,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
                     gongLai: true
                 })
             }
-            await delay(500)
+            await delay(200)
         }
 
     })
@@ -2037,7 +2040,7 @@ socketRealtime.on('bot-api', async (data) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
 
         }
@@ -2136,7 +2139,7 @@ socketRealtime.on('bot-delete', (data) => {
                     gongLai: true
                 })
 
-                await delay(500)
+                await delay(200)
             }
             delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
             delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]

@@ -1828,7 +1828,7 @@ socketRealtime.on('delete', (newData) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
             delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
             delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
@@ -1912,7 +1912,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
                     gongLai: true
                 })
             }
-            await delay(500)
+            await delay(200)
         }
 
     })
@@ -1991,7 +1991,7 @@ socketRealtime.on('bot-api', async (data) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
 
         }
@@ -2088,7 +2088,7 @@ socketRealtime.on('bot-delete', (data) => {
                     gongLai: true
                 })
 
-                await delay(500)
+                await delay(200)
             }
             delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
             delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]

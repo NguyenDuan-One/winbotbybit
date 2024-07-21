@@ -1656,7 +1656,7 @@ socketRealtime.on('update', async (newData = []) => {
                         gongLai: true
                     })
                 }
-                await delay(500)
+                await delay(200)
             }
 
         }
@@ -1739,7 +1739,7 @@ socketRealtime.on('delete', (newData) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
         }
     })
@@ -1884,7 +1884,7 @@ socketRealtime.on('bot-update', async (newData = []) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
             !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
             allStrategiesActiveByBotID[botID][strategyID] = strategiesData
@@ -1911,7 +1911,7 @@ socketRealtime.on('bot-update', async (newData = []) => {
                     gongLai: true
                 })
             }
-            await delay(500)
+            await delay(200)
         }
 
     })
@@ -1967,7 +1967,7 @@ socketRealtime.on('bot-api', async (data) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
 
         }
@@ -2086,7 +2086,7 @@ socketRealtime.on('bot-delete', (data) => {
                     gongLai: true
                 })
 
-                await delay(500)
+                await delay(200)
             }
         }
     })
