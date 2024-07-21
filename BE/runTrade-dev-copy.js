@@ -531,11 +531,11 @@ const sendMessageWithRetry = async ({
         if (!BOT_TOKEN_RUN_TRADE) {
             const newBotInit = new TelegramBot(telegramToken, {
                 polling: false,
-                // request: {
-                //     agentOptions: {
-                //         family: 4
-                //     }
-                // }
+                request: {
+                    agentOptions: {
+                        family: 4
+                    }
+                }
             })
             BOT_TOKEN_RUN_TRADE = newBotInit
             botListTelegram[telegramToken] = newBotInit
