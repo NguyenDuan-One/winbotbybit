@@ -566,18 +566,18 @@ let Main = async () => {
         const messageList = []
         if (dataCoin.wsKey === "v5LinearPublic") {
 
-            if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
-                if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 1 Closed: ", new Date().toLocaleString("vi-vn"));
-                    !statistic1 && statisticTimeLoop1.map(item => {
-                        cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
-                            handleStatistic("Statistic 1...")
-                            // handleWalletBalance()
-                        });
-                    })
-                    statistic1 = true
-                }
-            }
+            // if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
+            //     if (dataCoin.data[0].confirm == true) {
+            //         console.log("Trade 1 Closed: ", new Date().toLocaleString("vi-vn"));
+            //         !statistic1 && statisticTimeLoop1.map(item => {
+            //             cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
+            //                 handleStatistic("Statistic 1...")
+            //                 // handleWalletBalance()
+            //             });
+            //         })
+            //         statistic1 = true
+            //     }
+            // }
 
             if (dataCoin.topic.indexOf("kline.1.") !== -1) {
                 let symbol = dataCoin.topic.replace("kline.1.", "")
@@ -590,17 +590,17 @@ let Main = async () => {
 
             // 3M
 
-            if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
-                if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 3 Closed: ", new Date().toLocaleString("vi-vn"));
-                    !statistic3 && statisticTimeLoop3.map(item => {
-                        cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
-                            handleStatistic("Statistic 3...")
-                        });
-                    })
-                    statistic3 = true
-                }
-            }
+            // if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
+            //     if (dataCoin.data[0].confirm == true) {
+            //         console.log("Trade 3 Closed: ", new Date().toLocaleString("vi-vn"));
+            //         !statistic3 && statisticTimeLoop3.map(item => {
+            //             cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
+            //                 handleStatistic("Statistic 3...")
+            //             });
+            //         })
+            //         statistic3 = true
+            //     }
+            // }
 
             if (dataCoin.topic.indexOf("kline.3.") !== -1) {
                 let symbol = dataCoin.topic.replace("kline.3.", "")
@@ -613,17 +613,17 @@ let Main = async () => {
 
             // 5M
 
-            if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
-                if (dataCoin.data[0].confirm == true) {
-                    console.log("Trade 5 Closed: ", new Date().toLocaleString("vi-vn"));
-                    !statistic5 && statisticTimeLoop5.map(item => {
-                        cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
-                            handleStatistic("Statistic 5...")
-                        });
-                    })
-                    statistic5 = true
-                }
-            }
+            // if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
+            //     if (dataCoin.data[0].confirm == true) {
+            //         console.log("Trade 5 Closed: ", new Date().toLocaleString("vi-vn"));
+            //         !statistic5 && statisticTimeLoop5.map(item => {
+            //             cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
+            //                 handleStatistic("Statistic 5...")
+            //             });
+            //         })
+            //         statistic5 = true
+            //     }
+            // }
 
             if (dataCoin.topic.indexOf("kline.5.") !== -1) {
                 let symbol = dataCoin.topic.replace("kline.5.", "")
