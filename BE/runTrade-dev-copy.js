@@ -694,7 +694,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         ...newDataToDB,
                                         botID,
                                     }).then(async data => {
-                                        console.log(data.message);
+                                        console.log("[Mongo]:", data);
+                                        console.log("[Mongo-Message]:", data.message);
                                         !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                         const newID = data.id
@@ -703,7 +704,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                         else {
                                             await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                console.log(data.message);
+                                                console.log("[Mongo]:", data);
+                                                console.log("[Mongo-Message]:", data.message);
                                                 missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                             }).catch(error => {
                                                 console.log(changeColorConsole.redBright(error));
@@ -973,7 +975,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     ...newDataToDB,
                                     botID,
                                 }).then(async data => {
-                                    console.log(data.message);
+                                    console.log("[Mongo]:", data);
+                                    console.log("[Mongo-Message]:", data.message);
                                     const newID = data.id
 
                                     !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
@@ -983,7 +986,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }
                                     else {
                                         await getPositionBySymbol({ symbol, botID }).then(data => {
-                                            console.log(data.message);
+                                            console.log("[Mongo]:", data);
+                                            console.log("[Mongo-Message]:", data.message);
                                             missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                         }).catch(error => {
                                             console.log(changeColorConsole.redBright(error));
@@ -1463,7 +1467,7 @@ const Main = async () => {
                         }
 
                         if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilledButMiss && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare) {
-                            const textQuanSat = `🙉 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                            const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                             console.log(changeColorConsole.cyanBright(textQuanSat));
 
                             let checkMoveMain = false
@@ -1516,7 +1520,7 @@ const Main = async () => {
                                         allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
                                     });
 
-                                const textQuayDau = `😎 Dịch OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                const textQuayDau = `😃 Dịch OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                 console.log(changeColorConsole.greenBright(textQuayDau));
                                 sendMessageWithRetry({
                                     messageText: textQuayDau,
@@ -1957,7 +1961,7 @@ socketRealtime.on('delete', async (newData) => {
 socketRealtime.on('bot-update', async (data = {}) => {
     const { newData, botIDMain, botActive } = data;
 
-    console.log("[...] Bot-Update Strategies From Realtime", newData.length);
+    console.log(`[...] Bot-Update ${botApiList[botIDMain]?.botName} Strategies From Realtime`, newData.length);
 
     const newBotApiList = {}
 
@@ -2065,7 +2069,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
 socketRealtime.on('bot-api', async (data) => {
     const { newData, botID: botIDMain, newApiData } = data;
-    console.log("[...] Bot-Api Update Strategies From Realtime", newData.length);
+    console.log(`[...] Bot-Api ${botApiList[botIDMain]?.botName} Update Strategies From Realtime`, newData.length);
 
     await Promise.allSettled(newData.map(async strategiesData => {
 
@@ -2158,7 +2162,7 @@ socketRealtime.on('bot-api', async (data) => {
 
 socketRealtime.on('bot-delete', async (data) => {
     const { newData, botID: botIDMain } = data;
-    console.log("[...] Bot Deleted Strategies From Realtime");
+    console.log(`[...] Bot Deleted ${botApiList[botIDMain]?.botName} Strategies From Realtime`);
 
     await Promise.allSettled(newData.map(async strategiesData => {
         if (checkConditionBot(strategiesData)) {
@@ -2236,9 +2240,10 @@ socketRealtime.on('bot-delete', async (data) => {
 });
 
 socketRealtime.on('bot-telegram', async (data) => {
-    console.log("[...] Bot Telegram Update From Realtime");
-
     const { newData, botID: botIDMain, newApiData } = data;
+
+    console.log(`[...] Bot Telegram ${botApiList[botIDMain]?.botName} Update From Realtime`);
+
     const telegramTokenOld = newApiData.telegramTokenOld
     const telegramID = newApiData.telegramID
     const telegramToken = newApiData.telegramToken
@@ -2322,9 +2327,9 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
 socketRealtime.on("close-limit", async (data) => {
     const { positionData } = data
-    const botName = positionData.BotName
-    console.log(`[...] Close Limit ( ${botName} )`);
     const symbol = positionData.Symbol
+    const botName = positionData.BotName
+    console.log(`[...] Close Limit ( ${botName} - ${symbol} )`);
     const botID = positionData.botID
 
     const botSymbolMissID = `${botID}-${symbol}`

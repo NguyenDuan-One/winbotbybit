@@ -164,39 +164,75 @@ const PositionController = {
                     }).then(async response => {
                         const viTheList = response.result.list;
 
+                        console.log("viTheList", viTheList);
+
                         if (viTheList?.length > 0) {
-                            return await Promise.allSettled(viTheList?.map(viTheListItem => {
-                                const positionDataNew = {
-                                    Pnl: viTheListItem.unrealisedPnl,
-                                    Side: viTheListItem.side,
-                                    Price: +viTheListItem.avgPrice,
-                                    Symbol: viTheListItem.symbol,
-                                    Quantity: viTheListItem.size
-                                };
-                                const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+                            if (viTheList.length >= dataPosition.length) {
+                                return await Promise.allSettled(viTheList?.map(viTheListItem => {
+                                    const positionDataNew = {
+                                        Pnl: viTheListItem.unrealisedPnl,
+                                        Side: viTheListItem.side,
+                                        Price: +viTheListItem.avgPrice,
+                                        Symbol: viTheListItem.symbol,
+                                        Quantity: viTheListItem.size
+                                    };
+                                    const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
 
-                                if (checkPositionExist) {
-                                    if (+positionDataNew?.Quantity != 0) {
-                                        positionDataNew.TimeUpdated = new Date()
-                                        return PositionController.updatePositionBE({
-                                            newDataUpdate: positionDataNew,
-                                            orderID: checkPositionExist._id
-                                        })
-                                    } else {
-                                        return PositionController.deletePositionBE({
-                                            orderID: checkPositionExist._id
-                                        });
+                                    if (checkPositionExist) {
+                                        if (+positionDataNew?.Quantity != 0) {
+                                            positionDataNew.TimeUpdated = new Date()
+                                            return PositionController.updatePositionBE({
+                                                newDataUpdate: positionDataNew,
+                                                orderID: checkPositionExist._id
+                                            })
+                                        } else {
+                                            return PositionController.deletePositionBE({
+                                                orderID: checkPositionExist._id
+                                            });
+                                        }
                                     }
-                                }
-                                else {
-                                    return PositionController.createPositionBE({
-                                        ...positionDataNew,
-                                        botID: dataBotItem.value,
-                                        Miss: true
-                                    });
+                                    else {
+                                        return PositionController.createPositionBE({
+                                            ...positionDataNew,
+                                            botID: dataBotItem.value,
+                                            Miss: true
+                                        });
 
-                                }
-                            }))
+                                    }
+                                }))
+                            }
+                            else {
+                                return await Promise.allSettled(dataPosition?.map(positionItem => {
+                                    const positionDataNew = {
+                                        Pnl: positionItem.unrealisedPnl,
+                                        Side: positionItem.side,
+                                        Price: +positionItem.avgPrice,
+                                        Symbol: positionItem.symbol,
+                                        Quantity: positionItem.size
+                                    };
+                                    const checkPositionExist = positionItem.botID._id == dataBotItem.value && viTheList.find(item => item.symbol === positionItem.Symbol)
+
+                                    if (checkPositionExist) {
+                                        if (+positionDataNew?.Quantity != 0) {
+                                            positionDataNew.TimeUpdated = new Date()
+                                            return PositionController.updatePositionBE({
+                                                newDataUpdate: positionDataNew,
+                                                orderID: positionItem._id
+                                            })
+                                        } else {
+                                            return PositionController.deletePositionBE({
+                                                orderID: positionItem._id
+                                            });
+                                        }
+                                    }
+                                    else {
+                                        return PositionController.deletePositionBE({
+                                            orderID: positionItem._id
+                                        });
+
+                                    }
+                                }))
+                            }
                         }
                         else {
                             return await PositionModel.deleteMany({ botID: dataBotItem.value })
