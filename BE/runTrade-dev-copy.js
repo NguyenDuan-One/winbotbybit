@@ -485,7 +485,6 @@ const cancelAll = (
         botID
     }
 ) => {
-    console.log("[...] Cancel All");
     const data = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
     if (data) {
         const OCOrderID = data?.OC?.orderID
@@ -1143,6 +1142,9 @@ const Main = async () => {
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
             allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategyItem
+
+            cancelAll({ strategyID, botID })
+
         }
     })
 
