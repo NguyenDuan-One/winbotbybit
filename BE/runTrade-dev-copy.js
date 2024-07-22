@@ -60,7 +60,7 @@ async function Digit(symbol) {// proScale
     return PScale
 }
 
-const handleSubmitOrder = async ({
+const handleSubmitOrder =  ({
     strategy,
     strategyID,
     symbol,
@@ -141,8 +141,7 @@ const handleSubmitOrderTP = ({
     botID
 }) => {
 
-    console.log(changeColorConsole.greenBright(`Price order TP ( ${botName} - ${side} - ${symbol} - ${candle} ):`, price));
-
+    // console.log(changeColorConsole.greenBright(`Price order TP ( ${botName} - ${side} - ${symbol} - ${candle} ):`, price));
 
     const botSymbolMissID = `${botID}-${symbol}`
 
@@ -272,7 +271,7 @@ const moveOrderTP = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(changeColorConsole.magentaBright(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                console.log(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
             }
             else {
@@ -513,61 +512,59 @@ const cancelAll = (
         },
     }
 
-
-
 }
 
 // 
-const sendMessageWithRetry = async ({
+const sendMessageWithRetry = ({
     messageText,
     retries = 5,
     telegramID,
     telegramToken,
 }) => {
 
-    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
+    setTimeout(async () => {
+        let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
 
-    try {
-        if (!BOT_TOKEN_RUN_TRADE) {
-            const newBotInit = new TelegramBot(telegramToken, {
-                polling: false,
-                request: {
-                    agentOptions: {
-                        family: 4
+        try {
+            if (!BOT_TOKEN_RUN_TRADE) {
+                const newBotInit = new TelegramBot(telegramToken, {
+                    polling: false,
+                    request: {
+                        agentOptions: {
+                            family: 4
+                        }
+                    }
+                })
+                BOT_TOKEN_RUN_TRADE = newBotInit
+                botListTelegram[telegramToken] = newBotInit
+                // BOT_TOKEN_RUN_TRADE.launch();
+            }
+            for (let i = 0; i < retries; i++) {
+                try {
+                    if (messageText) {
+                        // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
+                        await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
+                            parse_mode: "HTML"
+                        });
+                        console.log('[->] Message sent to telegram successfully');
+                        return;
+                    }
+                } catch (error) {
+                    if (error.code === 429) {
+                        const retryAfter = error.parameters.retry_after;
+                        console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
+                        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                    } else {
+                        throw new Error(error);
                     }
                 }
-            })
-            BOT_TOKEN_RUN_TRADE = newBotInit
-            botListTelegram[telegramToken] = newBotInit
-            // BOT_TOKEN_RUN_TRADE.launch();
-        }
-        for (let i = 0; i < retries; i++) {
-            try {
-                if (messageText) {
-                    // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
-                    await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
-                        parse_mode: "HTML"
-                    });
-                    console.log('[->] Message sent to telegram successfully');
-                    return;
-                }
-            } catch (error) {
-                if (error.code === 429) {
-                    const retryAfter = error.parameters.retry_after;
-                    console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
-                    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-                } else {
-                    throw new Error(error);
-                }
             }
-        }
 
-        throw new Error('[!] Failed to send message after multiple retries');
-    } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
-    } finally {
-        await delay(200)
-    }
+            throw new Error('[!] Failed to send message after multiple retries');
+        } catch (error) {
+            console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
+        }
+    }, 500)
 };
 
 const getMoneyFuture = async (botApiList) => {
@@ -690,9 +687,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         ...newDataToDB,
                                         botID,
                                     }).then(async data => {
-                                        console.log(data);
                                         console.log(data.message);
-
                                         !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                         const newID = data.id
@@ -971,7 +966,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     ...newDataToDB,
                                     botID,
                                 }).then(async data => {
-                                    console.log(data);
                                     console.log(data.message);
                                     const newID = data.id
 
@@ -1098,7 +1092,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
         })
     }
 }
-
 
 
 // ----------------------------------------------------------------------------------
@@ -1451,10 +1444,12 @@ const Main = async () => {
                                             }
                                             else {
                                                 console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
                                             }
                                         })
                                         .catch((error) => {
                                             console.log(changeColorConsole.redBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
                                         });
                                 }
 
@@ -1669,7 +1664,6 @@ const Main = async () => {
 
 try {
     Main()
-
 }
 
 catch (e) {
@@ -1686,7 +1680,7 @@ socketRealtime.on('connect', () => {
     console.log('[V] Connected Socket Realtime');
 });
 
-socketRealtime.on('add', async (newData = []) => {
+socketRealtime.on('add',  (newData = []) => {
     console.log("[...] Add New Strategies From Realtime", newData.length);
 
     const newBotApiList = {}
@@ -1736,11 +1730,11 @@ socketRealtime.on('add', async (newData = []) => {
 
     })
 
-    await handleSocketBotApiList(newBotApiList)
+     handleSocketBotApiList(newBotApiList)
 
 });
 
-socketRealtime.on('update', async (newData = []) => {
+socketRealtime.on('update',  (newData = []) => {
     console.log("[...] Update Strategies From Realtime", newData.length);
 
     const newBotApiList = {}
@@ -1823,8 +1817,7 @@ socketRealtime.on('update', async (newData = []) => {
         }
     })
 
-    await handleSocketBotApiList(newBotApiList)
-
+     handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -1988,7 +1981,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
         }
     }
     else {
-        await handleSocketBotApiList(newBotApiList)
+         handleSocketBotApiList(newBotApiList)
     }
 
 });
@@ -2165,7 +2158,7 @@ socketRealtime.on('bot-delete', (data) => {
 
 });
 
-socketRealtime.on('bot-telegram', async (data) => {
+socketRealtime.on('bot-telegram',  (data) => {
     console.log("[...] Bot Telegram Update From Realtime");
 
     const { newData, botID: botIDMain, newApiData } = data;
@@ -2173,7 +2166,7 @@ socketRealtime.on('bot-telegram', async (data) => {
     const telegramID = newApiData.telegramID
     const telegramToken = newApiData.telegramToken
 
-    newData.map(async strategiesData => {
+    newData.map( strategiesData => {
 
         if (checkConditionBot(strategiesData)) {
 
@@ -2260,7 +2253,7 @@ socketRealtime.on("close-limit", async (data) => {
 
     const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
 
-    listMiss?.length >0 && await Promise.all(listMiss.map(orderIdTPData => {
+    listMiss?.length > 0 && await Promise.all(listMiss.map(orderIdTPData => {
         return handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,

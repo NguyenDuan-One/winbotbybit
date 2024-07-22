@@ -26,6 +26,119 @@ const PositionController = {
     },
 
 
+    // updatePL: async (req, res) => {
+    //     try {
+    //         const { botListID } = req.body
+
+    //         const newBotListID = botListID.map(item => item.value)
+
+    //         if (botListID.length > 0) {
+    //             const dataPosition = await PositionModel.find({ botID: { $in: botListID.map(item => item.value) } }).sort({ Time: -1 }).populate("botID")
+
+    //             const updatePositionExist = Promise.allSettled(dataPosition.map(positionData => {
+    //                 const client = new RestClientV5({
+    //                     testnet: false,
+    //                     key: positionData.botID.ApiKey,
+    //                     secret: positionData.botID.SecretKey,
+    //                     recv_window: 60000,
+    //                     enable_time_sync: true
+    //                 });
+
+    //                 return client.getPositionInfo({
+    //                     category: 'linear',
+    //                     symbol: positionData.Symbol
+    //                 }).then((response) => {
+
+    //                     const viTheListItem = response.result.list?.[0];
+
+    //                     if (viTheListItem && +viTheListItem?.size != 0) {
+    //                         const positionDataNew = {
+    //                             Side: viTheListItem.side,
+    //                             Pnl: viTheListItem.unrealisedPnl,
+    //                             Price: +viTheListItem.avgPrice,
+    //                             Symbol: viTheListItem.symbol,
+    //                             Quantity: viTheListItem.size,
+    //                             TimeUpdated: new Date()
+    //                         };
+    //                         return PositionController.updatePositionBE({
+    //                             newDataUpdate: positionDataNew,
+    //                             orderID: positionData._id
+    //                         })
+    //                     } else {
+    //                         return PositionController.deletePositionBE({
+    //                             orderID: positionData._id
+    //                         });
+    //                     }
+
+    //                 }).catch(error => {
+    //                     console.log("Error", error);
+    //                     return []; // For example, return an empty array if you want to continue
+    //                 });
+    //             }));
+
+    //             const createPositionNew = Promise.allSettled(botListID.map(dataBotItem => {
+    //                 const client = new RestClientV5({
+    //                     testnet: false,
+    //                     key: dataBotItem.ApiKey,
+    //                     secret: dataBotItem.SecretKey,
+    //                     recv_window: 60000,
+    //                     enable_time_sync: true
+    //                 });
+
+    //                 return client.getPositionInfo({
+    //                     category: 'linear',
+    //                     settleCoin: "USDT"
+    //                     // symbol: positionData.Symbol
+    //                 }).then(async response => {
+    //                     const viTheList = response.result.list;
+
+    //                     if (viTheList?.length > 0) {
+    //                         return await Promise.allSettled(viTheList?.map(viTheListItem => {
+    //                             const positionData = {
+    //                                 Pnl: viTheListItem.unrealisedPnl,
+    //                                 Side: viTheListItem.side,
+    //                                 Price: +viTheListItem.avgPrice,
+    //                                 Symbol: viTheListItem.symbol,
+    //                                 Quantity: viTheListItem.size
+    //                             };
+
+    //                             const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+
+    //                             if (!checkPositionExist) {
+    //                                 return PositionController.createPositionBE({
+    //                                     ...positionData,
+    //                                     botID: dataBotItem.value,
+    //                                     Miss: true
+    //                                 });
+    //                             }
+    //                         }))
+    //                     }
+    //                     else {
+    //                         return []
+    //                     }
+    //                 }).catch(error => {
+    //                     console.log("Error", error);
+    //                     // Handle error as per your application's error handling strategy
+    //                     // Return an appropriate value or handle the error here
+    //                     return []; // For example, return an empty array if you want to continue
+    //                 });
+    //             }));
+
+    //             await Promise.allSettled([updatePositionExist, createPositionNew])
+
+    //             const newData = await PositionModel.find({ botID: { $in: newBotListID } }).populate("botID")
+
+    //             res.customResponse(200, "Refresh Position Successful", newData);
+    //         }
+    //         else {
+    //             res.customResponse(200, "Refresh Position Successful", "");
+    //         }
+
+    //     } catch (err) {
+    //         res.status(500).json({ message: err.message });
+    //     }
+    // },
+
     updatePL: async (req, res) => {
         try {
             const { botListID } = req.body
@@ -35,49 +148,7 @@ const PositionController = {
             if (botListID.length > 0) {
                 const dataPosition = await PositionModel.find({ botID: { $in: botListID.map(item => item.value) } }).sort({ Time: -1 }).populate("botID")
 
-                const updatePositionExist = Promise.allSettled(dataPosition.map(positionData => {
-                    const client = new RestClientV5({
-                        testnet: false,
-                        key: positionData.botID.ApiKey,
-                        secret: positionData.botID.SecretKey,
-                        recv_window: 60000,
-                        enable_time_sync: true
-                    });
-
-                    return client.getPositionInfo({
-                        category: 'linear',
-                        symbol: positionData.Symbol
-                    }).then((response) => {
-
-                        const viTheListItem = response.result.list?.[0];
-
-                        if (viTheListItem && +viTheListItem?.size != 0) {
-                            const positionDataNew = {
-                                Side: viTheListItem.side,
-                                Pnl: viTheListItem.unrealisedPnl,
-                                Side: viTheListItem.side,
-                                Price: +viTheListItem.avgPrice,
-                                Symbol: viTheListItem.symbol,
-                                Quantity: viTheListItem.size,
-                                TimeUpdated: new Date()
-                            };
-                            return PositionController.updatePositionBE({
-                                newDataUpdate: positionDataNew,
-                                orderID: positionData._id
-                            })
-                        } else {
-                            return PositionController.deletePositionBE({
-                                orderID: positionData._id
-                            });
-                        }
-
-                    }).catch(error => {
-                        console.log("Error", error);
-                        return []; // For example, return an empty array if you want to continue
-                    });
-                }));
-
-                const createPositionNew = Promise.allSettled(botListID.map(dataBotItem => {
+                await Promise.allSettled(botListID.map(dataBotItem => {
                     const client = new RestClientV5({
                         testnet: false,
                         key: dataBotItem.ApiKey,
@@ -95,27 +166,40 @@ const PositionController = {
 
                         if (viTheList?.length > 0) {
                             return await Promise.allSettled(viTheList?.map(viTheListItem => {
-                                const positionData = {
+                                const positionDataNew = {
                                     Pnl: viTheListItem.unrealisedPnl,
                                     Side: viTheListItem.side,
                                     Price: +viTheListItem.avgPrice,
                                     Symbol: viTheListItem.symbol,
                                     Quantity: viTheListItem.size
                                 };
-
                                 const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
 
-                                if (!checkPositionExist) {
+                                if (checkPositionExist) {
+                                    if (+positionDataNew?.Quantity != 0) {
+                                        positionDataNew.TimeUpdated = new Date()
+                                        return PositionController.updatePositionBE({
+                                            newDataUpdate: positionDataNew,
+                                            orderID: checkPositionExist._id
+                                        })
+                                    } else {
+                                        return PositionController.deletePositionBE({
+                                            orderID: checkPositionExist._id
+                                        });
+                                    }
+                                }
+                                else {
                                     return PositionController.createPositionBE({
-                                        ...positionData,
+                                        ...positionDataNew,
                                         botID: dataBotItem.value,
                                         Miss: true
                                     });
+
                                 }
                             }))
                         }
                         else {
-                            return []
+                            return await PositionModel.deleteMany({ botID: dataBotItem.value })
                         }
                     }).catch(error => {
                         console.log("Error", error);
@@ -124,8 +208,6 @@ const PositionController = {
                         return []; // For example, return an empty array if you want to continue
                     });
                 }));
-
-                await Promise.allSettled([updatePositionExist, createPositionNew])
 
                 const newData = await PositionModel.find({ botID: { $in: newBotListID } }).populate("botID")
 
