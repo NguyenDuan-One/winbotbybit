@@ -386,7 +386,7 @@ const PositionController = {
             else {
                 return {
                     message: "[Mongo] Re-Get Position Failed",
-                    id: data._id
+                    id: ""
                 }
             }
         } catch (error) {
