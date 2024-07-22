@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-const { Telegraf } = require('telegraf');
 const TelegramBot = require('node-telegram-bot-api');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
@@ -11,7 +10,7 @@ var cron = require('node-cron');
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
 const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE, {
-    polling: true,
+    polling: false,
     request: {
         agentOptions: {
             keepAlive: true,
@@ -35,17 +34,18 @@ let OpenTimem1 = []
 let wsConfig = {
     // key: API_KEY,
     // secret: PRIVATE_KEY,
-    market: 'v5'
+    market: 'v5',
+    recvWindow:60000,
 }
+let wsSymbol = new WebsocketClient(wsConfig);
 let wsInfo = {
     // key: API_KEY,
     // secret: PRIVATE_KEY,
     testnet: false,
-    enable_time_sync: true,
-    timestamp: new Date().toISOString(),
-    recvWindow: 200000,
+    timestamp: new Date().toISOString(),   
+    recv_window:60000,
+    enable_time_sync:true 
 }
-let wsSymbol = new WebsocketClient(wsConfig);
 let CoinInfo = new RestClientV5(wsInfo);
 
 //Funcition

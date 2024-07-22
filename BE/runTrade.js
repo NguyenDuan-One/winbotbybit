@@ -8,7 +8,6 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
-    enable_time_sync: true,
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
@@ -513,7 +512,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 key: ApiKey,
                 secret: SecretKey,
                 market: 'v5',
-                enable_time_sync: true
             }
 
             const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -1658,7 +1656,7 @@ socketRealtime.on('update', async (newData = []) => {
                         gongLai: true
                     })
                 }
-                await delay(500)
+                await delay(200)
             }
 
         }
@@ -1741,7 +1739,7 @@ socketRealtime.on('delete', (newData) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
         }
     })
@@ -1886,7 +1884,7 @@ socketRealtime.on('bot-update', async (newData = []) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
             !allStrategiesActiveByBotID[botID] && (allStrategiesActiveByBotID[botID] = {})
             allStrategiesActiveByBotID[botID][strategyID] = strategiesData
@@ -1913,7 +1911,7 @@ socketRealtime.on('bot-update', async (newData = []) => {
                     gongLai: true
                 })
             }
-            await delay(500)
+            await delay(200)
         }
 
     })
@@ -1969,7 +1967,7 @@ socketRealtime.on('bot-api', async (data) => {
                     orderId: TPMissOrderID,
                     gongLai: true
                 })
-                await delay(500)
+                await delay(200)
             }
 
         }
@@ -2088,7 +2086,7 @@ socketRealtime.on('bot-delete', (data) => {
                     gongLai: true
                 })
 
-                await delay(500)
+                await delay(200)
             }
         }
     })
@@ -2106,7 +2104,6 @@ socketRealtime.on('bot-delete', (data) => {
         key: ApiKeyBot,
         secret: SecretKeyBot,
         market: 'v5',
-        enable_time_sync: true
     }
 
     const wsOrder = new WebsocketClient(wsConfigOrder);
