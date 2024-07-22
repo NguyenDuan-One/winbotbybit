@@ -644,12 +644,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     const OCTrue = strategyData?.OC
                     const TPTrue = strategyData?.TP
 
-                    console.log("orderStatus", orderStatus);
-                    if(!strategy)
-                    {
-                        console.log("strategyData", strategyData);
-                    }
-
                     if (strategy) {
 
                         const strategyID = strategy.value
