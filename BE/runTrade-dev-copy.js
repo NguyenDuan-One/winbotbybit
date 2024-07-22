@@ -644,7 +644,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     const OCTrue = strategyData?.OC
                     const TPTrue = strategyData?.TP
 
-                    console.log("strategyData", strategyData, orderStatus);
+                    console.log("orderStatus", orderStatus);
+                    if(!strategy)
+                    {
+                        console.log("strategyData", strategyData);
+                    }
 
                     if (strategy) {
 
@@ -1684,12 +1688,13 @@ socketRealtime.on('connect', () => {
     console.log('[V] Connected Socket Realtime');
 });
 
-socketRealtime.on('add', (newData = []) => {
+socketRealtime.on('add', async (newData = []) => {
     console.log("[...] Add New Strategies From Realtime", newData.length);
 
     const newBotApiList = {}
 
-    newData.forEach(newStrategiesData => {
+    await Promise.allSettled(newData.map(async strategiesData => {
+
         if (checkConditionBot(newStrategiesData)) {
 
             delete newStrategiesData.TimeTemp
@@ -1732,19 +1737,21 @@ socketRealtime.on('add', (newData = []) => {
             allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesData
         }
 
-    })
+    }))
 
     handleSocketBotApiList(newBotApiList)
 
 });
 
-socketRealtime.on('update', (newData = []) => {
+socketRealtime.on('update', async (newData = []) => {
     console.log("[...] Update Strategies From Realtime", newData.length);
 
     const newBotApiList = {}
 
     let updateMongoMiss = false
-    newData.map(async strategiesData => {
+
+    await Promise.allSettled(newData.map(async strategiesData => {
+
 
         if (checkConditionBot(strategiesData)) {
 
@@ -1819,16 +1826,16 @@ socketRealtime.on('update', (newData = []) => {
             }
 
         }
-    })
+    }))
 
     handleSocketBotApiList(newBotApiList)
 
 });
 
-socketRealtime.on('delete', (newData) => {
+socketRealtime.on('delete', async (newData) => {
     console.log("[...] Deleted Strategies From Realtime");
 
-    newData.map(async strategiesData => {
+    await Promise.allSettled(newData.map(async strategiesData => {
         if (checkConditionBot(strategiesData)) {
 
             const ApiKey = strategiesData.botID.ApiKey
@@ -1878,7 +1885,7 @@ socketRealtime.on('delete', (newData) => {
             delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
             delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
         }
-    })
+    }))
 
 });
 
@@ -1890,14 +1897,13 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
     const newBotApiList = {}
 
-    newData.map(async strategiesData => {
+    await Promise.allSettled(newData.map(async strategiesData => {
 
 
         const ApiKey = strategiesData.botID.ApiKey
         const SecretKey = strategiesData.botID.SecretKey
         const botID = strategiesData.botID._id
         const botName = strategiesData.botID.botName
-
 
         const symbol = strategiesData.symbol
         const strategyID = strategiesData.value
@@ -1911,6 +1917,25 @@ socketRealtime.on('bot-update', async (data = {}) => {
         !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
         allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategiesData
 
+
+        // if (IsActive) {
+        //     if (!botApiList[botID]) {
+
+        //         botApiList[botID] = {
+        //             id: botID,
+        //             ApiKey,
+        //             SecretKey,
+        //             botName
+        //         }
+        //         newBotApiList[botID] = {
+        //             id: botID,
+        //             ApiKey,
+        //             SecretKey,
+        //             botName
+        //         }
+        //     }
+        // }
+
         const cancelDataObject = {
             ApiKey,
             SecretKey,
@@ -1920,23 +1945,6 @@ socketRealtime.on('bot-update', async (data = {}) => {
             side,
             botName,
             botID
-        }
-        if (IsActive) {
-            if (!botApiList[botID]) {
-
-                botApiList[botID] = {
-                    id: botID,
-                    ApiKey,
-                    SecretKey,
-                    botName
-                }
-                newBotApiList[botID] = {
-                    id: botID,
-                    ApiKey,
-                    SecretKey,
-                    botName
-                }
-            }
         }
 
         const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
@@ -1960,7 +1968,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
             await delay(200)
         }
 
-    })
+    }))
 
     const botApiData = botApiList[botIDMain]
 
@@ -1984,9 +1992,9 @@ socketRealtime.on('bot-update', async (data = {}) => {
             await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
         }
     }
-    else {
-        handleSocketBotApiList(newBotApiList)
-    }
+    // else {
+    //     handleSocketBotApiList(newBotApiList)
+    // }
 
 });
 
@@ -1994,7 +2002,7 @@ socketRealtime.on('bot-api', async (data) => {
     const { newData, botID: botIDMain, newApiData } = data;
     console.log("[...] Bot-Api Update Strategies From Realtime", newData.length);
 
-    newData.map(async strategiesData => {
+    await Promise.allSettled(newData.map(async strategiesData => {
 
         if (checkConditionBot(strategiesData)) {
             const strategyID = strategiesData.value
@@ -2041,7 +2049,7 @@ socketRealtime.on('bot-api', async (data) => {
             }
 
         }
-    })
+    }))
 
     // 
     try {
@@ -2083,11 +2091,11 @@ socketRealtime.on('bot-api', async (data) => {
 
 });
 
-socketRealtime.on('bot-delete', (data) => {
+socketRealtime.on('bot-delete', async (data) => {
     const { newData, botID: botIDMain } = data;
     console.log("[...] Bot Deleted Strategies From Realtime");
 
-    newData.map(async strategiesData => {
+    await Promise.allSettled(newData.map(async strategiesData => {
         if (checkConditionBot(strategiesData)) {
 
             const ApiKey = strategiesData.botID.ApiKey
@@ -2141,7 +2149,7 @@ socketRealtime.on('bot-delete', (data) => {
             delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
             delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
         }
-    })
+    }))
 
     const botApiData = botApiList[botIDMain]
     const ApiKeyBot = botApiData.ApiKey
@@ -2162,7 +2170,7 @@ socketRealtime.on('bot-delete', (data) => {
 
 });
 
-socketRealtime.on('bot-telegram', (data) => {
+socketRealtime.on('bot-telegram', async (data) => {
     console.log("[...] Bot Telegram Update From Realtime");
 
     const { newData, botID: botIDMain, newApiData } = data;
@@ -2170,7 +2178,8 @@ socketRealtime.on('bot-telegram', (data) => {
     const telegramID = newApiData.telegramID
     const telegramToken = newApiData.telegramToken
 
-    newData.map(strategiesData => {
+    await Promise.allSettled(newData.map(async strategiesData => {
+
 
         if (checkConditionBot(strategiesData)) {
 
@@ -2187,7 +2196,7 @@ socketRealtime.on('bot-telegram', (data) => {
             }
             allStrategiesByBotIDAndStrategiesID[botIDMain][strategyID] = newStrategiesDataUpdate
         }
-    })
+    }))
 
     // if (botListTelegram[telegramTokenOld]) {
     //     botListTelegram[telegramTokenOld]?.stopPolling()
