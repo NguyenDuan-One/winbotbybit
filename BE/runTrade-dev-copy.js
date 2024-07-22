@@ -516,7 +516,8 @@ const cancelAll = (
             minMaxTempPrice: 0,
             coinClose: 0,
             moveAfterCompare: false,
-            moveSuccess: false
+            moveSuccess: false,
+            orderFilledButMiss: false,
         },
     }
 
@@ -572,7 +573,7 @@ const sendMessageWithRetry = ({
         } catch (error) {
             console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
         }
-    }, 500)
+    }, 1000)
 };
 
 const getMoneyFuture = async (botApiList) => {
@@ -1371,7 +1372,7 @@ const Main = async () => {
 
                         }
                         // if have TP
-                        if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare) {
+                        if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare &&!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss) {
                             let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
 
                             if (!checkMoveMain) {
@@ -1388,11 +1389,11 @@ const Main = async () => {
                                     if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                         textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                         console.log(changeColorConsole.cyanBright(textQuanSat));
-                                        sendMessageWithRetry({
-                                            messageText: textQuanSat,
-                                            telegramID,
-                                            telegramToken
-                                        })
+                                        // sendMessageWithRetry({
+                                        //     messageText: textQuanSat,
+                                        //     telegramID,
+                                        //     telegramToken
+                                        // })
                                         if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
@@ -1405,11 +1406,11 @@ const Main = async () => {
                                     if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                         textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                         console.log(changeColorConsole.cyanBright(textQuanSat));
-                                        sendMessageWithRetry({
-                                            messageText: textQuanSat,
-                                            telegramID,
-                                            telegramToken
-                                        })
+                                        // sendMessageWithRetry({
+                                        //     messageText: textQuanSat,
+                                        //     telegramID,
+                                        //     telegramToken
+                                        // })
                                         if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
@@ -1447,12 +1448,12 @@ const Main = async () => {
                                         }
                                         else {
                                             console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
                                         }
                                     })
                                     .catch((error) => {
                                         console.log(changeColorConsole.redBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
                                     });
 
                                 const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
@@ -1517,7 +1518,7 @@ const Main = async () => {
                                     })
                                     .catch((error) => {
                                         console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
                                     });
 
                                 const textQuayDau = `😃 Dịch OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
