@@ -1372,7 +1372,7 @@ const Main = async () => {
 
                         }
                         // if have TP
-                        if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare &&!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss) {
+                        if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss) {
                             let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
 
                             if (!checkMoveMain) {
@@ -1443,6 +1443,13 @@ const Main = async () => {
                                         if (response.retCode == 0) {
                                             console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
+                                            const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
+                                            console.log(changeColorConsole.greenBright(textQuayDau));
+                                            sendMessageWithRetry({
+                                                messageText: textQuayDau,
+                                                telegramID,
+                                                telegramToken
+                                            })
                                             await delay(500)
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
                                         }
@@ -1456,13 +1463,7 @@ const Main = async () => {
                                         allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
                                     });
 
-                                const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
-                                console.log(changeColorConsole.greenBright(textQuayDau));
-                                sendMessageWithRetry({
-                                    messageText: textQuayDau,
-                                    telegramID,
-                                    telegramToken
-                                })
+
                             }
 
                         }
@@ -1508,6 +1509,13 @@ const Main = async () => {
                                         if (response.retCode == 0) {
                                             console.log(changeColorConsole.cyanBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
+                                            const textQuayDau = `😃 Dịch OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                            console.log(changeColorConsole.greenBright(textQuayDau));
+                                            sendMessageWithRetry({
+                                                messageText: textQuayDau,
+                                                telegramID,
+                                                telegramToken
+                                            })
                                             await delay(500)
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
                                         }
@@ -1518,16 +1526,10 @@ const Main = async () => {
                                     })
                                     .catch((error) => {
                                         console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
                                     });
 
-                                const textQuayDau = `😃 Dịch OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                console.log(changeColorConsole.greenBright(textQuayDau));
-                                sendMessageWithRetry({
-                                    messageText: textQuayDau,
-                                    telegramID,
-                                    telegramToken
-                                })
+
                             }
                         }
 
