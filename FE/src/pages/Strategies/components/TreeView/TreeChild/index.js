@@ -271,7 +271,7 @@ function TreeChild({
             <TableCell className={styles.tableBodyCell}>{treeNode.ReduceTakeProfit}</TableCell>
             <TableCell className={styles.tableBodyCell}>{treeNode.ExtendedOCPercent}</TableCell>
             <TableCell className={styles.tableBodyCell}>{treeNode.Ignore}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.EntryTrailing}</TableCell>
+            <TableCell className={styles.tableBodyCell}>{treeNode.EntryTrailing || 40}</TableCell>
             <TableCell className={styles.tableBodyCell}>{treeNode.StopLose}</TableCell>
             <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
         </TableRow >

@@ -243,11 +243,16 @@ const dataCoinByBitController = {
         try {
             const userID = req.user._id
 
-            const { data: newData, botListId, Symbol } = req.body
+            const { data, botListId, Symbol } = req.body
 
             let result
 
             const TimeTemp = new Date().toString()
+
+            const newData = {
+                ...data,
+                EntryTrailing: data.EntryTrailing || 40
+            }
 
             if (newData.PositionSide === "Both") {
                 result = await StrategiesModel.updateMany(
