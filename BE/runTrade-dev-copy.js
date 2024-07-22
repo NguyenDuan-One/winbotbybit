@@ -1467,8 +1467,8 @@ const Main = async () => {
                         }
 
                         if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilledButMiss && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare) {
-                            const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                            console.log(changeColorConsole.cyanBright(textQuanSat));
+                            // const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                            // console.log(changeColorConsole.cyanBright(textQuanSat));
 
                             let checkMoveMain = false
                             const percentt = 4 / 100
@@ -1505,7 +1505,7 @@ const Main = async () => {
                                     })
                                     .then(async (response) => {
                                         if (response.retCode == 0) {
-                                            console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                                            console.log(changeColorConsole.cyanBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
                                             await delay(200)
