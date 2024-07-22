@@ -60,7 +60,7 @@ async function Digit(symbol) {// proScale
     return PScale
 }
 
-const handleSubmitOrder =  ({
+const handleSubmitOrder = ({
     strategy,
     strategyID,
     symbol,
@@ -364,11 +364,15 @@ const handleCancelOrderOC = ({
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) failed `, response.retMsg))
             }
-            cancelAll({ strategyID, botID })
+            setTimeout(() => {
+                cancelAll({ strategyID, botID })
+            }, 500)
         })
         .catch((error) => {
             console.log(changeColorConsole.redBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) error `, error))
-            cancelAll({ strategyID, botID })
+            setTimeout(() => {
+                cancelAll({ strategyID, botID })
+            }, 500)
         });
 
 }
@@ -481,6 +485,7 @@ const cancelAll = (
         botID
     }
 ) => {
+    console.log("[...] Cancel All");
     const data = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
     if (data) {
         const OCOrderID = data?.OC?.orderID
@@ -639,8 +644,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     const OCTrue = strategyData?.OC
                     const TPTrue = strategyData?.TP
 
-                    if (strategy) {
+                    console.log("strategyData", strategyData, orderStatus);
 
+                    if (strategy) {
 
                         const strategyID = strategy.value
                         const telegramID = strategy.botID.telegramID
@@ -1680,7 +1686,7 @@ socketRealtime.on('connect', () => {
     console.log('[V] Connected Socket Realtime');
 });
 
-socketRealtime.on('add',  (newData = []) => {
+socketRealtime.on('add', (newData = []) => {
     console.log("[...] Add New Strategies From Realtime", newData.length);
 
     const newBotApiList = {}
@@ -1730,11 +1736,11 @@ socketRealtime.on('add',  (newData = []) => {
 
     })
 
-     handleSocketBotApiList(newBotApiList)
+    handleSocketBotApiList(newBotApiList)
 
 });
 
-socketRealtime.on('update',  (newData = []) => {
+socketRealtime.on('update', (newData = []) => {
     console.log("[...] Update Strategies From Realtime", newData.length);
 
     const newBotApiList = {}
@@ -1817,7 +1823,7 @@ socketRealtime.on('update',  (newData = []) => {
         }
     })
 
-     handleSocketBotApiList(newBotApiList)
+    handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -1981,7 +1987,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
         }
     }
     else {
-         handleSocketBotApiList(newBotApiList)
+        handleSocketBotApiList(newBotApiList)
     }
 
 });
@@ -2158,7 +2164,7 @@ socketRealtime.on('bot-delete', (data) => {
 
 });
 
-socketRealtime.on('bot-telegram',  (data) => {
+socketRealtime.on('bot-telegram', (data) => {
     console.log("[...] Bot Telegram Update From Realtime");
 
     const { newData, botID: botIDMain, newApiData } = data;
@@ -2166,7 +2172,7 @@ socketRealtime.on('bot-telegram',  (data) => {
     const telegramID = newApiData.telegramID
     const telegramToken = newApiData.telegramToken
 
-    newData.map( strategiesData => {
+    newData.map(strategiesData => {
 
         if (checkConditionBot(strategiesData)) {
 
