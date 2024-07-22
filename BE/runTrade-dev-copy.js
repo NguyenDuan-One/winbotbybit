@@ -587,7 +587,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
     const objectToArray = Object.values(botApiList);
     const objectToArrayLength = objectToArray.length;
-    console.log("[New-Bot-API] Length:", objectToArrayLength);
+    console.log(changeColorConsole.greenBright("[New-Bot-API] Length:", objectToArrayLength));
 
     if (objectToArrayLength > 0) {
 
@@ -1189,8 +1189,6 @@ const Main = async () => {
 
     // ORDER
     await handleSocketBotApiList(botApiList)
-
-
 
     // KLINE
     await wsSymbol.subscribeV5(listKline, 'linear').then(() => {
