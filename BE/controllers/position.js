@@ -161,14 +161,12 @@ const PositionController = {
                         category: 'linear',
                         settleCoin: "USDT"
                         // symbol: positionData.Symbol
-                    }).then(async response => {
+                    }).then(response => {
                         const viTheList = response.result.list;
-
-                        console.log("viTheList", viTheList);
 
                         if (viTheList?.length > 0) {
                             if (viTheList.length >= dataPosition.length) {
-                                return await Promise.allSettled(viTheList?.map(viTheListItem => {
+                                return Promise.allSettled(viTheList?.map(viTheListItem => {
                                     const positionDataNew = {
                                         Pnl: viTheListItem.unrealisedPnl,
                                         Side: viTheListItem.side,
@@ -202,7 +200,7 @@ const PositionController = {
                                 }))
                             }
                             else {
-                                return await Promise.allSettled(dataPosition?.map(positionItem => {
+                                return Promise.allSettled(dataPosition?.map(positionItem => {
                                     const positionDataNew = {
                                         Pnl: positionItem.unrealisedPnl,
                                         Side: positionItem.side,
@@ -235,7 +233,7 @@ const PositionController = {
                             }
                         }
                         else {
-                            return await PositionModel.deleteMany({ botID: dataBotItem.value })
+                            return PositionModel.deleteMany({ botID: dataBotItem.value })
                         }
                     }).catch(error => {
                         console.log("Error", error);
