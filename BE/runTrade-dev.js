@@ -549,7 +549,7 @@ const sendMessageWithRetry = async ({
         throw new Error('[!] Failed to send message after multiple retries');
     } catch (error) {
         console.log(changeColorConsole.redBright("[!] Bot Telegram Error"))
-    } 
+    }
 };
 
 const getMoneyFuture = async (botApiList) => {
@@ -1332,15 +1332,15 @@ const Main = async () => {
 
                                     !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
 
-                                    console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
-                                   let textQuanSat = ``
-                                   let textQuayDau = ``
+                                    // console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
+                                    let textQuanSat = ``
+                                    let textQuayDau = ``
                                     if (sideCheck === "Buy") {
                                         if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
                                             textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                             console.log(changeColorConsole.cyanBright(textQuanSat));
                                             sendMessageWithRetry({
-                                                messageText:textQuanSat,
+                                                messageText: textQuanSat,
                                                 telegramID,
                                                 telegramToken
                                             })
@@ -1349,7 +1349,7 @@ const Main = async () => {
                                                 textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                                 console.log(changeColorConsole.greenBright(textQuayDau));
                                                 sendMessageWithRetry({
-                                                    messageText:textQuayDau,
+                                                    messageText: textQuayDau,
                                                     telegramID,
                                                     telegramToken
                                                 })
@@ -1365,7 +1365,7 @@ const Main = async () => {
                                             textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                             console.log(changeColorConsole.cyanBright(textQuanSat));
                                             sendMessageWithRetry({
-                                                messageText:textQuanSat,
+                                                messageText: textQuanSat,
                                                 telegramID,
                                                 telegramToken
                                             })
@@ -1374,7 +1374,7 @@ const Main = async () => {
                                                 textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                                 console.log(changeColorConsole.greenBright(textQuayDau));
                                                 sendMessageWithRetry({
-                                                    messageText:textQuayDau,
+                                                    messageText: textQuayDau,
                                                     telegramID,
                                                     telegramToken
                                                 })
