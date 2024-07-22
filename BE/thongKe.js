@@ -635,7 +635,7 @@ let Main = async () => {
             }
         }
         if (messageList.length) {
-            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
+        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
             sendMessageWithRetry(messageList.join("\n"))
         }
 
