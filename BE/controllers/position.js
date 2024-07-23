@@ -177,7 +177,7 @@ const PositionController = {
                                     const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
 
                                     if (checkPositionExist) {
-                                        if (+positionDataNew?.Quantity != 0) {
+                                        if (+positionDataNew.Quantity != 0) {
                                             positionDataNew.TimeUpdated = new Date()
                                             return PositionController.updatePositionBE({
                                                 newDataUpdate: positionDataNew,
@@ -211,7 +211,7 @@ const PositionController = {
                                     const checkPositionExist = positionItem.botID._id == dataBotItem.value && viTheList.find(item => item.symbol === positionItem.Symbol)
 
                                     if (checkPositionExist) {
-                                        if (+positionDataNew?.Quantity != 0) {
+                                        if (+positionDataNew.Quantity != 0) {
                                             positionDataNew.TimeUpdated = new Date()
                                             return PositionController.updatePositionBE({
                                                 newDataUpdate: positionDataNew,

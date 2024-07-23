@@ -100,6 +100,7 @@ const handleSubmitOrder = ({
             if (response.retCode == 0) {
                 const newOrderID = response.result.orderId
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
+                console.log(changeColorConsole.cyanBright(`OC ${botName} - ${side} - ${symbol} - ${candle} orderID:`, newOrderID));
                 allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
                     strategy,
                     OC: true,
@@ -636,9 +637,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                 const botSymbolMissID = `${botID}-${symbol}`
 
-                // if (orderStatus === "Filled") {
-                //     console.log(changeColorConsole.greenBright("[Filled] first", symbol));
-                // }
+                if (orderStatus === "Filled") {
+                    console.log(changeColorConsole.greenBright(`[Filled] ${botName} - ${dataMain.side} - ${symbol} OrderID`, orderID));
+                }
 
 
                 if (dataCoin.topic === "order") {
@@ -1509,6 +1510,9 @@ const Main = async () => {
                                         if (response.retCode == 0) {
                                             console.log(changeColorConsole.cyanBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
+                                            console.log(changeColorConsole.greenBright(`OC ${botName} - ${side} - ${symbol} - ${candle} orderID Move:`, response.result.orderId));
+                                            
+
                                             const textQuayDau = `😃 Dịch OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                             console.log(changeColorConsole.greenBright(textQuayDau));
                                             sendMessageWithRetry({
@@ -2359,6 +2363,8 @@ socketRealtime.on("close-limit", async (data) => {
     missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
         orderID: positionData.id,
     })
+    missTPDataBySymbol[botSymbolMissID].size = positionData.Quantity
+
 })
 
 socketRealtime.on('disconnect', () => {
