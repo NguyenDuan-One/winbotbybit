@@ -200,7 +200,7 @@ const handleSubmitOrderTP = ({
 
 
                 console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
-                console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
+                console.log(changeColorConsole.blackBright(`TP orderID ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
 
             }
             else {
@@ -272,8 +272,8 @@ const moveOrderTP = ({
         })
         .then((response) => {
             if (response.retCode == 0) {
-                console.log(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
+                console.log(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`)
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
@@ -505,7 +505,7 @@ const cancelAll = (
             priceOrder: 0,
             orderFilledButMiss: false,
             moveAfterCompare: false,
-
+            newOC: 0
         },
         "TP": {
             orderID: "",
@@ -639,7 +639,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     const botSymbolMissID = `${botID}-${symbol}`
 
                     if (orderStatus === "Filled") {
-                        console.log(changeColorConsole.greenBright(`[V] Filled OC ( ${botName} - ${dataMain.side} - ${symbol} ) OrderID:`, orderID));
+                        console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
                     }
 
 
@@ -672,13 +672,15 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                     const qty = dataMain.qty
 
-                                    const newOC = Math.abs((openTrade - strategy.coinOpen)) / strategy.coinOpen * 100
+                                    const newOC = (Math.abs((openTrade - strategy.coinOpen)) / strategy.coinOpen * 100).toFixed(2)
+
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.newOC = newOC
                                     // const newOC = strategy.OrderChange
 
                                     const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
-                                    console.log(`\n[V] Filled OC: \n${symbol.replace("USDT", "")} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}\n`);
-                                    const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+                                    console.log(`\n[V] Filled OC: \n${symbol.replace("USDT", "")} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}\n`);
+                                    const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
 
                                     if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
 
@@ -783,9 +785,10 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     const qty = +dataMain.qty
                                     const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
+                                    const newOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.newOC
 
-                                    console.log(`\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`);
-                                    const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
+                                    console.log(`\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`);
+                                    const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
                                     const priceWinPercent = (Math.abs(closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
                                     const priceWin = ((closePrice - openTradeOCFilled) * qty).toFixed(2) || 0;
@@ -980,7 +983,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }).then(async data => {
                                         console.log("[Mongo]:", data);
                                         console.log("[Mongo-Message]:", data.message);
-                                        
+
                                         const newID = data.id
 
                                         !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
@@ -1008,7 +1011,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                         if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
-                                            console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                            console.log(changeColorConsole.magentaBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
 
                                             // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
                                             let TPNew = openTrade
@@ -1068,7 +1071,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }
                                 }
                                 else {
-                                    console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                    console.log(changeColorConsole.magentaBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
                                     console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                     updatePositionBE({
                                         newDataUpdate: {
@@ -1208,7 +1211,6 @@ const Main = async () => {
         console.log("[V] Subscribe kline successful\n");
 
         wsSymbol.on('update', async (dataCoin) => {
-
 
             const topic = dataCoin.topic
             const topicSplit = topic.split(".")
@@ -1418,12 +1420,12 @@ const Main = async () => {
                                         })
                                         .then(async (response) => {
                                             if (response.retCode == 0) {
-                                                console.log(changeColorConsole.cyanBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
+                                                console.log(changeColorConsole.cyanBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                                 console.log(changeColorConsole.blackBright(`OC orderID Move ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
 
                                                 const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                                console.log(changeColorConsole.greenBright(textQuayDau));
+                                                console.log(changeColorConsole.yellowBright(textQuayDau));
                                                 sendMessageWithRetry({
                                                     messageText: textQuayDau,
                                                     telegramID,
@@ -1519,8 +1521,8 @@ const Main = async () => {
                                     })
                                     .then(async (response) => {
                                         if (response.retCode == 0) {
-                                            console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
+                                            console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
                                             const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                             console.log(changeColorConsole.greenBright(textQuayDau));
                                             sendMessageWithRetry({
