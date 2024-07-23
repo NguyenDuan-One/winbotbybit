@@ -1499,6 +1499,8 @@ const Main = async () => {
                                     recv_window: 60000,
                                     enable_time_sync: true
                                 });
+                                const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
+
                                 client
                                     .amendOrder({
                                         category: 'linear',
@@ -1513,7 +1515,7 @@ const Main = async () => {
                                             console.log(changeColorConsole.greenBright(`OC ${botName} - ${side} - ${symbol} - ${candle} orderID Move:`, response.result.orderId));
                                             
 
-                                            const textQuayDau = `😃 Dịch OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                            const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                             console.log(changeColorConsole.greenBright(textQuayDau));
                                             sendMessageWithRetry({
                                                 messageText: textQuayDau,
