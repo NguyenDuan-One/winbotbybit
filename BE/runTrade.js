@@ -892,7 +892,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     // User cancel vị thế
                     if (dataMain.orderType === "Market") {
                         const side = dataMain.side
-                        console.log(`[...] User ${botName} Clicked Close Vị Thế`)
+                        console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế`)
 
                         const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
                         listMiss?.length > 0 &&
