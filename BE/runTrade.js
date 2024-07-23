@@ -109,6 +109,7 @@ const handleSubmitOrder = ({
 
                 const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
                 console.log(text)
+                console.log(changeColorConsole.cyanBright(`OC ( ${botName} - ${side} - ${symbol} - ${candle} ) orderID:`, newOrderID));
 
                 sendMessageWithRetry({
                     messageText: text,
@@ -501,6 +502,10 @@ const cancelAll = (
             orderFilled: false,
             openTrade: "",
             dataSend: {},
+            priceOrder: 0,
+            orderFilledButMiss: false,
+            moveAfterCompare: false,
+
         },
         "TP": {
             orderID: "",
@@ -512,7 +517,8 @@ const cancelAll = (
             minMaxTempPrice: 0,
             coinClose: 0,
             moveAfterCompare: false,
-            moveSuccess: false
+            moveSuccess: false,
+            orderFilledButMiss: false,
         },
     }
 
@@ -568,7 +574,7 @@ const sendMessageWithRetry = ({
         } catch (error) {
             console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
         }
-    }, 500)
+    }, 1000)
 };
 
 const getMoneyFuture = async (botApiList) => {
@@ -594,7 +600,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
         console.log("[...] Subscribe new-bot-list-api successful\n");
 
-        objectToArray.forEach(botApiData => {
+        Promise.allSettled(objectToArray.map(botApiData => {
 
             const ApiKey = botApiData.ApiKey
             const SecretKey = botApiData.SecretKey
@@ -631,9 +637,9 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                 const botSymbolMissID = `${botID}-${symbol}`
 
-                // if (orderStatus === "Filled") {
-                //     console.log(changeColorConsole.greenBright("[Filled] first", symbol));
-                // }
+                if (orderStatus === "Filled") {
+                    console.log(changeColorConsole.greenBright(`[V] Filled OC ( ${botName} - ${dataMain.side} - ${symbol} ) OrderID:`, orderID));
+                }
 
 
                 if (dataCoin.topic === "order") {
@@ -690,7 +696,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         ...newDataToDB,
                                         botID,
                                     }).then(async data => {
-                                        console.log(data.message);
+                                        console.log("[Mongo]:", data);
+                                        console.log("[Mongo-Message]:", data.message);
                                         !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                         const newID = data.id
@@ -699,7 +706,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                         else {
                                             await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                console.log(data.message);
+                                                console.log("[Mongo]:", data);
+                                                console.log("[Mongo-Message]:", data.message);
                                                 missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                             }).catch(error => {
                                                 console.log(changeColorConsole.redBright(error));
@@ -969,7 +977,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     ...newDataToDB,
                                     botID,
                                 }).then(async data => {
-                                    console.log(data.message);
+                                    console.log("[Mongo]:", data);
+                                    console.log("[Mongo-Message]:", data.message);
                                     const newID = data.id
 
                                     !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
@@ -979,7 +988,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }
                                     else {
                                         await getPositionBySymbol({ symbol, botID }).then(data => {
-                                            console.log(data.message);
+                                            console.log("[Mongo]:", data);
+                                            console.log("[Mongo-Message]:", data.message);
                                             missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                         }).catch(error => {
                                             console.log(changeColorConsole.redBright(error));
@@ -1081,7 +1091,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
             wsOrder.on('close', () => {
                 console.log('Connection order closed');
-                wsOrder.unsubscribeV5(LIST_ORDER, "linear")
+                wsOrder.close(LIST_ORDER, "linear")
             });
 
             wsOrder.on('reconnected', () => {
@@ -1092,7 +1102,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 console.log('Connection order error');
                 console.error(err);
             });
-        })
+        }))
     }
 }
 
@@ -1134,9 +1144,6 @@ const Main = async () => {
                     SecretKey: strategyItem.botID.SecretKey,
                 }
             }
-
-            !allStrategiesByBotIDAndOrderID[botID] && (allStrategiesByBotIDAndOrderID[botID] = {})
-            !allStrategiesByBotIDAndStrategiesID[botID] && (allStrategiesByBotIDAndStrategiesID[botID] = {})
 
 
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
@@ -1332,6 +1339,8 @@ const Main = async () => {
 
                                     const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
 
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder = +priceOrder
+
                                     const dataInput = {
                                         strategy,
                                         strategyID,
@@ -1357,108 +1366,176 @@ const Main = async () => {
                                 }
 
                             }, 250)
+
+
                         }
-                        else {
-                            // if have TP
-                            if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare) {
-                                let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
+                        // if have TP
+                        if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss) {
+                            let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
 
-                                if (!checkMoveMain) {
-                                    const PercentCheck = 2 / 100
-                                    const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
+                            if (!checkMoveMain) {
+                                const PercentCheck = 2 / 100
+                                const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
 
-                                    const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
+                                const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
 
-                                    !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
+                                !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
 
-                                    // console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
-                                    let textQuanSat = ``
-                                    let textQuayDau = ``
-                                    if (sideCheck === "Buy") {
-                                        if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                            console.log(changeColorConsole.cyanBright(textQuanSat));
-                                            sendMessageWithRetry({
-                                                messageText: textQuanSat,
-                                                telegramID,
-                                                telegramToken
-                                            })
-                                            if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
-                                                console.log(changeColorConsole.greenBright(textQuayDau));
-                                                sendMessageWithRetry({
-                                                    messageText: textQuayDau,
-                                                    telegramID,
-                                                    telegramToken
-                                                })
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
-                                                checkMoveMain = true
-                                            }
+                                // console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
+                                let textQuanSat = ``
+                                if (sideCheck === "Buy") {
+                                    if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                                        textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                        console.log(changeColorConsole.cyanBright(textQuanSat));
+                                        // sendMessageWithRetry({
+                                        //     messageText: textQuanSat,
+                                        //     telegramID,
+                                        //     telegramToken
+                                        // })
+                                        if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
+                                            checkMoveMain = true
                                         }
                                     }
-                                    else {
-                                        if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                            console.log(changeColorConsole.cyanBright(textQuanSat));
-                                            sendMessageWithRetry({
-                                                messageText: textQuanSat,
-                                                telegramID,
-                                                telegramToken
-                                            })
-                                            if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
-                                                textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
-                                                console.log(changeColorConsole.greenBright(textQuayDau));
-                                                sendMessageWithRetry({
-                                                    messageText: textQuayDau,
-                                                    telegramID,
-                                                    telegramToken
-                                                })
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
-                                                checkMoveMain = true
-                                            }
-                                        }
-                                    }
-                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
-
                                 }
-                                if (checkMoveMain) {
-                                    // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
-                                    const client = new RestClientV5({
-                                        testnet: false,
-                                        key: ApiKey,
-                                        secret: SecretKey,
-                                        recv_window: 60000,
-                                        enable_time_sync: true
+                                else {
+                                    if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                                        textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                        console.log(changeColorConsole.cyanBright(textQuanSat));
+                                        // sendMessageWithRetry({
+                                        //     messageText: textQuanSat,
+                                        //     telegramID,
+                                        //     telegramToken
+                                        // })
+                                        if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
+                                            checkMoveMain = true
+                                        }
+                                    }
+                                }
+                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
+
+                            }
+                            if (checkMoveMain) {
+
+                                // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
+                                const client = new RestClientV5({
+                                    testnet: false,
+                                    key: ApiKey,
+                                    secret: SecretKey,
+                                    recv_window: 60000,
+                                    enable_time_sync: true
+                                });
+                                client
+                                    .amendOrder({
+                                        category: 'linear',
+                                        symbol,
+                                        price: coinCurrent.toFixed(strategy.digit),
+                                        orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID
+                                    })
+                                    .then(async (response) => {
+                                        if (response.retCode == 0) {
+                                            console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
+                                            const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
+                                            console.log(changeColorConsole.greenBright(textQuayDau));
+                                            sendMessageWithRetry({
+                                                messageText: textQuayDau,
+                                                telegramID,
+                                                telegramToken
+                                            })
+                                            await delay(500)
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
+                                        }
+                                        else {
+                                            console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.log(changeColorConsole.redBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
                                     });
-                                    client
-                                        .amendOrder({
-                                            category: 'linear',
-                                            symbol,
-                                            price: coinCurrent.toFixed(strategy.digit),
-                                            orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID
-                                        })
-                                        .then(async (response) => {
-                                            if (response.retCode == 0) {
-                                                console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
-                                                await delay(200)
-                                            }
-                                            else {
-                                                console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.log(changeColorConsole.redBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
-                                        });
+
+
+                            }
+
+                        }
+
+                        if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilledButMiss && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare) {
+                            // const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                            // console.log(changeColorConsole.cyanBright(textQuanSat));
+
+                            let checkMoveMain = false
+                            const percentt = 4 / 100
+                            const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
+
+                            if (side === "Buy") {
+                                if (coinCurrent <= (priceOrderOC + Math.abs(priceOrderOC - coinOpen) * percentt)) {
+
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                                    checkMoveMain = true
                                 }
+                            }
+                            else {
+                                if (coinCurrent >= (priceOrderOC - Math.abs(priceOrderOC - coinOpen) * percentt)) {
+
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                                    checkMoveMain = true
+                                }
+                            }
+                            if (checkMoveMain) {
+                                const client = new RestClientV5({
+                                    testnet: false,
+                                    key: ApiKey,
+                                    secret: SecretKey,
+                                    recv_window: 60000,
+                                    enable_time_sync: true
+                                });
+                                const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
+
+                                client
+                                    .amendOrder({
+                                        category: 'linear',
+                                        symbol,
+                                        price: coinCurrent.toFixed(strategy.digit),
+                                        orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
+                                    })
+                                    .then(async (response) => {
+                                        if (response.retCode == 0) {
+                                            console.log(changeColorConsole.cyanBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
+                                            console.log(changeColorConsole.greenBright(`OC ( ${botName} - ${side} - ${symbol} - ${candle} ) orderID Move:`, response.result.orderId));
+
+                                            const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                            console.log(changeColorConsole.greenBright(textQuayDau));
+                                            sendMessageWithRetry({
+                                                messageText: textQuayDau,
+                                                telegramID,
+                                                telegramToken
+                                            })
+                                            await delay(500)
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
+                                        }
+                                        else {
+                                            console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                    });
+
 
                             }
                         }
+
+
                         // else if (allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC.orderFilled) {
                         //     if (!allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID && !allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderingStatus && allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.OC?.dataSend?.price) {
                         //         setTimeout(() => {
@@ -1643,7 +1720,7 @@ const Main = async () => {
 
         wsSymbol.on('close', () => {
             console.log('[V] Connection listKline closed');
-            wsSymbol.unsubscribe(listKline, "linear")
+            wsSymbol.close(listKline, "linear")
         });
 
         wsSymbol.on('reconnected', () => {
@@ -1889,7 +1966,8 @@ socketRealtime.on('delete', async (newData) => {
 socketRealtime.on('bot-update', async (data = {}) => {
     const { newData, botIDMain, botActive } = data;
 
-    console.log("[...] Bot-Update Strategies From Realtime", newData.length);
+    const botNameExist = botApiList[botIDMain]?.botName || botIDMain
+    console.log(`[...] Bot-Update ${botNameExist} Strategies From Realtime`, newData.length);
 
     const newBotApiList = {}
 
@@ -1913,24 +1991,25 @@ socketRealtime.on('bot-update', async (data = {}) => {
         !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
         allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategiesData
 
+        !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
 
-        // if (IsActive) {
-        //     if (!botApiList[botID]) {
+        if (IsActive) {
+            if (!botApiList[botID]) {
 
-        //         botApiList[botID] = {
-        //             id: botID,
-        //             ApiKey,
-        //             SecretKey,
-        //             botName
-        //         }
-        //         newBotApiList[botID] = {
-        //             id: botID,
-        //             ApiKey,
-        //             SecretKey,
-        //             botName
-        //         }
-        //     }
-        // }
+                botApiList[botID] = {
+                    id: botID,
+                    ApiKey,
+                    SecretKey,
+                    botName
+                }
+                newBotApiList[botID] = {
+                    id: botID,
+                    ApiKey,
+                    SecretKey,
+                    botName
+                }
+            }
+        }
 
         const cancelDataObject = {
             ApiKey,
@@ -1969,6 +2048,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
     const botApiData = botApiList[botIDMain]
 
     if (botApiData) {
+
         const ApiKeyBot = botApiData.ApiKey
         const SecretKeyBot = botApiData.SecretKey
 
@@ -1982,21 +2062,22 @@ socketRealtime.on('bot-update', async (data = {}) => {
         const wsOrder = new WebsocketClient(wsConfigOrder);
 
         if (botActive) {
-            await wsOrder.subscribeV5(LIST_ORDER, 'linear')
+            wsOrder.subscribeV5(LIST_ORDER, 'linear')
         }
         else {
-            await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+            console.log(`UnsubscribeV5 ${botNameExist}`);
+            wsOrder.close(LIST_ORDER, 'linear')
         }
     }
-    // else {
-    //     handleSocketBotApiList(newBotApiList)
-    // }
+    else {
+        handleSocketBotApiList(newBotApiList)
+    }
 
 });
 
 socketRealtime.on('bot-api', async (data) => {
     const { newData, botID: botIDMain, newApiData } = data;
-    console.log("[...] Bot-Api Update Strategies From Realtime", newData.length);
+    console.log(`[...] Bot-Api ${botApiList[botIDMain]?.botName} Update Strategies From Realtime`, newData.length);
 
     await Promise.allSettled(newData.map(async strategiesData => {
 
@@ -2062,7 +2143,7 @@ socketRealtime.on('bot-api', async (data) => {
 
         const wsOrder = new WebsocketClient(wsConfigOrder);
 
-        await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+        await wsOrder.close(LIST_ORDER, 'linear')
 
         botApiList[botIDMain] = {
             ...botApiList[botIDMain],
@@ -2089,7 +2170,7 @@ socketRealtime.on('bot-api', async (data) => {
 
 socketRealtime.on('bot-delete', async (data) => {
     const { newData, botID: botIDMain } = data;
-    console.log("[...] Bot Deleted Strategies From Realtime");
+    console.log(`[...] Bot Deleted ${botApiList[botIDMain]?.botName} Strategies From Realtime`);
 
     await Promise.allSettled(newData.map(async strategiesData => {
         if (checkConditionBot(strategiesData)) {
@@ -2160,16 +2241,17 @@ socketRealtime.on('bot-delete', async (data) => {
 
     const wsOrder = new WebsocketClient(wsConfigOrder);
 
-    wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+    wsOrder.close(LIST_ORDER, 'linear')
 
     delete botApiList[botIDMain]
 
 });
 
 socketRealtime.on('bot-telegram', async (data) => {
-    console.log("[...] Bot Telegram Update From Realtime");
-
     const { newData, botID: botIDMain, newApiData } = data;
+
+    console.log(`[...] Bot Telegram ${botApiList[botIDMain]?.botName} Update From Realtime`);
+
     const telegramTokenOld = newApiData.telegramTokenOld
     const telegramID = newApiData.telegramID
     const telegramToken = newApiData.telegramToken
@@ -2253,9 +2335,9 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
 socketRealtime.on("close-limit", async (data) => {
     const { positionData } = data
-    const botName = positionData.BotName
-    console.log(`[...] Close Limit ( ${botName} )`);
     const symbol = positionData.Symbol
+    const botName = positionData.BotName
+    console.log(`[...] Close Limit ( ${botName} - ${symbol} )`);
     const botID = positionData.botID
 
     const botSymbolMissID = `${botID}-${symbol}`
@@ -2282,6 +2364,8 @@ socketRealtime.on("close-limit", async (data) => {
     missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
         orderID: positionData.id,
     })
+    missTPDataBySymbol[botSymbolMissID].size = positionData.Quantity
+
 })
 
 socketRealtime.on('disconnect', () => {
