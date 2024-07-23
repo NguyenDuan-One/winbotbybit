@@ -1449,6 +1449,9 @@ const Main = async () => {
                         if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss) {
                             let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
 
+                            if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess) {
+                                await delay(500)
+                            }
                             if (!checkMoveMain) {
                                 const PercentCheck = 2 / 100
                                 const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
@@ -1524,7 +1527,6 @@ const Main = async () => {
                                                 telegramID,
                                                 telegramToken
                                             })
-                                            await delay(500)
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
                                         }
                                         else {
