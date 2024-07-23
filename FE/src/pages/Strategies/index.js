@@ -203,6 +203,8 @@ function Strategies() {
     const handleGetAllStrategies = async () => {
         resetAfterSuccess(true)
         try {
+            window.scrollTo(0, 0)
+
             const res = await getAllStrategies()
             const { status, message, data: resData } = res.data
 
@@ -210,8 +212,6 @@ function Strategies() {
 
             dataCheckTreeDefaultRef.current = newDataCheckTree
             setDataCheckTree(newDataCheckTree)
-            window.scrollTo(0, 0)
-
         }
         catch (err) {
             dispatch(addMessageToast({
