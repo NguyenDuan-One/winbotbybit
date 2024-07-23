@@ -201,14 +201,16 @@ const PositionController = {
                             }
                             else {
                                 return Promise.allSettled(dataPosition?.map(positionItem => {
+                                    
+                                    const checkPositionExist =  viTheList.find(item => item.symbol === positionItem.Symbol && positionItem.botID._id == dataBotItem.value)
+                                   
                                     const positionDataNew = {
-                                        Pnl: positionItem.unrealisedPnl,
-                                        Side: positionItem.side,
-                                        Price: +positionItem.avgPrice,
-                                        Symbol: positionItem.symbol,
-                                        Quantity: positionItem.size
+                                        Pnl: checkPositionExist.unrealisedPnl,
+                                        Side: checkPositionExist.side,
+                                        Price: +checkPositionExist.avgPrice,
+                                        Symbol: checkPositionExist.symbol,
+                                        Quantity: checkPositionExist.size
                                     };
-                                    const checkPositionExist = positionItem.botID._id == dataBotItem.value && viTheList.find(item => item.symbol === positionItem.Symbol)
 
                                     if (checkPositionExist) {
                                         if (+positionDataNew.Quantity != 0) {
