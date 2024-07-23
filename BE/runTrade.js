@@ -892,7 +892,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                     // User cancel vị thế
                     if (dataMain.orderType === "Market") {
                         const side = dataMain.side
-                        console.log('[...] User Clicked Close Vị Thế')
+                        console.log(`[...] User ${botName} Clicked Close Vị Thế`)
 
                         const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
                         listMiss?.length > 0 &&
@@ -980,6 +980,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }).then(async data => {
                                         console.log("[Mongo]:", data);
                                         console.log("[Mongo-Message]:", data.message);
+                                        
                                         const newID = data.id
 
                                         !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
