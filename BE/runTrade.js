@@ -694,8 +694,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 ...newDataToDB,
                                                 botID,
                                             }).then(async data => {
-                                                console.log("[Mongo]:", data);
-                                                console.log("[Mongo-Message]:", data.message);
+                                                console.log(data.message);
                                                 !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                                 const newID = data.id
@@ -704,8 +703,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 }
                                                 else {
                                                     await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                        console.log("[Mongo]:", data);
-                                                        console.log("[Mongo-Message]:", data.message);
+                                                        console.log(data.message);
                                                         missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                     }).catch(error => {
                                                         console.log(changeColorConsole.redBright(error));
@@ -821,7 +819,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                             if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                                console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                                 deletePositionBE({
                                                     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                                 }).then(message => {
@@ -926,7 +923,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             }
 
                             if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol})`);
                                 deletePositionBE({
                                     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                 }).then(message => {
@@ -976,8 +972,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             ...newDataToDB,
                                             botID,
                                         }).then(async data => {
-                                            console.log("[Mongo]:", data);
-                                            console.log("[Mongo-Message]:", data.message);
+                                            console.log(data.message);
 
                                             const newID = data.id
 
@@ -988,8 +983,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             }
                                             else {
                                                 await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                    console.log("[Mongo]:", data);
-                                                    console.log("[Mongo-Message]:", data.message);
+                                                    console.log(data.message);
                                                     missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                 }).catch(error => {
                                                     console.log(changeColorConsole.redBright(error));
