@@ -204,15 +204,14 @@ const PositionController = {
                                     
                                     const checkPositionExist =  viTheList.find(item => item.symbol === positionItem.Symbol && positionItem.botID._id == dataBotItem.value)
                                    
-                                    const positionDataNew = {
-                                        Pnl: checkPositionExist.unrealisedPnl,
-                                        Side: checkPositionExist.side,
-                                        Price: +checkPositionExist.avgPrice,
-                                        Symbol: checkPositionExist.symbol,
-                                        Quantity: checkPositionExist.size
-                                    };
-
                                     if (checkPositionExist) {
+                                        const positionDataNew = {
+                                            Pnl: checkPositionExist.unrealisedPnl,
+                                            Side: checkPositionExist.side,
+                                            Price: +checkPositionExist.avgPrice,
+                                            Symbol: checkPositionExist.symbol,
+                                            Quantity: checkPositionExist.size
+                                        };
                                         if (+positionDataNew.Quantity != 0) {
                                             positionDataNew.TimeUpdated = new Date()
                                             return PositionController.updatePositionBE({
