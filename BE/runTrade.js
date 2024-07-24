@@ -1373,73 +1373,71 @@ const Main = async () => {
                             !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilledButMiss &&
                             !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare
                         ) {
-                            if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled) {
-                                const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
-                                console.log(changeColorConsole.cyanBright(textQuanSat));
+                            const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
+                            console.log(changeColorConsole.cyanBright(textQuanSat));
 
-                                let checkMoveMain = false
-                                const percentt = 4 / 100
-                                const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
+                            let checkMoveMain = false
+                            const percentt = 4 / 100
+                            const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
 
-                                if (side === "Buy") {
-                                    if (coinCurrent <= (priceOrderOC + Math.abs(priceOrderOC - coinOpen) * percentt)) {
-                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
-                                        checkMoveMain = true
-                                    }
+                            if (side === "Buy") {
+                                if (coinCurrent <= (priceOrderOC + Math.abs(priceOrderOC - coinOpen) * percentt)) {
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                                    checkMoveMain = true
                                 }
-                                else {
-                                    if (coinCurrent >= (priceOrderOC - Math.abs(priceOrderOC - coinOpen) * percentt)) {
+                            }
+                            else {
+                                if (coinCurrent >= (priceOrderOC - Math.abs(priceOrderOC - coinOpen) * percentt)) {
 
-                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
-                                        checkMoveMain = true
-                                    }
+                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                                    checkMoveMain = true
                                 }
-                                if (checkMoveMain) {
-                                    const client = new RestClientV5({
-                                        testnet: false,
-                                        key: ApiKey,
-                                        secret: SecretKey,
-                                        recv_window: 60000,
-                                        enable_time_sync: true
-                                    });
-                                    const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
+                            }
+                            if (checkMoveMain && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled) {
+                                const client = new RestClientV5({
+                                    testnet: false,
+                                    key: ApiKey,
+                                    secret: SecretKey,
+                                    recv_window: 60000,
+                                    enable_time_sync: true
+                                });
+                                const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
-                                    client
-                                        .amendOrder({
-                                            category: 'linear',
-                                            symbol,
-                                            price: coinCurrent.toFixed(strategy.digit),
-                                            orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
-                                        })
-                                        .then(async (response) => {
-                                            if (response.retCode == 0) {
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
-                                                console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
-                                                console.log(changeColorConsole.blackBright(`[_OC orderID Move_] ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
+                                client
+                                    .amendOrder({
+                                        category: 'linear',
+                                        symbol,
+                                        price: coinCurrent.toFixed(strategy.digit),
+                                        orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
+                                    })
+                                    .then(async (response) => {
+                                        if (response.retCode == 0) {
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
+                                            console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                                            console.log(changeColorConsole.blackBright(`[_OC orderID Move_] ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
 
-                                                const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                                console.log(changeColorConsole.yellowBright(textQuayDau));
-                                                sendMessageWithRetry({
-                                                    messageText: textQuayDau,
-                                                    telegramID,
-                                                    telegramToken
-                                                })
-                                                setTimeout(() => {
-                                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
-                                                }, 500)
-                                            }
-                                            else {
-                                                console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                            const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                            console.log(changeColorConsole.yellowBright(textQuayDau));
+                                            sendMessageWithRetry({
+                                                messageText: textQuayDau,
+                                                telegramID,
+                                                telegramToken
+                                            })
+                                            setTimeout(() => {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
+                                            }, 500)
+                                        }
+                                        else {
+                                            console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
-                                        });
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                    });
 
 
-                                }
                             }
                         }
 
@@ -1888,29 +1886,27 @@ socketRealtime.on('update', async (newData = []) => {
                 botName,
                 botID
             }
-            setTimeout(() => {
 
-                const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
 
-                if (OCOrderID || !strategiesData.IsActive) {
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
-                    if (!strategiesData.IsActive) {
-                        const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
-                        const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
-                        TPOrderID && handleCancelOrderTP({
-                            ...cancelDataObject,
-                            orderId: TPOrderID,
-                            gongLai: true
-                        })
-                        TPMissOrderID && handleCancelOrderTP({
-                            ...cancelDataObject,
-                            orderId: TPMissOrderID,
-                            gongLai: true
-                        })
-                    }
+            if (OCOrderID || !strategiesData.IsActive) {
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
+                if (!strategiesData.IsActive) {
+                    const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
+                    const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+                    TPOrderID && handleCancelOrderTP({
+                        ...cancelDataObject,
+                        orderId: TPOrderID,
+                        gongLai: true
+                    })
+                    TPMissOrderID && handleCancelOrderTP({
+                        ...cancelDataObject,
+                        orderId: TPMissOrderID,
+                        gongLai: true
+                    })
                 }
+            }
 
-            }, index * 200)
         }
 
     }))
@@ -1949,30 +1945,28 @@ socketRealtime.on('delete', async (newData) => {
                 botID
             }
 
-            setTimeout(() => {
 
-                const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
-                const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
+            const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
 
-                if (OCOrderID || TPOrderID || TPMissOrderID) {
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
 
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
 
-                }
-                delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
-                delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
-            }, index * 200)
+            }
+            delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
+            delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
         }
     }))
 
@@ -2064,28 +2058,26 @@ socketRealtime.on('bot-update', async (data = {}) => {
             botID
         }
 
-        setTimeout(() => {
 
-            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+        const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
 
-            if (OCOrderID || !strategiesData.IsActive) {
-                OCOrderID && handleCancelOrderOC(cancelDataObject)
-                if (!strategiesData.IsActive) {
-                    const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
-                    const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
-                }
+        if (OCOrderID || !strategiesData.IsActive) {
+            OCOrderID && handleCancelOrderOC(cancelDataObject)
+            if (!strategiesData.IsActive) {
+                const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
+                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
             }
-        }, index * 200)
+        }
 
     }))
 
@@ -2127,27 +2119,25 @@ socketRealtime.on('bot-api', async (data) => {
                 botID
             }
 
-            setTimeout(() => {
 
-                const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
-                const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
-                if (OCOrderID || TPOrderID || TPMissOrderID) {
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
+            const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
 
 
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
-                }
-            }, index * 200)
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
+            }
         }
     }))
 
@@ -2226,32 +2216,30 @@ socketRealtime.on('bot-delete', async (data) => {
                 botID
             }
 
-            setTimeout(() => {
 
-                const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
-                const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
-                const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
+            const OCOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.OC?.orderID
+            const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
+            const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
 
-                if (OCOrderID || TPOrderID || TPMissOrderID) {
+            if (OCOrderID || TPOrderID || TPMissOrderID) {
 
-                    OCOrderID && handleCancelOrderOC(cancelDataObject)
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
 
-                    TPOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPOrderID,
-                        gongLai: true
-                    })
+                TPOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPOrderID,
+                    gongLai: true
+                })
 
-                    TPMissOrderID && handleCancelOrderTP({
-                        ...cancelDataObject,
-                        orderId: TPMissOrderID,
-                        gongLai: true
-                    })
+                TPMissOrderID && handleCancelOrderTP({
+                    ...cancelDataObject,
+                    orderId: TPMissOrderID,
+                    gongLai: true
+                })
 
-                }
-                delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
-                delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
-            }, index * 200)
+            }
+            delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
+            delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
         }
     }))
 
@@ -2378,18 +2366,16 @@ socketRealtime.on("close-limit", async (data) => {
     const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
 
     listMiss?.length > 0 && await Promise.all(listMiss.map((orderIdTPData, index) => {
-        setTimeout(() => {
-            handleCancelOrderTP({
-                ApiKey: positionData.botData.ApiKey,
-                SecretKey: positionData.botData.SecretKey,
-                strategyID: orderIdTPData?.strategyID,
-                symbol,
-                side: positionData.Side,
-                orderId: orderIdTPData?.orderID,
-                botID,
-                botName
-            })
-        }, index * 200)
+        handleCancelOrderTP({
+            ApiKey: positionData.botData.ApiKey,
+            SecretKey: positionData.botData.SecretKey,
+            strategyID: orderIdTPData?.strategyID,
+            symbol,
+            side: positionData.Side,
+            orderId: orderIdTPData?.orderID,
+            botID,
+            botName
+        })
     }))
 
     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
