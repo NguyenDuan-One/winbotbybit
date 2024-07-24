@@ -207,7 +207,6 @@ const handleSubmitOrderTP = ({
                 console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
                 if (missState) {
                     console.log(changeColorConsole.yellowBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
-                    console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                     updatePositionBE({
                         newDataUpdate: {
                             Miss: true,
@@ -226,7 +225,6 @@ const handleSubmitOrderTP = ({
             console.log(changeColorConsole.redBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
             if (missState) {
                 console.log(changeColorConsole.redBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
-                console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                 updatePositionBE({
                     newDataUpdate: {
                         Miss: true,
@@ -696,8 +694,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 ...newDataToDB,
                                                 botID,
                                             }).then(async data => {
-                                                console.log("[Mongo]:", data);
-                                                console.log("[Mongo-Message]:", data.message);
+                                                console.log(data.message);
                                                 !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                                 const newID = data.id
@@ -706,8 +703,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 }
                                                 else {
                                                     await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                        console.log("[Mongo]:", data);
-                                                        console.log("[Mongo-Message]:", data.message);
+                                                        console.log(data.message);
                                                         missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                     }).catch(error => {
                                                         console.log(changeColorConsole.redBright(error));
@@ -823,7 +819,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                             if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                                console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                                 deletePositionBE({
                                                     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                                 }).then(message => {
@@ -928,7 +923,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             }
 
                             if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol})`);
                                 deletePositionBE({
                                     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                 }).then(message => {
@@ -978,8 +972,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             ...newDataToDB,
                                             botID,
                                         }).then(async data => {
-                                            console.log("[Mongo]:", data);
-                                            console.log("[Mongo-Message]:", data.message);
+                                            console.log(data.message);
 
                                             const newID = data.id
 
@@ -990,8 +983,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             }
                                             else {
                                                 await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                    console.log("[Mongo]:", data);
-                                                    console.log("[Mongo-Message]:", data.message);
+                                                    console.log(data.message);
                                                     missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                 }).catch(error => {
                                                     console.log(changeColorConsole.redBright(error));
@@ -1053,7 +1045,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                         else {
                                             console.log(`[_ Not Miss _] TP ( ${botName} - ${side} - ${symbol}} )`);
-                                            console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                             updatePositionBE({
                                                 newDataUpdate: {
                                                     Miss: false,
@@ -1069,7 +1060,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }
                                     else {
                                         console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
-                                        console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                         updatePositionBE({
                                             newDataUpdate: {
                                                 Miss: true,
@@ -1301,7 +1291,7 @@ const Main = async () => {
                                 trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
 
                                 // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                    
+
                             }, 250)
                             if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
                                 let conditionOrder = 0
