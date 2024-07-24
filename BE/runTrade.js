@@ -2098,7 +2098,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
             wsOrder.subscribeV5(LIST_ORDER, 'linear')
         }
         else {
-            console.log(`UnsubscribeV5 ${botNameExist}`);
+            console.log(`[V] UnsubscribeV5 ${botNameExist}`);
             wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
         }
     }
