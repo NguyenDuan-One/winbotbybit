@@ -207,6 +207,7 @@ const handleSubmitOrderTP = ({
                 console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
                 if (missState) {
                     console.log(changeColorConsole.yellowBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
+                    console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                     updatePositionBE({
                         newDataUpdate: {
                             Miss: true,
@@ -225,6 +226,7 @@ const handleSubmitOrderTP = ({
             console.log(changeColorConsole.redBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
             if (missState) {
                 console.log(changeColorConsole.redBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
+                console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
                 updatePositionBE({
                     newDataUpdate: {
                         Miss: true,
@@ -694,7 +696,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 ...newDataToDB,
                                                 botID,
                                             }).then(async data => {
-                                                console.log(data.message);
+                                                console.log("[Mongo]:", data);
+                                                console.log("[Mongo-Message]:", data.message);
                                                 !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                                 const newID = data.id
@@ -703,7 +706,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 }
                                                 else {
                                                     await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                        console.log(data.message);
+                                                        console.log("[Mongo]:", data);
+                                                        console.log("[Mongo-Message]:", data.message);
                                                         missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                     }).catch(error => {
                                                         console.log(changeColorConsole.redBright(error));
@@ -819,6 +823,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                             if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+                                                console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                                 deletePositionBE({
                                                     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                                 }).then(message => {
@@ -923,6 +928,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             }
 
                             if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+                                console.log(`[_Mongo_] Delete Position ( ${side} - ${symbol})`);
                                 deletePositionBE({
                                     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                 }).then(message => {
@@ -972,7 +978,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             ...newDataToDB,
                                             botID,
                                         }).then(async data => {
-                                            console.log(data.message);
+                                            console.log("[Mongo]:", data);
+                                            console.log("[Mongo-Message]:", data.message);
 
                                             const newID = data.id
 
@@ -983,7 +990,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             }
                                             else {
                                                 await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                    console.log(data.message);
+                                                    console.log("[Mongo]:", data);
+                                                    console.log("[Mongo-Message]:", data.message);
                                                     missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                 }).catch(error => {
                                                     console.log(changeColorConsole.redBright(error));
@@ -1045,6 +1053,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                         else {
                                             console.log(`[_ Not Miss _] TP ( ${botName} - ${side} - ${symbol}} )`);
+                                            console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                             updatePositionBE({
                                                 newDataUpdate: {
                                                     Miss: false,
@@ -1060,6 +1069,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }
                                     else {
                                         console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                        console.log(`[_Mongo_] UPDATE MISS Position ( ${botName} - ${side} - ${symbol} )`);
                                         updatePositionBE({
                                             newDataUpdate: {
                                                 Miss: true,
@@ -1291,7 +1301,7 @@ const Main = async () => {
                                 trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
 
                                 // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-
+                                    
                             }, 250)
                             if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
                                 let conditionOrder = 0
@@ -1373,71 +1383,73 @@ const Main = async () => {
                             !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilledButMiss &&
                             !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare
                         ) {
-                            const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
-                            console.log(changeColorConsole.cyanBright(textQuanSat));
+                            if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled) {
+                                const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
+                                console.log(changeColorConsole.cyanBright(textQuanSat));
 
-                            let checkMoveMain = false
-                            const percentt = 4 / 100
-                            const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
+                                let checkMoveMain = false
+                                const percentt = 4 / 100
+                                const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
 
-                            if (side === "Buy") {
-                                if (coinCurrent <= (priceOrderOC + Math.abs(priceOrderOC - coinOpen) * percentt)) {
-                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
-                                    checkMoveMain = true
+                                if (side === "Buy") {
+                                    if (coinCurrent <= (priceOrderOC + Math.abs(priceOrderOC - coinOpen) * percentt)) {
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                                        checkMoveMain = true
+                                    }
                                 }
-                            }
-                            else {
-                                if (coinCurrent >= (priceOrderOC - Math.abs(priceOrderOC - coinOpen) * percentt)) {
+                                else {
+                                    if (coinCurrent >= (priceOrderOC - Math.abs(priceOrderOC - coinOpen) * percentt)) {
 
-                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
-                                    checkMoveMain = true
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                                        checkMoveMain = true
+                                    }
                                 }
-                            }
-                            if (checkMoveMain && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled) {
-                                const client = new RestClientV5({
-                                    testnet: false,
-                                    key: ApiKey,
-                                    secret: SecretKey,
-                                    recv_window: 60000,
-                                    enable_time_sync: true
-                                });
-                                const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
-
-                                client
-                                    .amendOrder({
-                                        category: 'linear',
-                                        symbol,
-                                        price: coinCurrent.toFixed(strategy.digit),
-                                        orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
-                                    })
-                                    .then(async (response) => {
-                                        if (response.retCode == 0) {
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
-                                            console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
-                                            console.log(changeColorConsole.blackBright(`[_OC orderID Move_] ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
-
-                                            const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                            console.log(changeColorConsole.yellowBright(textQuayDau));
-                                            sendMessageWithRetry({
-                                                messageText: textQuayDau,
-                                                telegramID,
-                                                telegramToken
-                                            })
-                                            setTimeout(() => {
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
-                                            }, 500)
-                                        }
-                                        else {
-                                            console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
-                                        }
-                                    })
-                                    .catch((error) => {
-                                        console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                if (checkMoveMain) {
+                                    const client = new RestClientV5({
+                                        testnet: false,
+                                        key: ApiKey,
+                                        secret: SecretKey,
+                                        recv_window: 60000,
+                                        enable_time_sync: true
                                     });
+                                    const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
+
+                                    client
+                                        .amendOrder({
+                                            category: 'linear',
+                                            symbol,
+                                            price: coinCurrent.toFixed(strategy.digit),
+                                            orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
+                                        })
+                                        .then(async (response) => {
+                                            if (response.retCode == 0) {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
+                                                console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                                                console.log(changeColorConsole.blackBright(`[_OC orderID Move_] ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
+
+                                                const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                                                console.log(changeColorConsole.yellowBright(textQuayDau));
+                                                sendMessageWithRetry({
+                                                    messageText: textQuayDau,
+                                                    telegramID,
+                                                    telegramToken
+                                                })
+                                                setTimeout(() => {
+                                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
+                                                }, 500)
+                                            }
+                                            else {
+                                                console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                                        });
 
 
+                                }
                             }
                         }
 
