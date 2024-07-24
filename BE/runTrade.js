@@ -109,7 +109,7 @@ const handleSubmitOrder = ({
 
                 const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
                 console.log(text)
-                console.log(changeColorConsole.blackBright(`[_OC orderID_] ( ${strategyID} ) ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
+                console.log(changeColorConsole.blackBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
 
                 sendMessageWithRetry({
                     messageText: text,
