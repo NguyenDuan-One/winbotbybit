@@ -60,7 +60,7 @@ async function Digit(symbol) {// proScale
     return PScale
 }
 
-const handleSubmitOrder = ({
+const handleSubmitOrder = async ({
     strategy,
     strategyID,
     symbol,
@@ -86,7 +86,7 @@ const handleSubmitOrder = ({
         enable_time_sync: true
     });
 
-    client
+    await client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -127,7 +127,7 @@ const handleSubmitOrder = ({
         });
 }
 
-const handleSubmitOrderTP = ({
+const handleSubmitOrderTP = async ({
     strategy,
     strategyID,
     symbol,
@@ -153,7 +153,7 @@ const handleSubmitOrderTP = ({
         recv_window: 60000,
         enable_time_sync: true
     });
-    client
+    await client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -240,7 +240,7 @@ const handleSubmitOrderTP = ({
         });
 }
 
-const moveOrderTP = ({
+const moveOrderTP = async ({
     strategyID,
     symbol,
     price,
@@ -261,7 +261,7 @@ const moveOrderTP = ({
         recv_window: 60000,
         enable_time_sync: true
     });
-    client
+    await client
         .amendOrder({
             category: 'linear',
             symbol,
@@ -285,7 +285,7 @@ const moveOrderTP = ({
 
 }
 
-const handleMoveOrderTP = ({
+const handleMoveOrderTP = async ({
     strategyID,
     strategy,
     coinOpen,
@@ -326,12 +326,12 @@ const handleMoveOrderTP = ({
             botName,
             botID
         }
-        moveOrderTP(dataInput)
+        await moveOrderTP(dataInput)
 
     }
 }
 
-const handleCancelOrderOC = ({
+const handleCancelOrderOC = async ({
     strategyID,
     symbol,
     candle = "",
@@ -350,7 +350,7 @@ const handleCancelOrderOC = ({
         recv_window: 60000,
         enable_time_sync: true
     });
-    client
+    await client
         .cancelOrder({
             category: 'linear',
             symbol,
@@ -373,7 +373,7 @@ const handleCancelOrderOC = ({
 
 }
 
-const handleCancelOrderTP = ({
+const handleCancelOrderTP = async ({
     strategyID,
     symbol,
     side,
@@ -394,7 +394,7 @@ const handleCancelOrderTP = ({
         recv_window: 60000,
         enable_time_sync: true
     });
-    client
+    await client
         .cancelOrder({
             category: 'linear',
             symbol,
@@ -506,54 +506,56 @@ const cancelAll = (
 }
 
 // 
-const sendMessageWithRetry = async ({
+const sendMessageWithRetry = ({
     messageText,
     retries = 5,
     telegramID,
     telegramToken,
 }) => {
 
-    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
+    setTimeout(async () => {
+        let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
 
-    try {
-        if (!BOT_TOKEN_RUN_TRADE) {
-            const newBotInit = new TelegramBot(telegramToken, {
-                polling: false,
-                request: {
-                    agentOptions: {
-                        family: 4
+        try {
+            if (!BOT_TOKEN_RUN_TRADE) {
+                const newBotInit = new TelegramBot(telegramToken, {
+                    polling: false,
+                    request: {
+                        agentOptions: {
+                            family: 4
+                        }
+                    }
+                })
+                BOT_TOKEN_RUN_TRADE = newBotInit
+                botListTelegram[telegramToken] = newBotInit
+                // BOT_TOKEN_RUN_TRADE.launch();
+            }
+            for (let i = 0; i < retries; i++) {
+                try {
+                    if (messageText) {
+                        // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
+                        await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
+                            parse_mode: "HTML"
+                        });
+                        console.log('[->] Message sent to telegram successfully');
+                        return;
+                    }
+                } catch (error) {
+                    if (error.code === 429) {
+                        const retryAfter = error.parameters.retry_after;
+                        console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
+                        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                    } else {
+                        throw new Error(error);
                     }
                 }
-            })
-            BOT_TOKEN_RUN_TRADE = newBotInit
-            botListTelegram[telegramToken] = newBotInit
-            // BOT_TOKEN_RUN_TRADE.launch();
-        }
-        for (let i = 0; i < retries; i++) {
-            try {
-                if (messageText) {
-                    // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
-                    await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
-                        parse_mode: "HTML"
-                    });
-                    console.log('[->] Message sent to telegram successfully');
-                    return;
-                }
-            } catch (error) {
-                if (error.code === 429) {
-                    const retryAfter = error.parameters.retry_after;
-                    console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
-                    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-                } else {
-                    throw new Error(error);
-                }
             }
-        }
 
-        throw new Error('[!] Failed to send message after multiple retries');
-    } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
-    }
+            throw new Error('[!] Failed to send message after multiple retries');
+        } catch (error) {
+            console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
+        }
+    }, 1000)
 };
 
 const getMoneyFuture = async (botApiList) => {
@@ -580,7 +582,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
             console.log("[...] Subscribe new-bot-list-api successful\n");
 
-            objectToArray.forEach(botApiData => {
+            await Promise.allSettled(objectToArray.map(botApiData => {
 
                 const ApiKey = botApiData.ApiKey
                 const SecretKey = botApiData.SecretKey
@@ -1082,7 +1084,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 })
 
 
-            })
+            }))
         }
     } catch (error) {
         console.log(changeColorConsole.red("[!] Error BotApi Socket:", e));
@@ -1384,7 +1386,7 @@ const Main = async () => {
                                 });
                                 const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
-                                client
+                                await client
                                     .amendOrder({
                                         category: 'linear',
                                         symbol,
@@ -1404,7 +1406,9 @@ const Main = async () => {
                                                 telegramID,
                                                 telegramToken
                                             })
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
+                                            setTimeout(() => {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
+                                            }, 500)
                                         }
                                         else {
                                             console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
@@ -1486,7 +1490,7 @@ const Main = async () => {
                                     recv_window: 60000,
                                     enable_time_sync: true
                                 });
-                                client
+                                await client
                                     .amendOrder({
                                         category: 'linear',
                                         symbol,
@@ -1504,7 +1508,9 @@ const Main = async () => {
                                                 telegramID,
                                                 telegramToken
                                             })
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
+                                            setTimeout(() => {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
+                                            }, 500)
                                         }
                                         else {
                                             console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
@@ -1730,7 +1736,7 @@ const Main = async () => {
 }
 
 try {
-    Main()
+    await Main()
 }
 
 catch (e) {
@@ -1752,7 +1758,7 @@ socketRealtime.on('add', async (newData = []) => {
 
     const newBotApiList = {}
 
-    await Promise.allSettled(newData.map( strategiesData => {
+    await Promise.allSettled(newData.map(async strategiesData => {
 
         if (checkConditionBot(newStrategiesData)) {
 
