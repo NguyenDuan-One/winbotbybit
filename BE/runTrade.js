@@ -1736,7 +1736,7 @@ const Main = async () => {
 }
 
 try {
-    await Main()
+    Main()
 }
 
 catch (e) {
