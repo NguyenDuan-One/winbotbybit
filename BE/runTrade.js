@@ -1221,61 +1221,58 @@ const Main = async () => {
 
                     if (dataMain.confirm == false) {
                         if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
-                            setTimeout(() => {
 
-                                const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+                            const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
-                                // X-D-D || D-D-D
+                            // X-D-D || D-D-D
 
+                            const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
 
-                                const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
+                            let checkColorListTrue = false
 
-                                let checkColorListTrue = false
+                            const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
 
-                                const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
+                            if (coinColorPre.length > 0) {
+                                checkColorListTrue = coinColor === "Red"
+                            }
+                            else {
+                                checkColorListTrue = true
+                            }
 
-                                if (coinColorPre.length > 0) {
-                                    checkColorListTrue = coinColor === "Red"
-                                }
-                                else {
-                                    checkColorListTrue = true
-                                }
-
-                                if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
-                                    trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
-                                    trichMauOCListObject[symbolCandleID].minPrice = []
-                                    trichMauOCListObject[symbolCandleID].coinColor = []
-                                }
-                                else {
-                                    if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
-                                        if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                                            trichMauOCListObject[symbolCandleID].minPrice.shift()
-                                        }
-                                        trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
+                            if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
+                                trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
+                                trichMauOCListObject[symbolCandleID].minPrice = []
+                                trichMauOCListObject[symbolCandleID].coinColor = []
+                            }
+                            else {
+                                if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
+                                    if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                        trichMauOCListObject[symbolCandleID].minPrice.shift()
                                     }
+                                    trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
                                 }
-                                if (checkColorListTrue) {
-                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                        trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                    }
-                                    trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                            }
+                            if (checkColorListTrue) {
+                                if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                    trichMauOCListObject[symbolCandleID].coinColor.shift()
                                 }
+                                trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                            }
 
-                                if (!checkColorListTrue) {
-                                    trichMauOCListObject[symbolCandleID].coinColor = []
+                            if (!checkColorListTrue) {
+                                trichMauOCListObject[symbolCandleID].coinColor = []
+                            }
+                            else {
+                                if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                    trichMauOCListObject[symbolCandleID].coinColor.shift()
                                 }
-                                else {
-                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                        trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                    }
-                                    trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                }
+                                trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                            }
 
-                                trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                            trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
 
-                                // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                            // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
-                            }, 250)
                             if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
                                 let conditionOrder = 0
                                 let priceOrder = 0
@@ -1396,7 +1393,7 @@ const Main = async () => {
                                     .then(async (response) => {
                                         if (response.retCode == 0) {
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
-                                            console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                                            console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
                                             console.log(changeColorConsole.blackBright(`[_OC orderID Move_] ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
 
                                             const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
@@ -1498,7 +1495,7 @@ const Main = async () => {
                                     .then(async (response) => {
                                         if (response.retCode == 0) {
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
-                                            console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`))
+                                            console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
                                             const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                             console.log(changeColorConsole.greenBright(textQuayDau));
                                             sendMessageWithRetry({
