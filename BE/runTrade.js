@@ -513,7 +513,6 @@ const sendMessageWithRetry = ({
     telegramToken,
 }) => {
 
-    setTimeout(async () => {
         let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
 
         try {
@@ -555,7 +554,6 @@ const sendMessageWithRetry = ({
         } catch (error) {
             console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
         }
-    }, 500)
 };
 
 const getMoneyFuture = async (botApiList) => {
