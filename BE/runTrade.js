@@ -925,7 +925,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                             if (size > 0) {
                                 missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
-                                missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
+                                // missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
 
                                     const dataMain = dataCoin.data[0]
                                     const symbol = dataMain.symbol
@@ -1056,7 +1056,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         })
                                     }
 
-                                }, 3000)
                             }
                             else {
                                 missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
