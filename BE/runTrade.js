@@ -750,6 +750,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     // Khớp TP
                                     if (TPTrue) {
 
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilled = true
+
                                         const closePrice = +dataMain.avgPrice
 
                                         const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
@@ -1404,9 +1406,7 @@ const Main = async () => {
                                                 telegramID,
                                                 telegramToken
                                             })
-                                            setTimeout(() => {
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
-                                            }, 500)
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
                                         }
                                         else {
                                             console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
@@ -1425,6 +1425,7 @@ const Main = async () => {
                         // if have TP
                         if (
                             allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&
+                            !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilled &&
                             !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare &&
                             !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss
                         ) {
@@ -1477,7 +1478,7 @@ const Main = async () => {
                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
 
                             }
-                            if (checkMoveMain) {
+                            if (checkMoveMain && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilled) {
 
                                 // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
                                 const client = new RestClientV5({
@@ -1505,9 +1506,7 @@ const Main = async () => {
                                                 telegramID,
                                                 telegramToken
                                             })
-                                            setTimeout(() => {
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
-                                            }, 500)
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
                                         }
                                         else {
                                             console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
