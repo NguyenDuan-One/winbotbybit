@@ -580,7 +580,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
             console.log("[...] Subscribe new-bot-list-api successful\n");
 
-            await Promise.allSettled(objectToArray.map(botApiData => {
+            objectToArray.forEach(botApiData => {
 
                 const ApiKey = botApiData.ApiKey
                 const SecretKey = botApiData.SecretKey
@@ -925,7 +925,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                             if (size > 0) {
                                 missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
-                                // missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
+                                missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
 
                                     const dataMain = dataCoin.data[0]
                                     const symbol = dataMain.symbol
@@ -1056,6 +1056,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         })
                                     }
 
+                                }, 2500)
                             }
                             else {
                                 missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
@@ -1081,7 +1082,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 })
 
 
-            }))
+            })
         }
     } catch (error) {
         console.log(changeColorConsole.red("[!] Error BotApi Socket:", e));
@@ -1197,7 +1198,7 @@ const Main = async () => {
 
             const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
-            listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+            listDataObject && Object.values(listDataObject)?.length > 0 && Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
                 if (checkConditionBot(strategy)) {
 
@@ -1224,6 +1225,7 @@ const Main = async () => {
                             const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
                             // X-D-D || D-D-D
+
 
                             const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
 
@@ -1750,7 +1752,7 @@ socketRealtime.on('add', async (newData = []) => {
 
     const newBotApiList = {}
 
-    await Promise.allSettled(newData.map(async strategiesData => {
+    await Promise.allSettled(newData.map( strategiesData => {
 
         if (checkConditionBot(newStrategiesData)) {
 
