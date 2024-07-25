@@ -1386,7 +1386,7 @@ const Main = async () => {
                                 });
                                 const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
-                                await client
+                                client
                                     .amendOrder({
                                         category: 'linear',
                                         symbol,
@@ -1490,7 +1490,7 @@ const Main = async () => {
                                     recv_window: 60000,
                                     enable_time_sync: true
                                 });
-                                await client
+                                client
                                     .amendOrder({
                                         category: 'linear',
                                         symbol,
