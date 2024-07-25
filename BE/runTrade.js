@@ -2258,6 +2258,8 @@ socketRealtime.on('bot-telegram', async (data) => {
         if (checkConditionBot(strategiesData)) {
 
             const strategyID = strategiesData.value
+            const symbol = strategiesData.symbol
+            const Candlestick = strategiesData.Candlestick
 
             const newStrategiesDataUpdate = {
                 ...strategiesData,
@@ -2268,6 +2270,7 @@ socketRealtime.on('bot-telegram', async (data) => {
                     telegramToken,
                 }
             }
+
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
             allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesDataUpdate
