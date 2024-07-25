@@ -359,19 +359,16 @@ const handleCancelOrderOC = ({
         .then((response) => {
             if (response.retCode == 0) {
                 console.log(`[V] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) successful `);
+                cancelAll({ strategyID, botID })
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) failed `, response.retMsg))
+                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
             }
-            setTimeout(() => {
-                cancelAll({ strategyID, botID })
-            }, 500)
         })
         .catch((error) => {
             console.log(changeColorConsole.redBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) error `, error))
-            setTimeout(() => {
-                cancelAll({ strategyID, botID })
-            }, 500)
+            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
         });
 
 }
@@ -425,21 +422,7 @@ const handleCancelOrderTP = ({
                         botID,
                         symbol
                     })
-                    cancelAll({
-                        botID,
-                        strategyID
-                    })
                 }
-                // else {
-                //     console.log(`[_DELETE_] Position ( ${botName} - ${side} - ${symbol} - ${candle} )`);
-                //     missTPDataBySymbol[botSymbolMissID].orderIDToDB && deletePositionBE({
-                //         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                //     }).then(message => {
-                //         console.log(message);
-                //     }).catch(err => {
-                //         console.log(err);
-                //     })
-                // }
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
@@ -572,7 +555,7 @@ const sendMessageWithRetry = ({
         } catch (error) {
             console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
         }
-    }, 1000)
+    }, 500)
 };
 
 const getMoneyFuture = async (botApiList) => {
@@ -878,7 +861,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                     }
                                     else if (OCTrue) {
                                         console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
-                                        cancelAll({ strategyID, botID })
+                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
                                     }
 
                                 }
@@ -1605,22 +1588,6 @@ const Main = async () => {
                             low: +dataMain.low,
                         }
 
-                        // console.log(` New Candle ${strategy.PositionSide} `)
-                        allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
-                            !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
-                            handleCancelOrderOC(
-                                {
-                                    strategyID,
-                                    symbol: strategy.symbol,
-                                    candle: strategy.Candlestick,
-                                    side,
-                                    ApiKey,
-                                    SecretKey,
-                                    botName,
-                                    botID
-                                }
-                            )
-
                         // TP chưa khớp -> Dịch TP mới
 
                         if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
@@ -1651,6 +1618,21 @@ const Main = async () => {
                                 botID
                             })
                         }
+
+                        allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
+                            !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
+                            handleCancelOrderOC(
+                                {
+                                    strategyID,
+                                    symbol: strategy.symbol,
+                                    candle: strategy.Candlestick,
+                                    side,
+                                    ApiKey,
+                                    SecretKey,
+                                    botName,
+                                    botID
+                                }
+                            )
 
                         trichMauOCListObject[symbolCandleID] = {
                             maxPrice: 0,
@@ -2355,7 +2337,6 @@ socketRealtime.on('sync-symbol', async (newData) => {
 socketRealtime.on("close-limit", async (data) => {
     const { positionData } = data
 
-
     const symbol = positionData.Symbol
     const botName = positionData.BotName
     const botID = positionData.botID
@@ -2385,7 +2366,7 @@ socketRealtime.on("close-limit", async (data) => {
     missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
         orderID: positionData.id,
     })
-    missTPDataBySymbol[botSymbolMissID].size = positionData.Quantity
+    missTPDataBySymbol[botSymbolMissID].size = Math.abs(positionData.Quantity)
 
 })
 
