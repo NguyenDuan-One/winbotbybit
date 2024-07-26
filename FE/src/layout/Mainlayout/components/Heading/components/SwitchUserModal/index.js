@@ -22,8 +22,8 @@ function SwitchUserModal({
         {
             field: 'Action',
             headerName: 'Switch',
-            maxWidth: 150,
-            minWidth: 120,
+            maxWidth: 100,
+            minWidth: 100,
             type: "actions",
             renderCell: (params) => {
                 const rowData = params.row; // Dữ liệu của hàng hiện tại
