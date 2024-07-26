@@ -555,7 +555,7 @@ const sendMessageWithRetry = ({
         } catch (error) {
             console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
         }
-    }, 1000)
+    }, 500)
 };
 
 const getMoneyFuture = async (botApiList) => {
