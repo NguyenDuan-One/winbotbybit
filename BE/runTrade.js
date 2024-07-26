@@ -1499,6 +1499,7 @@ const Main = async () => {
                                     .then(async (response) => {
                                         if (response.retCode == 0) {
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
+                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = coinCurrent
                                             console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
                                             const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                             console.log(changeColorConsole.greenBright(textQuayDau));
