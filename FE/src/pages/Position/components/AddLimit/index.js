@@ -62,7 +62,6 @@ function AddLimit({
             const symbol = positionData.Symbol
             const res = await getPriceLimitCurrent(symbol)
             const { status, message, data: resData } = res.data
-            console.log(res.data);
             if (status === 200) {
                 setPriceCurrent(resData)
             }

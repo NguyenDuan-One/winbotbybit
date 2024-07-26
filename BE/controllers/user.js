@@ -140,6 +140,35 @@ const UserController = {
             res.status(500).json({ message: err.message });
         }
     },
+    getAllUserByRoleName: async (req, res) => {
+        try {
+            let data = {}
+            const { roleName } = req.body;
+            const userID = req.user._id
+
+            switch (roleName) {
+                case "SuperAdmin":
+                    data = await UserModel.find({ _id: { $ne: userID } }, { password: 0 });
+                    break
+                case "Admin":
+                    data = await UserModel.find({
+                        _id: { $ne: userID },
+                        roleName: { $in: ["Trader", "ManagerTrader"] }
+                    }, { password: 0 });
+                    break
+                case "ManagerTrader":
+                    data = await UserModel.find({
+                        _id: { $ne: userID },
+                        roleName: { $in: ["Trader"] }
+                    }, { password: 0 });
+                    break
+            }
+            res.customResponse(res.statusCode, "Get UserData Switch Successful", data);
+
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
 
     createNewUser: async (req, res) => {
         try {
@@ -275,7 +304,7 @@ const UserController = {
                 }
             )
             const resultAll = await Promise.all([result, resultRemove])
-            
+
             if (resultAll[0].deletedCount !== 0 && resultAll[1].acknowledged) {
                 res.customResponse(200, "Delete User Successful");
             }

@@ -108,38 +108,39 @@ function MainLayout({ children }) {
 
     const handleVerifyLogin = async () => {
         try {
-            await verifyLogin()
-            getRoleList()
+            const res = await verifyLogin()
+            const userData = res.data.data
+            getRoleList(userData._id)
         } catch (error) {
             removeLocalStorage()
             navigate("/login")
         }
     }
 
-    const getRoleList = async () => {
+    const getRoleList = async (userID) => {
         try {
-            let userData = JSON.parse(localStorage.getItem("user"))
-            const resUser = await getUserByID(userData?._id)
-            const { status, message, data: resUserData } = resUser.data
+
+            const resUser = await getUserByID(userID)
+
+            const { data: resUserData } = resUser.data
             if (resUserData) {
+                
                 localStorage.setItem('user', JSON.stringify(resUserData))
                 setUserData(resUserData)
-
-                userData = JSON.parse(localStorage.getItem("user"))
-                const res = await getByRoleName(userData?.roleName || "")
-                const { status, message, data: resData } = res.data
-                localStorage.setItem("roleList", JSON.stringify(resData.roleList || []))
+                
+                const res = await getByRoleName(resUserData?.roleName || "")
+                const { data: resData } = res.data
 
                 setRoleList(resData.roleList || [])
             }
 
         } catch (error) {
-            localStorage.setItem("roleList", JSON.stringify([]))
             dispatch(addMessageToast({
                 status: 500,
                 message: "Get Role User Error",
             }))
-
+            removeLocalStorage()
+            navigate("/login")
         }
     }
 

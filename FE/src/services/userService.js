@@ -16,9 +16,12 @@ export const getUserByID = async (roleName) => {
 export const getAllUserByGroupID = async (groupID) => {
   return await api.get(`/user/getAllUserByGroupID/${groupID}`)
 }
+export const getAllUserByRoleName = async (roleName) => {
+  return await api.post(`/user/getAllUserByRoleName`, { roleName })
+}
 
 export const getAllUserByUserIDList = async (list) => {
-  return await api.post(`/user/getAllUserByUserIDList`,list)
+  return await api.post(`/user/getAllUserByUserIDList`, list)
 }
 
 export const changePassword = async (data) => {
@@ -27,9 +30,9 @@ export const changePassword = async (data) => {
 export const createNewUser = async (data) => {
   return await api.post("/user/createNewUser", data)
 }
-export const updateUser = async ({userID,newData}) => {
-  return await api.post(`/user/updateUser/${userID}`, {newData})
+export const updateUser = async ({ userID, newData }) => {
+  return await api.post(`/user/updateUser/${userID}`, { newData })
 }
 export const deleteUser = async (data) => {
-  return await api.post(`/user/deleteUser`,data)
+  return await api.post(`/user/deleteUser`, data)
 }

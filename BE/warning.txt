@@ -5,3 +5,5 @@ sudo service mongod start
 # cp -r /root/CryptoBot/FE/build/* /var/www/html/crypro-bot/
 # systemctl restart nginx
 # pm2 start runTrade-dev.js server.js index.js
+
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"

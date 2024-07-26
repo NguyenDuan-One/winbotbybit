@@ -60,6 +60,7 @@ const dataCoinByBitController = {
     }) => {
         const { socketServer } = require('../serverConfig');
         socketServer.emit(type, data)
+        // socketServer.to("room2").emit(type, data)
     },
     // GET
     getSymbolFromCloud: async (userID) => {

@@ -9,6 +9,7 @@ router.get('/getAllUserWithoutGroup', MiddlewareController.verifyToken, UserCont
 router.get('/getUserByID/:userID', MiddlewareController.verifyToken, UserController.getUserByID);
 router.get('/getAllUserByGroupID/:id', MiddlewareController.verifyToken, UserController.getAllUserByGroupID);
 router.post('/getAllUserByUserIDList', MiddlewareController.verifyToken, UserController.getAllUserByUserIDList);
+router.post('/getAllUserByRoleName', MiddlewareController.verifyToken, UserController.getAllUserByRoleName);
 router.post('/changePassword', MiddlewareController.verifyToken, UserController.changePassword);
 router.post('/createNewUser', MiddlewareController.verifyToken, UserController.createNewUser);
 router.post('/updateUser/:id', MiddlewareController.verifyToken, UserController.updateUser);

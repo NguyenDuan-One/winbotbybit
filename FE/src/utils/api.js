@@ -7,11 +7,19 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`; 
+    try {
+
+      const token = localStorage.getItem("tk_crypto_temp") || localStorage.getItem("tk_crypto")
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    catch (e) {
+
     }
     return config;
+
   },
   (error) => {
     return Promise.reject(error);

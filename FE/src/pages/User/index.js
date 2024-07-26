@@ -15,7 +15,6 @@ import { deleteUser, getAllUserByGroupID, updateUser } from '../../services/user
 import clsx from 'clsx';
 import EditUser from './components/EditUser';
 
-
 function Group() {
 
     const userData = JSON.parse(localStorage.getItem("user"))

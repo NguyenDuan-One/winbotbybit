@@ -25,7 +25,8 @@ export const formatNumberString = (number = 0) => {
 }
 
 export const removeLocalStorage = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("tk_crypto");
     localStorage.removeItem("user");
     localStorage.removeItem("roleList");
+    localStorage.removeItem("tokenTemp");
 }

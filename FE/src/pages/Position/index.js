@@ -12,6 +12,9 @@ import AddLimit from "./components/AddLimit";
 import AddMarket from "./components/AddMarket";
 
 function Position() {
+
+    const userData = JSON.parse(localStorage.getItem("user"))
+
     const botTypeList = [
         {
             name: "All",
@@ -194,7 +197,7 @@ function Position() {
     const dispatch = useDispatch()
 
     const handleGetAllBotByUserID = () => {
-        const userData = JSON.parse(localStorage.getItem("user"))
+        
         getAllBotOnlyApiKeyByUserID(userData._id)
             .then(res => {
                 const data = res.data.data;

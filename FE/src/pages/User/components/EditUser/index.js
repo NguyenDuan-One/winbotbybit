@@ -13,14 +13,13 @@ function EditUser({
     dataInput
 }, ref) {
 
-
+    const userData = JSON.parse(localStorage.getItem("user"))
+    
     const ROLE_LIST = useMemo(() => {
 
         const ROLE_LIST = []
 
-        const userDataLocal = JSON.parse(localStorage.getItem("user"))
-
-        const roleName = userDataLocal.roleName
+        const roleName = userData.roleName
         if (roleName === "SuperAdmin") {
             ROLE_LIST.push(
                 "Admin",

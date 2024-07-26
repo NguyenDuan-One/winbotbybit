@@ -40,8 +40,9 @@ function LoginPage() {
             })
             if (status === 200) {
                 reset()
-                localStorage.setItem('token', resData.token)
+                localStorage.setItem('tk_crypto', resData.token)
                 localStorage.setItem('user', JSON.stringify(resData.user))
+                
                 navigate("/")
             }
         } catch (error) {

@@ -1,3 +1,4 @@
+import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import logoImage from "../../../../assets/logo.png"
 import avatar from "../../../../assets/avatar.jpg"
 import avatarAdmin from "../../../../assets/admin.jpg"
@@ -12,6 +13,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import styles from "./Heading.module.scss"
 import { removeLocalStorage } from "../../../../functions";
 import { useSelector } from "react-redux";
+import SwitchUserModal from './components/SwitchUserModal';
 
 function Heading({
     toggleSidebar,
@@ -23,8 +25,10 @@ function Heading({
     const location = useLocation()
 
     const [avatarDetailState, setAvatarDetailState] = useState(false);
+    const [openSwitchUserModal, setOpenSwitchUserModal] = useState(false);
 
     const navigate = useNavigate()
+    
     const handleSignOut = () => {
         removeLocalStorage()
         navigate("/login")
@@ -33,6 +37,8 @@ function Heading({
     const routeName = useMemo(() => {
         return location.pathname.split("/")[1]
     }, [location])
+
+
 
     return (
         <div className={styles.heading}>
@@ -85,6 +91,17 @@ function Heading({
                             <p className={styles.subMain}>{userData.roleName}</p>
                         </div>
                         <div className={styles.list}>
+                            <div
+                                className={styles.listItem}
+                                style={{
+                                    textAlign: "center",
+                                }}
+                                onClick={() => {
+                                    setOpenSwitchUserModal(true)
+                                }}>
+                                <FingerprintIcon />
+                                <p className={styles.listItemName} >Switch User</p>
+                            </div>
                             <NavLink
                                 to="/MyProfile"
                                 className={styles.listItem}
@@ -103,6 +120,16 @@ function Heading({
                     </div>
                 </Popover>
             </div>
+
+            {
+                openSwitchUserModal && (
+                    <SwitchUserModal
+                        onClose={() => {
+                            setOpenSwitchUserModal(false);
+                        }}
+                    />
+                )
+            }
 
         </div>
     );

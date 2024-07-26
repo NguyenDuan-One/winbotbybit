@@ -15,11 +15,11 @@ function AddGroup({
 }, ref) {
 
 
+    const userData = JSON.parse(localStorage.getItem("user"))
+    
     const ROLE_LIST = useMemo(() => {
 
         const ROLE_LIST = []
-
-        const userData = JSON.parse(localStorage.getItem("user"))
 
         const roleName = userData.roleName
 

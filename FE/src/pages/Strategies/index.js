@@ -23,6 +23,8 @@ import { setTotalFuture } from '../../store/slices/TotalFuture';
 
 function Strategies() {
 
+    const userData = JSON.parse(localStorage.getItem("user"))
+    
     const SCROLL_INDEX = 5
     const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
@@ -135,7 +137,7 @@ function Strategies() {
     }, [dataCheckTree])
 
     const handleGetAllBotByUserID = () => {
-        const userData = JSON.parse(localStorage.getItem("user"))
+
         getAllBotActiveByUserID(userData._id)
             .then(res => {
                 const data = res.data.data;
@@ -159,7 +161,7 @@ function Strategies() {
             )
     }
     const handleGetTotalFutureByBot = async () => {
-        const userData = JSON.parse(localStorage.getItem("user"))
+
         try {
             const res = await getTotalFutureByBot(userData._id)
             const { status, message, data: resData } = res.data

@@ -12,47 +12,46 @@ import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import DialogCustom from '../../components/DialogCustom';
 
-const botTypeList = [
-    {
-        name: "All",
-        value: "All"
-    },
-    {
-        name: "BybitV3",
-        value: "BybitV3"
-    }
-]
-
-const statusList = [
-    {
-        name: "All",
-        value: "All"
-    },
-    {
-        name: "Pending",
-        value: "Pending"
-    },
-    {
-        name: "PendingApproval",
-        value: "PendingApproval"
-    },
-    {
-        name: "Installing",
-        value: "Installing"
-    },
-    {
-        name: "Stopped",
-        value: "Stopped"
-    },
-    {
-        name: "Running",
-        value: "Running"
-    }
-]
-
-
 function Bot() {
 
+    const botTypeList = [
+        {
+            name: "All",
+            value: "All"
+        },
+        {
+            name: "BybitV3",
+            value: "BybitV3"
+        }
+    ]
+    
+    const statusList = [
+        {
+            name: "All",
+            value: "All"
+        },
+        {
+            name: "Pending",
+            value: "Pending"
+        },
+        {
+            name: "PendingApproval",
+            value: "PendingApproval"
+        },
+        {
+            name: "Installing",
+            value: "Installing"
+        },
+        {
+            name: "Stopped",
+            value: "Stopped"
+        },
+        {
+            name: "Running",
+            value: "Running"
+        }
+    ]
+            
     const userData = JSON.parse(localStorage.getItem("user"))
 
     const roleName = userData?.roleName
@@ -170,6 +169,12 @@ function Bot() {
             minWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
 
+        },
+        {
+            field: 'serverIP',
+            headerName: 'Server IP',
+            minWidth: 150,
+            flex: window.innerWidth <= 740 ? undefined : 1,
         },
 
     ]

@@ -1,4 +1,4 @@
-const { server,socketServer } = require('./serverConfig');
+const { server, socketServer } = require('./serverConfig');
 
 require('dotenv').config();
 
@@ -11,6 +11,12 @@ server.listen(PORT, process.env.BASE_URL, () => {
 // Emit event using io
 socketServer.on('connection', (socket) => {
   console.log('Socket connected');
+
+  // 
+  socket.on('joinRoom', (room) => {
+    socket.join(room);
+    console.log(`User joined room: ${room}`);
+  });
 
   socket.on('disconnect', () => {
     console.log('Socket disconnected');

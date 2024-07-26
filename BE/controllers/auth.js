@@ -55,7 +55,7 @@ const AuthController = {
                         _id: user._id,
                     }
 
-                    const token = jwt.sign(userDataSign, secretKey, { expiresIn: "1d" });
+                    const token = jwt.sign(userDataSign, secretKey, { expiresIn: "8h" });
 
                     res.customResponse(200, "Login Successful", {
                         token, user: userDataSign
@@ -69,6 +69,27 @@ const AuthController = {
 
         } catch (error) {
             res.status(500).json({ message: 'Login Error' });
+        }
+    },
+
+    loginSwitch: async (req, res) => {
+        try {
+
+            const { userName, userID } = req.body;
+
+            const userDataSign = {
+                userName,
+                _id: userID
+            }
+
+            const token = jwt.sign(userDataSign, secretKey, { expiresIn: "8h" });
+
+            res.customResponse(200, "Switch User Successful", {
+                token, user: userDataSign
+            });
+
+        } catch (error) {
+            res.status(500).json({ message: 'Switch User Error' });
         }
     },
 

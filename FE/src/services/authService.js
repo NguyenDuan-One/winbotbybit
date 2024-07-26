@@ -10,6 +10,9 @@ export const signUp = async (data) => {
 export const login = async (data) => {
   return await api.post("/auth/login", data)
 }
+export const loginSwitch = async (data) => {
+  return await api.post("/auth/loginSwitch", data)
+}
 
 
 api.interceptors.response.use(
