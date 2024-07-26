@@ -177,17 +177,18 @@ const PositionController = {
                                     const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
 
                                     if (checkPositionExist) {
-                                        if (+positionDataNew.Quantity != 0) {
-                                            positionDataNew.TimeUpdated = new Date()
-                                            return PositionController.updatePositionBE({
-                                                newDataUpdate: positionDataNew,
-                                                orderID: checkPositionExist._id
-                                            })
-                                        } else {
-                                            return PositionController.deletePositionBE({
-                                                orderID: checkPositionExist._id
-                                            });
-                                        }
+                                        // if (+positionDataNew.Quantity != 0) {
+                                        positionDataNew.TimeUpdated = new Date()
+                                        return PositionController.updatePositionBE({
+                                            newDataUpdate: positionDataNew,
+                                            orderID: checkPositionExist._id
+                                        })
+                                        // } 
+                                        // else {
+                                        //     return PositionController.deletePositionBE({
+                                        //         orderID: checkPositionExist._id
+                                        //     });
+                                        // }
                                     }
                                     else {
                                         return PositionController.createPositionBE({
@@ -201,9 +202,9 @@ const PositionController = {
                             }
                             else {
                                 return Promise.allSettled(dataPosition?.map(positionItem => {
-                                    
-                                    const checkPositionExist =  viTheList.find(item => item.symbol === positionItem.Symbol && positionItem.botID._id == dataBotItem.value)
-                                   
+
+                                    const checkPositionExist = viTheList.find(item => item.symbol === positionItem.Symbol && positionItem.botID._id == dataBotItem.value)
+
                                     if (checkPositionExist) {
                                         const positionDataNew = {
                                             Pnl: checkPositionExist.unrealisedPnl,
@@ -212,17 +213,18 @@ const PositionController = {
                                             Symbol: checkPositionExist.symbol,
                                             Quantity: checkPositionExist.size
                                         };
-                                        if (+positionDataNew.Quantity != 0) {
-                                            positionDataNew.TimeUpdated = new Date()
-                                            return PositionController.updatePositionBE({
-                                                newDataUpdate: positionDataNew,
-                                                orderID: positionItem._id
-                                            })
-                                        } else {
-                                            return PositionController.deletePositionBE({
-                                                orderID: positionItem._id
-                                            });
-                                        }
+                                        // if (+positionDataNew.Quantity != 0) {
+                                        positionDataNew.TimeUpdated = new Date()
+                                        return PositionController.updatePositionBE({
+                                            newDataUpdate: positionDataNew,
+                                            orderID: positionItem._id
+                                        })
+                                        // } 
+                                        // else {
+                                        //     return PositionController.deletePositionBE({
+                                        //         orderID: positionItem._id
+                                        //     });
+                                        // }
                                     }
                                     else {
                                         return PositionController.deletePositionBE({

@@ -50,7 +50,7 @@ const BotController = {
         const newDataSocketWithBotData = result.flatMap((data) => data.children.map(child => {
             child.symbol = data.value
             child.value = `${data._id}-${child._id}`
-            child.IsActive = IsActive
+            child.IsActive = IsActive !== "not-modified" ? IsActive : child.IsActive
             return child
         })) || []
 
@@ -203,7 +203,7 @@ const BotController = {
                     if (checkBot) {
                         const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
                             botID,
-                            IsActive: true
+                            IsActive: "not-modified"
                         })
 
                         newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
@@ -223,7 +223,7 @@ const BotController = {
                     if (checkBot) {
                         const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
                             botID,
-                            IsActive: true
+                            IsActive: "not-modified"
                         })
 
                         newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({

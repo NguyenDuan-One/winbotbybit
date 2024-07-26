@@ -622,6 +622,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
 
                         if (dataCoin.topic === "order") {
+                            await delay(200)
                             const strategyData = allStrategiesByBotIDAndOrderID[botID]?.[orderID]
 
                             const strategy = strategyData?.strategy
@@ -2103,8 +2104,8 @@ socketRealtime.on('bot-api', async (data) => {
             const TPOrderID = allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID
             const TPMissOrderID = missTPDataBySymbol[botSymbolMissID]?.orderID
             if (OCOrderID || TPOrderID || TPMissOrderID) {
-                OCOrderID && handleCancelOrderOC(cancelDataObject)
 
+                OCOrderID && handleCancelOrderOC(cancelDataObject)
 
                 TPOrderID && handleCancelOrderTP({
                     ...cancelDataObject,
