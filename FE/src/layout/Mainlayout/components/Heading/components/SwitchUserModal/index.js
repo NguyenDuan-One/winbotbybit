@@ -141,7 +141,7 @@ function SwitchUserModal({
             hideActionBtn
             maxWidth="sm"
         >
-            <Button
+            {localStorage.getItem("tk_crypto_temp") && <Button
                 variant='contained'
                 style={{
                     margin: '6px auto 16px',
@@ -153,7 +153,7 @@ function SwitchUserModal({
                 }}
             >
                 Back To Main Account
-            </Button>
+            </Button>}
             <DataGridCustom
                 tableRows={userList}
                 tableColumns={tableColumns}
