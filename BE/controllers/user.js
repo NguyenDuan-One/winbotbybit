@@ -148,18 +148,23 @@ const UserController = {
 
             switch (roleName) {
                 case "SuperAdmin":
-                    data = await UserModel.find({ _id: { $ne: userID } }, { password: 0 });
+                    data = await UserModel.find({ 
+                        _id: { $ne: userID } ,
+                        isActive:true
+                    }, { password: 0 });
                     break
                 case "Admin":
                     data = await UserModel.find({
                         _id: { $ne: userID },
-                        roleName: { $in: ["Trader", "ManagerTrader"] }
+                        roleName: { $in: ["Trader", "ManagerTrader"] },
+                        isActive:true
                     }, { password: 0 });
                     break
                 case "ManagerTrader":
                     data = await UserModel.find({
                         _id: { $ne: userID },
-                        roleName: { $in: ["Trader"] }
+                        roleName: { $in: ["Trader"] },
+                        isActive:true
                     }, { password: 0 });
                     break
             }
