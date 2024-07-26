@@ -116,6 +116,7 @@ function SwitchUserModal({
             if (status === 200) {
                 localStorage.setItem('tk_crypto_temp', resData.token)
                 localStorage.setItem('user', JSON.stringify(resData.user))
+                navigate("/")
                 navigate(0)
             }
         } catch (error) {
@@ -149,6 +150,7 @@ function SwitchUserModal({
                 }}
                 onClick={() => {
                     localStorage.removeItem("tk_crypto_temp")
+                    navigate("/")
                     navigate(0)
                 }}
             >
