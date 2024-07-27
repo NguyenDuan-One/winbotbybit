@@ -15,6 +15,7 @@ import { getByRoleName } from "../../services/roleService";
 import { getUserByID } from "../../services/userService";
 import { addMessageToast } from "../../store/slices/Toast";
 import { removeLocalStorage } from "../../functions";
+import { setUserDataLocal } from "../../store/slices/UserData";
 
 function MainLayout({ children }) {
 
@@ -125,7 +126,7 @@ function MainLayout({ children }) {
             const { data: resUserData } = resUser.data
             if (resUserData) {
                 
-                localStorage.setItem('user', JSON.stringify(resUserData))
+                dispatch(setUserDataLocal(resUserData))
                 setUserData(resUserData)
                 
                 const res = await getByRoleName(resUserData?.roleName || "")
@@ -146,7 +147,6 @@ function MainLayout({ children }) {
 
     useEffect(() => {
         handleVerifyLogin()
-
     }, []);
 
     useEffect(() => {

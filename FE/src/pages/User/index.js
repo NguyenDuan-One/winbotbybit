@@ -6,7 +6,7 @@ import { useState, memo, useEffect, useMemo, useRef } from "react";
 import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
 import DataGridCustom from "../../components/DataGridCustom";
 import styles from "./Bot.module.scss"
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import DialogCustom from '../../components/DialogCustom';
 import AddGroup from './components/AddGroup';
@@ -17,11 +17,11 @@ import EditUser from './components/EditUser';
 
 function Group() {
 
-    const userData = JSON.parse(localStorage.getItem("user"))
+    const userData = useSelector(state => state.userDataSlice.userData)
 
     const checkAdminTrue = useMemo(() => {
         return userData?.roleName === "Admin" || userData?.roleName === "SuperAdmin"
-    }, [])
+    }, [userData])
 
     const checkRoleEditable = (userRole) => {
         const roleOfMe = userData?.roleName
@@ -320,9 +320,8 @@ function Group() {
     }
 
     useEffect(() => {
-        handleGetAllGroup()
-
-    }, []);
+        userData.userName &&  handleGetAllGroup()
+    }, [userData]);
 
     useEffect(() => {
         const newData = openAddBot.dataChange || openEditBot.dataChange

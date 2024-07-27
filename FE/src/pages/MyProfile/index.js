@@ -7,13 +7,13 @@ import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { changePassword } from "../../services/userService";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addMessageToast } from "../../store/slices/Toast";
 
 
 function MyProfile() {
 
-    const userData = JSON.parse(localStorage.getItem("user"))
+    const userData = useSelector(state => state.userDataSlice.userData)
 
     const dispatch = useDispatch()
 

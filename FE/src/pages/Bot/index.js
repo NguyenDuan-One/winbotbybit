@@ -2,13 +2,13 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { Button, MenuItem, Select, Switch } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import { Link } from 'react-router-dom';
-import { useState, memo, useEffect, useRef, useMemo } from "react";
+import { useState, memo, useEffect, useRef } from "react";
 import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
 import DataGridCustom from "../../components/DataGridCustom";
 import AddBot from "./components/AddBot";
 import { deleteMultipleBot, getAllBot, getAllBotBySameGroup, getAllBotByUserID, updateBot } from "../../services/botService";
 import styles from "./Bot.module.scss"
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import DialogCustom from '../../components/DialogCustom';
 
@@ -24,7 +24,7 @@ function Bot() {
             value: "BybitV3"
         }
     ]
-    
+
     const statusList = [
         {
             name: "All",
@@ -51,8 +51,8 @@ function Bot() {
             value: "Running"
         }
     ]
-            
-    const userData = JSON.parse(localStorage.getItem("user"))
+
+    const userData = useSelector(state => state.userDataSlice.userData)
 
     const roleName = userData?.roleName
 
@@ -297,7 +297,7 @@ function Bot() {
                         id: item?._id,
                         Created: item?.Created && new Date(item?.Created).toLocaleDateString(),
                         userName: `${item.userID?.userName} ( ${item.userID?.roleName} )`,
-                        OwnBot:item.userID?._id === userData._id
+                        OwnBot: item.userID?._id === userData._id
                     }
                 ))
                 botListDefaultRef.current = newData
@@ -339,8 +339,8 @@ function Bot() {
     }
 
     useEffect(() => {
-        handleGetAllBot()
-    }, []);
+        userData.userName && handleGetAllBot()
+    }, [userData]);
 
     useEffect(() => {
         const newData = openAddBot.dataChange
@@ -436,7 +436,7 @@ function Bot() {
                 onClose={(data) => {
                     setOpenAddBot(data)
                 }}
-                roleName = {roleName}
+                roleName={roleName}
             />}
 
             {
@@ -472,7 +472,7 @@ function Bot() {
                                 botID: confirmActiveBot,
                                 data: {
                                     Status: "Stopped",
-                                    type:"Active",
+                                    type: "Active",
                                     checkBot: true
                                 }
                             })

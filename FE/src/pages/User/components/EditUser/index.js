@@ -3,7 +3,7 @@ import styles from "./AddBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useEffect, useMemo, useState } from "react";
 import DialogCustom from "../../../../components/DialogCustom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateUser } from "../../../../services/userService";
 import { addMessageToast } from "../../../../store/slices/Toast";
 import { getAllGroup } from "../../../../services/groupService";
@@ -13,7 +13,7 @@ function EditUser({
     dataInput
 }, ref) {
 
-    const userData = JSON.parse(localStorage.getItem("user"))
+    const userData = useSelector(state => state.userDataSlice.userData)
     
     const ROLE_LIST = useMemo(() => {
 
@@ -34,7 +34,7 @@ function EditUser({
             )
         }
         return ROLE_LIST
-    }, [])
+    }, [userData])
 
     const {
         register,
@@ -122,8 +122,8 @@ function EditUser({
     }
 
     useEffect(() => {
-        handleGetAllGroup()
-    }, []);
+        userData.userName &&   handleGetAllGroup()
+    }, [userData]);
 
     return (
         <DialogCustom

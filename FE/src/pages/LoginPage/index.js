@@ -9,6 +9,7 @@ import { addMessageToast } from "../../store/slices/Toast";
 import { login, signUp } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet';
+import { setUserDataLocal } from '../../store/slices/UserData';
 
 function LoginPage() {
 
@@ -41,8 +42,7 @@ function LoginPage() {
             if (status === 200) {
                 reset()
                 localStorage.setItem('tk_crypto', resData.token)
-                localStorage.setItem('user', JSON.stringify(resData.user))
-                
+                dispatch(setUserDataLocal(resData.user))
                 navigate("/")
             }
         } catch (error) {

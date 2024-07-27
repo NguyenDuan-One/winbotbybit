@@ -2,18 +2,19 @@ import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import DialogCustom from "../../../../../../components/DialogCustom";
 import { useEffect, useState } from "react";
 import DataGridCustom from "../../../../../../components/DataGridCustom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addMessageToast } from "../../../../../../store/slices/Toast";
 import { getAllUserByRoleName } from "../../../../../../services/userService";
 import { Button } from "@mui/material";
 import { loginSwitch } from '../../../../../../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { setUserDataLocal } from '../../../../../../store/slices/UserData';
 
 function SwitchUserModal({
     onClose
 }) {
 
-    const userData = JSON.parse(localStorage.getItem("user"))
+    const userData= useSelector(state => state.userDataSlice.userData)
 
     const roleName = userData?.roleName
 
@@ -77,7 +78,10 @@ function SwitchUserModal({
     const handleGetAllUserByRoleName = async () => {
         try {
 
-            const res = await getAllUserByRoleName(roleName)
+            const res = await getAllUserByRoleName({
+                roleName,
+                groupID:userData?.groupID
+            })
             const { status, data: resData } = res.data
             if (status === 200) {
                 const newData = resData?.map(item => (
@@ -115,7 +119,7 @@ function SwitchUserModal({
 
             if (status === 200) {
                 localStorage.setItem('tk_crypto_temp', resData.token)
-                localStorage.setItem('user', JSON.stringify(resData.user))
+                dispatch(setUserDataLocal(resData.user))
                 navigate("/")
                 navigate(0)
             }
@@ -129,8 +133,9 @@ function SwitchUserModal({
 
 
     useEffect(() => {
-        handleGetAllUserByRoleName()
-    }, []);
+        userData.userName && handleGetAllUserByRoleName()
+    }, [userData]);
+    
     return (
         <DialogCustom
             open={true}

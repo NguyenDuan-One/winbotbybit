@@ -7,13 +7,13 @@ import DataGridCustom from "../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
 import { updatePL } from "../../services/positionService";
 import { addMessageToast } from "../../store/slices/Toast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import AddLimit from "./components/AddLimit";
 import AddMarket from "./components/AddMarket";
 
 function Position() {
 
-    const userData = JSON.parse(localStorage.getItem("user"))
+    const userData = useSelector(state => state.userDataSlice.userData)
 
     const botTypeList = [
         {
@@ -290,9 +290,9 @@ function Position() {
     }
     useEffect(() => {
 
-        handleGetAllBotByUserID()
+        userData.userName &&  handleGetAllBotByUserID()
 
-    }, []);
+    }, [userData]);
 
     useEffect(() => {
         if (openAddLimit.isOpen || openAddMarket.isOpen || openAddLimit.dataChange || openAddMarket.dataChange) {

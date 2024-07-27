@@ -143,28 +143,29 @@ const UserController = {
     getAllUserByRoleName: async (req, res) => {
         try {
             let data = {}
-            const { roleName } = req.body;
+            const { roleName, groupID } = req.body;
             const userID = req.user._id
 
             switch (roleName) {
                 case "SuperAdmin":
-                    data = await UserModel.find({ 
-                        _id: { $ne: userID } ,
-                        isActive:true
+                    data = await UserModel.find({
+                        _id: { $ne: userID },
+                        isActive: true
                     }, { password: 0 });
                     break
                 case "Admin":
                     data = await UserModel.find({
                         _id: { $ne: userID },
                         roleName: { $in: ["Trader", "ManagerTrader"] },
-                        isActive:true
+                        isActive: true
                     }, { password: 0 });
                     break
                 case "ManagerTrader":
                     data = await UserModel.find({
                         _id: { $ne: userID },
                         roleName: { $in: ["Trader"] },
-                        isActive:true
+                        isActive: true,
+                        groupID: { $eq: groupID, $ne: null } 
                     }, { password: 0 });
                     break
             }

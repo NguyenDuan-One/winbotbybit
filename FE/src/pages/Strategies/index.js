@@ -10,7 +10,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
 import { getAllStrategies, getTotalFutureByBot, syncSymbol } from '../../services/dataCoinByBitService';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import CreateStrategy from './components/CreateStrategy';
 import EditMulTreeItem from './components/EditMulTreeItem';
@@ -23,7 +23,7 @@ import { setTotalFuture } from '../../store/slices/TotalFuture';
 
 function Strategies() {
 
-    const userData = JSON.parse(localStorage.getItem("user"))
+    const userData = useSelector(state => state.userDataSlice.userData)
     
     const SCROLL_INDEX = 5
     const SCROLL_INDEX_FIRST = window.innerHeight / 30
@@ -341,12 +341,14 @@ function Strategies() {
 
 
     useEffect(() => {
+        if(userData.userName)
+        {
+            handleGetAllBotByUserID()
+            handleGetAllStrategies()
+            handleGetTotalFutureByBot()
+        }
 
-        handleGetAllBotByUserID()
-        handleGetAllStrategies()
-        handleGetTotalFutureByBot()
-
-    }, []);
+    }, [userData]);
 
     useEffect(() => {
         if (dataCheckTree.length > 0) {

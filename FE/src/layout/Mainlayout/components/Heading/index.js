@@ -28,7 +28,7 @@ function Heading({
     const [openSwitchUserModal, setOpenSwitchUserModal] = useState(false);
 
     const navigate = useNavigate()
-    
+
     const handleSignOut = () => {
         removeLocalStorage()
         navigate("/login")
@@ -91,7 +91,7 @@ function Heading({
                             <p className={styles.subMain}>{userData.roleName}</p>
                         </div>
                         <div className={styles.list}>
-                            <div
+                            {userData?.roleName !== "Trader" && <div
                                 className={styles.listItem}
                                 style={{
                                     textAlign: "center",
@@ -101,7 +101,7 @@ function Heading({
                                 }}>
                                 <FingerprintIcon />
                                 <p className={styles.listItemName} >Switch User</p>
-                            </div>
+                            </div>}
                             <NavLink
                                 to="/MyProfile"
                                 className={styles.listItem}

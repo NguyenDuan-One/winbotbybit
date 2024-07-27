@@ -11,6 +11,7 @@ import LoginPage from "../pages/LoginPage"
 import Group from "../pages/Group"
 import BotType from "../pages/BotType"
 import User from "../pages/User"
+import Dashboard from "../pages/Dashboard"
 
 
 const routeList = [
@@ -20,7 +21,7 @@ const routeList = [
         children: [
             {
                 path: "",
-                element: <p>Dashboard</p>,
+                element: <Dashboard/>,
             },
             {
                 path: "Users",
