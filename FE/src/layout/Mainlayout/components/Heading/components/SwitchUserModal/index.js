@@ -35,6 +35,7 @@ function SwitchUserModal({
                     <span
                         style={{
                             color: "var(--blueLightColor)",
+                            lineHeight:"100%",
                             cursor: "pointer"
                         }}
                         onClick={() => {
