@@ -194,12 +194,12 @@ async function tinhOC(symbol, data, messageList) {
     const OCRound = roundNumber(OC)
     const OCLongRound = roundNumber(OCLong)
 
-    if (OCRound > 2) {
+    if (OCRound > 1) {
         const ht = (`<b>${symbol.replace("USDT", "")}</b> - (${interval} min) - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
-    if (OCLongRound > 2) {
+    if (OCLongRound > 1) {
         const htLong = (`<b>${symbol.replace("USDT", "")}</b> - (${interval} min) - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
