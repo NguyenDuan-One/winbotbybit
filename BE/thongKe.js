@@ -35,39 +35,42 @@ let wsConfig = {
     // key: API_KEY,
     // secret: PRIVATE_KEY,
     market: 'v5',
-    recvWindow:60000,
+    recvWindow: 60000,
 }
 let wsSymbol = new WebsocketClient(wsConfig);
 let wsInfo = {
     // key: API_KEY,
     // secret: PRIVATE_KEY,
     testnet: false,
-    timestamp: new Date().toISOString(),   
-    recv_window:60000,
-    enable_time_sync:true 
+    timestamp: new Date().toISOString(),
+    recv_window: 60000,
+    enable_time_sync: true
 }
 let CoinInfo = new RestClientV5(wsInfo);
 
 //Funcition
 
 async function sendMessageWithRetry(messageText, retries = 5) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            messageText && await bot.sendMessage(CHANNEL_ID, messageText, {
-                parse_mode: "HTML",
-            });
-            return;
-        } catch (error) {
-            if (error.code === 429) {
-                const retryAfter = error.parameters.retry_after;
-                console.log(`Rate limited. Retrying after ${retryAfter} seconds...`);
-                await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-            } else {
-            console.log("[!] Send Telegram Error", error)
+    setTimeout(async () => {
+        for (let i = 0; i < retries; i++) {
+            try {
+                messageText && await bot.sendMessage(CHANNEL_ID, messageText, {
+                    parse_mode: "HTML",
+                });
+                return;
+            } catch (error) {
+                if (error.code === 429) {
+                    const retryAfter = error.parameters.retry_after;
+                    console.log(`Rate limited. Retrying after ${retryAfter} seconds...`);
+                    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                } else {
+                    console.log("[!] Send Telegram Error", error)
+                }
             }
         }
-    }
-    throw new Error('Failed to send message after multiple retries');
+        throw new Error('Failed to send message after multiple retries');
+    }, 500)
+
 }
 
 async function ListCoinFT() {
@@ -448,7 +451,7 @@ const handleStatistic = async (statisticLabel) => {
     const get2 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault2, nenCount)
     sendMessageWithRetry(get2.join("\n"))
     await delay(1000)
-    
+
     const get25 = await processCoinsWithDelay(CoinFT, delayTime, percentDefault25, nenCount)
     sendMessageWithRetry(get25.join("\n"))
     await delay(1000)
@@ -635,7 +638,7 @@ let Main = async () => {
             }
         }
         if (messageList.length) {
-        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
+            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
             sendMessageWithRetry(messageList.join("\n"))
         }
 
