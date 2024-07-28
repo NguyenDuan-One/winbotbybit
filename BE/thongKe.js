@@ -654,7 +654,5 @@ let Main = async () => {
 
 
 Main()
-// cron.schedule(`*/1 * * * * *`, () => {
-//     console.log('schedule');
-// });
+
 
