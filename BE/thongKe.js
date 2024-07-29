@@ -564,9 +564,20 @@ let Main = async () => {
     ]
 
 
-
-    wsSymbol.on('update', async (dataCoin) => {
+    const handleTinhOC = ({
+        dataCoin,
+        symbol
+    }) => {
         const messageList = []
+        dataCoin.data.forEach((e) => {
+            tinhOC(symbol, e, messageList)
+        })
+        if (messageList.length) {
+            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
+            sendMessageWithRetry(messageList.join("\n"))
+        }
+    }
+    wsSymbol.on('update', async (dataCoin) => {
         if (dataCoin.wsKey === "v5LinearPublic") {
 
             // if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
@@ -582,13 +593,15 @@ let Main = async () => {
             //     }
             // }
 
-            if (dataCoin.topic.indexOf("kline.1.") !== -1) {
-                let symbol = dataCoin.topic.replace("kline.1.", "")
-                if (dataCoin.data[0].confirm === true) {
-                    dataCoin.data.forEach((e) => {
-                        tinhOC(symbol, e, messageList)
-                    })
-                }
+            // if (dataCoin.topic.indexOf("kline.1.") !== -1) {
+            //     let symbol = dataCoin.topic.replace("kline.1.", "")
+            //     if (dataCoin.data[0].confirm === true) {
+            //         handleTinhOC({dataCoin, symbol})
+            //     }
+            // }
+            if (dataCoin.data[0].confirm === true) {
+                const symbol = dataCoin.topic.split(".").slice(-1)[0]
+                handleTinhOC({ dataCoin, symbol })
             }
 
             // 3M
@@ -605,14 +618,12 @@ let Main = async () => {
             //     }
             // }
 
-            if (dataCoin.topic.indexOf("kline.3.") !== -1) {
-                let symbol = dataCoin.topic.replace("kline.3.", "")
-                if (dataCoin.data[0].confirm === true) {
-                    dataCoin.data.forEach((e) => {
-                        tinhOC(symbol, e, messageList)
-                    })
-                }
-            }
+            // if (dataCoin.topic.indexOf("kline.3.") !== -1) {
+            //     let symbol = dataCoin.topic.replace("kline.3.", "")
+            //     if (dataCoin.data[0].confirm === true) {
+            //         handleTinhOC({dataCoin, symbol})
+            //     }
+            // }
 
             // 5M
 
@@ -628,19 +639,14 @@ let Main = async () => {
             //     }
             // }
 
-            if (dataCoin.topic.indexOf("kline.5.") !== -1) {
-                let symbol = dataCoin.topic.replace("kline.5.", "")
-                if (dataCoin.data[0].confirm === true) {
-                    dataCoin.data.forEach((e) => {
-                        tinhOC(symbol, e, messageList)
-                    })
-                }
-            }
+            // if (dataCoin.topic.indexOf("kline.5.") !== -1) {
+            //     let symbol = dataCoin.topic.replace("kline.5.", "")
+            //     if (dataCoin.data[0].confirm === true) {
+            //         handleTinhOC({dataCoin, symbol})
+            //     }
+            // }
         }
-        if (messageList.length) {
-            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
-            sendMessageWithRetry(messageList.join("\n"))
-        }
+
 
     });
 
