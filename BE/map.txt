@@ -1,0 +1,6 @@
+1. Install NVM
+2. Install Nodejs
+nvm install --lts
+3. Add yarn 
+npm i -g yarn
+4. Install MongoDB
