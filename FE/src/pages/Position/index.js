@@ -197,7 +197,7 @@ function Position() {
     const dispatch = useDispatch()
 
     const handleGetAllBotByUserID = () => {
-        
+
         getAllBotOnlyApiKeyByUserID(userData._id)
             .then(res => {
                 const data = res.data.data;
@@ -264,8 +264,8 @@ function Position() {
                         Symbol: item.Symbol,
                         Side: item.Side,
                         Price: item.Price,
-                        Time: new Date(item.Time).toLocaleString("vi-vn"),
-                        TimeUpdated: new Date(item.TimeUpdated).toLocaleString("vi-vn"),
+                        Time: new Date(item.Time).toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }),
+                        TimeUpdated: new Date(item.TimeUpdated).toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }),
                         Quantity: item.Quantity,
                         Pnl: (+item.Pnl).toFixed(4),
                         Miss: item.Miss,
@@ -290,7 +290,7 @@ function Position() {
     }
     useEffect(() => {
 
-        userData.userName &&  handleGetAllBotByUserID()
+        userData.userName && handleGetAllBotByUserID()
 
     }, [userData]);
 

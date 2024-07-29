@@ -79,7 +79,6 @@ const dataCoinByBitController = {
                 // key: API_KEY,
                 // secret: PRIVATE_KEY,
                 testnet: false,
-                timestamp: new Date().toLocaleString(),
                 recv_window: 60000,
                 enable_time_sync: true
             }
