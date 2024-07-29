@@ -149,7 +149,7 @@ const formatNumberString = number => {
     }
 }
 
-async function tinhOC(symbol, data, messageList) {
+function tinhOC(symbol, data, messageList) {
 
     const interval = data.interval
     const Close = data.close
@@ -203,7 +203,6 @@ async function tinhOC(symbol, data, messageList) {
         const htLong = (`<b>${symbol.replace("USDT", "")}</b> - (${interval} min) - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
-    return messageList
 }
 
 async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coinListWin50 = []) {
@@ -573,7 +572,7 @@ let Main = async () => {
             tinhOC(symbol, e, messageList)
         })
         if (messageList.length) {
-            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn"));
+            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
             sendMessageWithRetry(messageList.join("\n"))
         }
     }
