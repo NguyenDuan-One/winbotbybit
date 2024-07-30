@@ -13,7 +13,6 @@ const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE, {
     polling: false,
     request: {
         agentOptions: {
-            keepAlive: true,
             family: 4
         }
     }
@@ -42,7 +41,6 @@ let wsInfo = {
     // key: API_KEY,
     // secret: PRIVATE_KEY,
     testnet: false,
-    timestamp: new Date().toISOString(),
     recv_window: 60000,
     enable_time_sync: true
 }
