@@ -1,6 +1,46 @@
+# Ubuntu Version
+    lsb_release -a
+
 1. Install NVM
 2. Install Nodejs
-nvm install --lts
+    nvm install 22.1.0
+    nvm install --lts
 3. Add yarn 
-npm i -g yarn
+    npm i -g yarn
 4. Install MongoDB
+    (***)
+        ufw allow 27017/tcp 
+    Link: 
+        https://wahhabrockz.hashnode.dev/linux-illegal-instruction-core-dumped-mongodb
+    Install: 
+        sudo dpkg -i mongodb-org-server_7.0.12_amd64.deb
+    Check: 
+        dpkg -l | grep mongo
+    Remove: 
+        sudo apt purge mongo*
+        sudo apt-get purge mongodb-org*
+        sudo rm -r /var/log/mongodb
+        sudo rm -r /var/lib/mongodb
+
+        sudo rm -rf /tmp/mongodb-27017.sock
+        sudo service mongod start
+    Status:
+        sudo systemctl status mongod
+        mongod --version
+    
+
+----------------------------------------------------------------
+
+1. Check NameServer
+    nano /etc/resolv.conf
+
+2. Refresh nginx
+    nginx -t
+    systemctl restart nginx
+
+----------------------------------------------------------------
+    
+env FE:
+    REACT_APP_BASE_URL=https://cyberbot.vip/api
+
+

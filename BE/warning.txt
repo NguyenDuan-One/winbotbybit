@@ -1,10 +1,9 @@
 
-
 ------------------------------------------------------------------------------------------------
 
-# cp -r /root/CryptoBot/FE/build/* /var/www/html/crypro-bot/
-# systemctl restart nginx
-# pm2 start runTrade-dev.js server.js index.js
+cp -r /root/CryptoBot/FE/build/* /var/www/html/crypro-bot/
+systemctl restart nginx
+pm2 start runTrade-dev.js server.js index.js
 
 ------------------------------------------------------------------------------------------------
 
@@ -12,12 +11,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ------------------------------------------------------------------------------------------------
 
-1. crontab -e
-2. 0 */2 * * * /usr/bin/mongodump --out /backups/mongodb/$(date +\%F_%H-%M-%S) && find /backups/mongodb -type d -mtime +14 -exec rm -rf {} \; >> /var/log/mongo_backup.log 2>&1
+crontab -e
+0 */2 * * * /usr/bin/mongodump --out /backups/mongodb/$(date +\%F_%H-%M-%S) && find /backups/mongodb -type d -mtime +14 -exec rm -rf {} \; >> /var/log/mongo_backup.log 2>&1
 
 - WINDOW - ( Power Shell )
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 mongodump --db crypto-bot --out "D:\backups\mongodb\backup_$timestamp"
+mongodump --db crypto-bot --out "D:\backups\mongodb\backup"
 
 
 ----------------------------------------------------------------
@@ -25,7 +25,6 @@ mongodump --db crypto-bot --out "D:\backups\mongodb\backup_$timestamp"
 mongosh --eval 'db.getSiblingDB("crypto-bot").dropDatabase()' && mongorestore --db crypto-bot /backups/mongodb/2024-07-29_05-19-37/crypto-bot
 
 - WINDOW - ( Power Shell )
-
 mongorestore --db crypto-bot D:\backups\mongodb\backup_2024-07-29_09-57-47\crypto-bot
 
 ------------------------------------------------------------------------------------------------

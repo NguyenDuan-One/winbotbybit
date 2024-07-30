@@ -506,7 +506,7 @@ const cancelAll = (
 }
 
 // 
-const sendMessageWithRetry = ({
+const sendMessageWithRetry = async ({
     messageText,
     retries = 5,
     telegramID,
