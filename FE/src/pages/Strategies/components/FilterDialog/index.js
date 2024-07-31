@@ -208,7 +208,6 @@ function FilterDialog({
             filterValue !== "IsActive") {
                 value1 = +value1
                 value2 = +value2
-                console.log("ok");
         }
         // if (checkFloatString(value1)) {
         //     value1 = +value1
