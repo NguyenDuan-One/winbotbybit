@@ -2346,7 +2346,7 @@ socketRealtime.on("close-limit", async (data) => {
 
     const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
 
-    listMiss?.length > 0 && await Promise.all(listMiss.map((orderIdTPData, index) => {
+    listMiss?.length > 0 && await Promise.all(listMiss.map((orderIdTPData) => {
         handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,
