@@ -2335,7 +2335,7 @@ socketRealtime.on('sync-symbol', async (newData) => {
 });
 
 socketRealtime.on("close-limit", async (data) => {
-    const { positionData } = data
+    const { positionData,newOrderID } = data
 
     const symbol = positionData.Symbol
     const botName = positionData.BotName
@@ -2364,7 +2364,7 @@ socketRealtime.on("close-limit", async (data) => {
     missTPDataBySymbol[botSymbolMissID].orderIDOfListTP = []
 
     missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
-        orderID: positionData.id,
+        orderID: newOrderID,
     })
     missTPDataBySymbol[botSymbolMissID].size = Math.abs(positionData.Quantity)
 

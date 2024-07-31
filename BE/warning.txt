@@ -22,7 +22,7 @@ mongodump --db crypto-bot --out "D:\crypro-bot\backups"
 
 ----------------------------------------------------------------
 
-mongosh --eval 'db.getSiblingDB("crypto-bot").dropDatabase()' && mongorestore --db crypto-bot /backups/mongodb/2024-07-29_05-19-37/crypto-bot
+mongosh --eval 'db.getSiblingDB("crypto-bot").dropDatabase()' && mongorestore --db crypto-bot /backups/crypto-bot
 
 - WINDOW - ( Power Shell )
 mongorestore --db crypto-bot D:\backups\mongodb\backup_2024-07-29_09-57-47\crypto-bot

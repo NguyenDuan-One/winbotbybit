@@ -191,11 +191,11 @@ const PositionController = {
                                         // }
                                     }
                                     else {
-                                        return PositionController.createPositionBE({
-                                            ...positionDataNew,
-                                            botID: dataBotItem.value,
-                                            Miss: true
-                                        });
+                                        // return PositionController.createPositionBE({
+                                        //     ...positionDataNew,
+                                        //     botID: dataBotItem.value,
+                                        //     Miss: true
+                                        // });
 
                                     }
                                 }))
@@ -307,6 +307,7 @@ const PositionController = {
                 price: positionData.Price,
             })
             .then((response) => {
+
                 if (response.retCode == 0) {
                     res.customResponse(200, "Close Market Successful");
                 }
@@ -341,8 +342,9 @@ const PositionController = {
                 price: Math.abs(Price).toString(),
             })
             .then((response) => {
-                if (response.retCode == 0) {
 
+                if (response.retCode == 0) {
+                    
                     PositionController.updatePositionBE({
                         newDataUpdate: {
                             Miss: false,
@@ -355,7 +357,7 @@ const PositionController = {
                         type: "close-limit",
                         data: {
                             positionData,
-
+                            newOrderID:response.result.orderId
                         }
                     })
                     res.customResponse(200, "Close Limit Successful");
