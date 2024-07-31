@@ -4,8 +4,8 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 var cron = require('node-cron');
-// const { getAllBotActive } = require('./controllers/bot');
-// const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
+const { getAllBotActive } = require('./controllers/bot');
+const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
 
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
@@ -68,6 +68,57 @@ async function sendMessageWithRetry(messageText, retries = 5) {
     throw new Error('Failed to send message after multiple retries');
 
 }
+
+const sendMessageWithRetryByBot = async ({
+    messageText,
+    retries = 5,
+    telegramID,
+    telegramToken,
+    botName
+}) => {
+
+    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
+
+    try {
+        if (!BOT_TOKEN_RUN_TRADE) {
+            const newBotInit = new TelegramBot(telegramToken, {
+                polling: false,
+                request: {
+                    agentOptions: {
+                        family: 4
+                    }
+                }
+            })
+            BOT_TOKEN_RUN_TRADE = newBotInit
+            botListTelegram[telegramToken] = newBotInit
+            // BOT_TOKEN_RUN_TRADE.launch();
+        }
+        for (let i = 0; i < retries; i++) {
+            try {
+                if (messageText) {
+                    // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
+                    await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
+                        parse_mode: "HTML"
+                    });
+                    console.log(`[->] Message sent to ${botName} telegram successfully`);
+                    return;
+                }
+            } catch (error) {
+                if (error.code === 429) {
+                    const retryAfter = error.parameters.retry_after;
+                    console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
+                    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                } else {
+                    throw new Error(error);
+                }
+            }
+        }
+
+        throw new Error('[!] Failed to send message after multiple retries');
+    } catch (error) {
+        console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
+    }
+};
 
 async function ListCoinFT() {
     let data = []
@@ -461,44 +512,70 @@ const handleStatistic = async (statisticLabel) => {
 }
 
 
-// const handleWalletBalance = async () => {
+const handleWalletBalance = async () => {
 
-//     const botListDataActiveRes = await getAllBotActive()
-//     if (botListDataActiveRes.length > 0) {
-//         const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
-//             const result = await getFutureSpotBE(item._id)
+    let totalBalanceAllBot = 0
 
-//             // Trả về đối tượng mới cho mỗi item trong mảng
-//             return {
-//                 id: item._id,
-//                 spotSavings: item?.spotSavings || 0,
-//                 future: result.future || 0,
-//                 spotTotal: result.spotTotal || 0,
-//                 API_KEY: result.API_KEY,
-//                 SECRET_KEY: result.SECRET_KEY,
-//             };
+    let telegramInfo = ""
 
-//         }))
-//         botListDataActive = botListDataActiveObject.map(item => item.value)
+    const botListDataActiveRes = await getAllBotActive()
+    if (botListDataActiveRes.length > 0) {
+        const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
+            const result = await getFutureSpotBE(item._id)
 
-//         const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
-//             const newSpotAvailable = botData.spotTotal - botData.spotSavings
-//             const average = (newSpotAvailable + botData.future) / 2
+            // Trả về đối tượng mới cho mỗi item trong mảng
+            return {
+                id: item._id,
+                spotSavings: item?.spotSavings || 0,
+                future: result.future || 0,
+                spotTotal: result.spotTotal || 0,
+                API_KEY: result.API_KEY,
+                SECRET_KEY: result.SECRET_KEY,
+                telegramID: item?.telegramID,
+                telegramToken: item?.telegramToken,
+                telegramToken: item?.telegramToken,
+                botName: item?.botName,
+            };
 
-//             if (Math.abs(botData.future - newSpotAvailable) >= 1) {
-//                 await balanceWalletBE({
-//                     amount: Math.abs(newSpotAvailable - average),
-//                     futureLarger: botData.future - newSpotAvailable > 0,
-//                     API_KEY: botData.API_KEY,
-//                     SECRET_KEY: botData.SECRET_KEY,
-//                 })
-//             }
-//         }))
-//         if (resultBalance.some(item => item.status === "fulfilled")) {
-//             console.log("-> Saving Successful");
-//         }
-//     }
-// }
+        }))
+        botListDataActive = botListDataActiveObject.map(item => item.value)
+
+        const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
+            const newSpotAvailable = botData.spotTotal - botData.spotSavings
+            const average = (newSpotAvailable + botData.future) / 2
+
+            if (Math.abs(botData.future - newSpotAvailable) >= 1) {
+                await balanceWalletBE({
+                    amount: Math.abs(newSpotAvailable - average),
+                    futureLarger: botData.future - newSpotAvailable > 0,
+                    API_KEY: botData.API_KEY,
+                    SECRET_KEY: botData.SECRET_KEY,
+                })
+            }
+        }))
+        if (resultBalance.some(item => item.status === "fulfilled")) {
+            console.log("-> Saving Successful");
+            const balancePrice = botData.spotTotal + botData.future
+            totalBalanceAllBot += balancePrice
+
+            telegramInfo = {
+                telegramID: botData.telegramID,
+                telegramToken: botData.telegramToken,
+            }
+
+            sendMessageWithRetryByBot({
+                messageText: `🍉 Balance ( ${botData.botName} ): ${balancePrice}`,
+                telegramID: botData.telegramID,
+                telegramToken: botData.telegramToken,
+                botName: botData.botName
+            })
+        }
+    }
+    return {
+        totalBalanceAllBot,
+        telegramInfo
+    }
+}
 
 let Main = async () => {
 
@@ -588,12 +665,7 @@ let Main = async () => {
             //     }
             // }
 
-            // if (dataCoin.topic.indexOf("kline.1.") !== -1) {
-            //     let symbol = dataCoin.topic.replace("kline.1.", "")
-            //     if (dataCoin.data[0].confirm === true) {
-            //         handleTinhOC({dataCoin, symbol})
-            //     }
-            // }
+
             if (dataCoin.data[0].confirm === true) {
                 const symbol = dataCoin.topic.split(".").slice(-1)[0]
                 handleTinhOC({ dataCoin, symbol })
@@ -613,14 +685,7 @@ let Main = async () => {
             //     }
             // }
 
-            // if (dataCoin.topic.indexOf("kline.3.") !== -1) {
-            //     let symbol = dataCoin.topic.replace("kline.3.", "")
-            //     if (dataCoin.data[0].confirm === true) {
-            //         handleTinhOC({dataCoin, symbol})
-            //     }
-            // }
 
-            // 5M
 
             // if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
             //     if (dataCoin.data[0].confirm == true) {
@@ -634,17 +699,25 @@ let Main = async () => {
             //     }
             // }
 
-            // if (dataCoin.topic.indexOf("kline.5.") !== -1) {
-            //     let symbol = dataCoin.topic.replace("kline.5.", "")
-            //     if (dataCoin.data[0].confirm === true) {
-            //         handleTinhOC({dataCoin, symbol})
-            //     }
-            // }
+
         }
 
 
     });
 
+    cron.schedule('0 */3 * * *', () => {
+        const {
+            totalBalanceAllBot,
+            telegramInfo
+        } = handleWalletBalance();
+        
+        sendMessageWithRetryByBot({
+            messageText: `<b> 🍑 Total Balance Of Bot: ${totalBalanceAllBot}$ </b>`,
+            telegramID: telegramInfo.telegramID,
+            telegramToken: telegramInfo.telegramToken,
+        })
+        
+    });
 
     //Báo lỗi socket$ pm2 start app.js
     wsSymbol.on('error', (err) => {
@@ -652,8 +725,6 @@ let Main = async () => {
     });
 
 };
-
-
 Main()
 
 
