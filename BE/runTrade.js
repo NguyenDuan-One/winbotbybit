@@ -767,7 +767,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         console.log(`\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`);
                                         const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
-                                        const priceWinPercent = (Math.abs(closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
+                                        const priceWinPercent = ((closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
                                         const priceWin = ((closePrice - openTradeOCFilled) * qty).toFixed(2) || 0;
 
                                         let textWinLose = ""
@@ -1962,28 +1962,28 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
     const botApiData = botApiList[botIDMain]
 
-    if (botApiData) {
+    // if (botApiData) {
 
-        const ApiKeyBot = botApiData.ApiKey
-        const SecretKeyBot = botApiData.SecretKey
+    //     const ApiKeyBot = botApiData.ApiKey
+    //     const SecretKeyBot = botApiData.SecretKey
 
-        const wsConfigOrder = {
-            key: ApiKeyBot,
-            secret: SecretKeyBot,
-            market: 'v5',
-            recvWindow: 60000
-        }
+    //     const wsConfigOrder = {
+    //         key: ApiKeyBot,
+    //         secret: SecretKeyBot,
+    //         market: 'v5',
+    //         recvWindow: 60000
+    //     }
 
-        const wsOrder = new WebsocketClient(wsConfigOrder);
+    //     const wsOrder = new WebsocketClient(wsConfigOrder);
 
-        if (botActive) {
-            await wsOrder.subscribeV5(LIST_ORDER, 'linear')
-        }
-        else {
-            console.log(`[V] UnsubscribeV5 ( ${botNameExist} )`);
-            await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
-        }
-    }
+    //     if (botActive) {
+    //         await wsOrder.subscribeV5(LIST_ORDER, 'linear')
+    //     }
+    //     else {
+    //         console.log(`[V] UnsubscribeV5 ( ${botNameExist} )`);
+    //         await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
+    //     }
+    // }
 
     await Promise.allSettled(newData.map((strategiesData, index) => {
 
