@@ -40,7 +40,10 @@
 
 ----------------------------------------------------------------
     
-env FE:
+4. env FE:
     REACT_APP_BASE_URL=https://cyberbot.vip/api
 
-
+5.Fix MaxSize:
+    nano /etc/nginx/nginx.conf
+    client_max_body_size 100M;
+-> Refresh nginx
