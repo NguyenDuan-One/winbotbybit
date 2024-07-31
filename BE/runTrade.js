@@ -1027,6 +1027,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 }).catch(err => {
                                                     console.log(err);
                                                 })
+                                                sendMessageWithRetry({
+                                                    messageText: `<b>⛔ MISS ( ${botName} - ${side} - ${symbol} ): ${missSize}</b>`,
+                                                    telegramID,
+                                                    telegramToken
+                                                })
                                             }
                                         }
                                         else {
