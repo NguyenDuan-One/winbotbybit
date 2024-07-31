@@ -710,7 +710,7 @@ let Main = async () => {
             totalBalanceAllBot,
             telegramInfo
         } = handleWalletBalance();
-
+        
         sendMessageWithRetryByBot({
             messageText: `<b> 🍑 Total Balance Of Bot: ${totalBalanceAllBot}$ </b>`,
             telegramID: telegramInfo.telegramID,
@@ -725,10 +725,6 @@ let Main = async () => {
     });
 
 };
-// Main()
+Main()
 
 
-(async ()=>{
-    const botListDataActiveRes = await getAllBotActive()
-    console.log(botListDataActiveRes);
-})()
