@@ -1,3 +1,5 @@
+import { NumericFormat } from 'react-number-format';
+
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useEffect, useState } from "react";
@@ -199,14 +201,21 @@ function FilterDialog({
         }))
     }
 
-    const handleCompare = (value1, compareValue, value2) => {
+    const handleCompare = (value1, compareValue, value2, filterValue) => {
 
-        if (checkFloatString(value1)) {
-            value1 = +value1
+        if (filterValue !== "PositionSide" &&
+            filterValue !== "Candlestick" &&
+            filterValue !== "IsActive") {
+                value1 = +value1
+                value2 = +value2
+                console.log("ok");
         }
-        if (checkFloatString(value2)) {
-            value2 = +value2
-        }
+        // if (checkFloatString(value1)) {
+        //     value1 = +value1
+        // }
+        // if (checkFloatString(value2)) {
+        //     value2 = +value2
+        // }
 
         switch (compareValue) {
             case "=":
@@ -273,16 +282,35 @@ function FilterDialog({
                     onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
                 />
             default:
-                return <TextField
-                    type='number'
+                // return <TextField
+                //     type='number'
+                //     value={item.data.value}
+                //     onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
+                //     size="small"
+                //     style={{
+                //         width: "100%"
+                //     }}
+                // >
+                // </TextField>
+                return <NumericFormat
+                    thousandSeparator
                     value={item.data.value}
-                    onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
-                    size="small"
-                    style={{
-                        width: "100%"
+                    type='text'
+                    onChange={(e) => {
+                        const value = Number.parseFloat(e.target.value.replace(/,/g, ''))
+                        handleChangeValue(value, indexRow)
                     }}
+                    style={{
+                        width: "100%",
+                        height: "40px",
+                        outline: "none",
+                        border: "1px solid #c4c4c4",
+                        padding: "0 12px",
+                        borderRadius: "6px"
+                    }}
+
                 >
-                </TextField>
+                </NumericFormat>
         }
     }
 
@@ -321,7 +349,7 @@ function FilterDialog({
                 //     return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
                 // }
                 // return true
-                return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
+                return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value, filterRow.value))
             }
             )
         }

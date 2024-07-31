@@ -111,11 +111,11 @@ const handleSubmitOrder = async ({
                 console.log(text)
                 console.log(changeColorConsole.blackBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
 
-                sendMessageWithRetry({
-                    messageText: text,
-                    telegramID,
-                    telegramToken
-                })
+                // sendMessageWithRetry({
+                //     messageText: text,
+                //     telegramID,
+                //     telegramToken
+                // })
             }
             else {
                 console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
@@ -1400,11 +1400,11 @@ const Main = async () => {
 
                                             const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
                                             console.log(changeColorConsole.yellowBright(textQuayDau));
-                                            sendMessageWithRetry({
-                                                messageText: textQuayDau,
-                                                telegramID,
-                                                telegramToken
-                                            })
+                                            // sendMessageWithRetry({
+                                            //     messageText: textQuayDau,
+                                            //     telegramID,
+                                            //     telegramToken
+                                            // })
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
                                         }
                                         else {
@@ -1501,11 +1501,11 @@ const Main = async () => {
                                             console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
                                             const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
                                             console.log(changeColorConsole.greenBright(textQuayDau));
-                                            sendMessageWithRetry({
-                                                messageText: textQuayDau,
-                                                telegramID,
-                                                telegramToken
-                                            })
+                                            // sendMessageWithRetry({
+                                            //     messageText: textQuayDau,
+                                            //     telegramID,
+                                            //     telegramToken
+                                            // })
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
                                         }
                                         else {
