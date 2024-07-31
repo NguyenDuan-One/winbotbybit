@@ -6,19 +6,15 @@ server { root /var/www/html/crypro-bot/; index index.html index.htm;
      listen [::]:443 ssl ipv6only=on ; # managed by Certbot
      listen 443 ssl ; # managed by Certbot
 
-#    ssl_certificate /etc/letsencrypt/live/cyberbot.vip/fullchain.pem; # managed by Certbot
- #   ssl_certificate_key /etc/letsencrypt/live/cyberbot.vip/privkey.pem; # managed by Certbot
-  #  include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-   # ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
     ssl_certificate         /etc/ssl/cert.pem;
     ssl_certificate_key     /etc/ssl/key.pem;
-    ssl_client_certificate /etc/ssl/cloudflare.crt;
- #   ssl_verify_client on;
+#   ssl_client_certificate /etc/ssl/cloudflare.crt;
+#   ssl_verify_client on;
 location  / {
     try_files $uri $uri/ /index.html;
 }
 location /api/{
-        proxy_pass http://139.180.217.217:3001/api/;
+        proxy_pass http://103.179.188.76:3001/api/;
          proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

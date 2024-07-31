@@ -2,11 +2,14 @@
     lsb_release -a
 
 1. Install NVM
+
 2. Install Nodejs
     nvm install 22.1.0
     nvm install --lts
+
 3. Add yarn 
     npm i -g yarn
+
 4. Install MongoDB
     (***)
         ufw allow 27017/tcp 
@@ -28,13 +31,21 @@
         sudo systemctl status mongod
         mongod --version
     
+5. Install nginx
+    apt install nginx
+    sudo ufw allow 'Nginx Full'
 
-----------------------------------------------------------------
+6. Create nginx config
+    mkdir -p /var/www/html/crypro-bot/
+    cp -r /root/CryptoBot/FE/build/* /var/www/html/crypro-bot/
 
-1. Check NameServer
+7. Check NameServer
     nano /etc/resolv.conf
+    + Add:
+        nameserver 8.8.8.8
+        nameserver 8.8.4.4
 
-2. Refresh nginx
+8. Refresh nginx
     nginx -t
     systemctl restart nginx
 
@@ -46,4 +57,4 @@
 5.Fix MaxSize:
     nano /etc/nginx/nginx.conf
     client_max_body_size 100M;
--> Refresh nginx
+-> Refresh nginx ( 8 )

@@ -16,8 +16,8 @@ crontab -e
 
 - WINDOW - ( Power Shell )
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
-mongodump --db crypto-bot --out "D:\backups\mongodb\backup_$timestamp"
-mongodump --db crypto-bot --out "D:\backups\mongodb\backup"
+mongodump --db crypto-bot --out "D:\crypro-bot\backups\backup_$timestamp"
+mongodump --db crypto-bot --out "D:\crypro-bot\backups"
 
 
 ----------------------------------------------------------------
