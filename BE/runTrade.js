@@ -2358,6 +2358,7 @@ socketRealtime.on("close-limit", async (data) => {
             botName
         })
     }))
+    !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
