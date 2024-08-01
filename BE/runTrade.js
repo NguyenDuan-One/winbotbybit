@@ -775,13 +775,13 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
                                         const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
-                                        const priceWinPercent = ((closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
+                                        const priceWinPercent = (Math.abs(closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
                                         const priceWin = ((closePrice - openTradeOCFilled) * qty).toFixed(2) || 0;
 
                                         let textWinLose = ""
 
                                         if (side === "Buy") {
-                                            if (priceWin > 0 && priceWinPercent > 0) {
+                                            if (priceWin > 0) {
                                                 textWinLose = `\n✅ [WIN - Buy]: ${priceWin} | ${priceWinPercent}%\n`
                                                 console.log(changeColorConsole.greenBright(textWinLose));
                                             }
@@ -791,7 +791,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                             }
                                         }
                                         else {
-                                            if (priceWin > 0 && priceWinPercent > 0) {
+                                            if (priceWin > 0) {
                                                 textWinLose = `\n❌ [LOSE - SELL]: ${-1 * priceWin} | ${priceWinPercent}%\n`
                                                 console.log(changeColorConsole.magentaBright(textWinLose));
                                             }
