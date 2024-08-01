@@ -1,10 +1,10 @@
 const { RestClientV5, WebsocketClient } = require('bybit-api');
-const StrategiesModel = require('../models/strategies.model')
+const SpotModel = require('../models/spot.model')
 const BotModel = require('../models/bot.model')
 const { v4: uuidv4 } = require('uuid');
 const { default: mongoose } = require('mongoose');
 
-const dataCoinByBitController = {
+const spotController = {
     // SOCKET
 
     checkConditionStrategies: (strategiesData) => {
@@ -12,7 +12,7 @@ const dataCoinByBitController = {
     },
     getAllStrategiesNewUpdate: async (TimeTemp) => {
 
-        const resultFilter = await StrategiesModel.aggregate([
+        const resultFilter = await SpotModel.aggregate([
             {
                 $match: {
                     children: {
@@ -41,7 +41,7 @@ const dataCoinByBitController = {
                 }
             }
         ]);
-        const result = await StrategiesModel.populate(resultFilter, {
+        const result = await SpotModel.populate(resultFilter, {
             path: 'children.botID',
         })
 
@@ -62,6 +62,7 @@ const dataCoinByBitController = {
         socketServer.emit(type, data)
         // socketServer.to("room2").emit(type, data)
     },
+
     // GET
     getSymbolFromCloud: async (userID) => {
         try {
@@ -111,12 +112,12 @@ const dataCoinByBitController = {
         }
     },
 
-    getAllStrategies: async (req, res) => {
+    getAllStrategiesSpot: async (req, res) => {
         try {
             const userID = req.user._id
 
-            // const result = await StrategiesModel.find({ "children.userID": { "$in": [userID] } }).sort({ "label": 1 }).populate("children.botID")
-            const resultFilter = await StrategiesModel.aggregate([
+            // const result = await SpotModel.find({ "children.userID": { "$in": [userID] } }).sort({ "label": 1 }).populate("children.botID")
+            const resultFilter = await SpotModel.aggregate([
                 {
                     $match: { "children.userID": new mongoose.Types.ObjectId(userID) }
                 },
@@ -162,7 +163,7 @@ const dataCoinByBitController = {
 
 
 
-            const result = await StrategiesModel.populate(resultFilter, {
+            const result = await SpotModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -182,9 +183,10 @@ const dataCoinByBitController = {
             res.status(500).json({ message: err.message });
         }
     },
-    getAllSymbol: async (req, res) => {
+
+    getAllSymbolSpot: async (req, res) => {
         try {
-            const result = await StrategiesModel.find();
+            const result = await SpotModel.find();
 
             res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => item.value));
 
@@ -192,9 +194,10 @@ const dataCoinByBitController = {
             res.status(500).json({ message: err.message });
         }
     },
+
     getAllSymbolWith24: async (req, res) => {
         try {
-            const result = await StrategiesModel.find();
+            const result = await SpotModel.find();
 
             res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => ({
                 _id: item._id,
@@ -219,7 +222,7 @@ const dataCoinByBitController = {
                 .select({ telegramToken: 0 }) // Loại bỏ trường telegramToken trong kết quả trả về
                 .sort({ Created: -1 });
 
-            const resultAll = await Promise.allSettled(botListId.map(async botData => dataCoinByBitController.getFutureBE(botData._id)))
+            const resultAll = await Promise.allSettled(botListId.map(async botData => spotController.getFutureBE(botData._id)))
 
 
             if (resultAll.some(item => item?.value?.totalWalletBalance)) {
@@ -238,7 +241,7 @@ const dataCoinByBitController = {
         }
     },
     // CREATE
-    createStrategies: async (req, res) => {
+    createStrategiesSpot: async (req, res) => {
 
         try {
             const userID = req.user._id
@@ -251,11 +254,10 @@ const dataCoinByBitController = {
 
             const newData = {
                 ...data,
-                EntryTrailing: data.EntryTrailing || 40
             }
 
             if (newData.PositionSide === "Both") {
-                result = await StrategiesModel.updateMany(
+                result = await SpotModel.updateMany(
                     { "value": { "$in": Symbol } },
                     {
                         "$push": {
@@ -269,14 +271,14 @@ const dataCoinByBitController = {
                 )
             }
             else {
-                result = await StrategiesModel.updateMany(
+                result = await SpotModel.updateMany(
                     { "value": { "$in": Symbol } },
                     { "$push": { "children": botListId.map(botID => ({ ...newData, botID, userID, TimeTemp })) } },
                     { new: true }
                 );
             }
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await SpotModel.aggregate([
                 {
                     $match: {
                         children: {
@@ -311,7 +313,7 @@ const dataCoinByBitController = {
             ]);
 
 
-            const resultGet = await StrategiesModel.populate(resultFilter, {
+            const resultGet = await SpotModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -321,17 +323,17 @@ const dataCoinByBitController = {
                 return child
             })) || []
 
-            handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
+            handleResult.length > 0 && spotController.sendDataRealtime({
                 type: "add",
                 data: handleResult
             })
 
             if (result.acknowledged && result.matchedCount !== 0) {
 
-                res.customResponse(200, "Add New Strategies Successful", []);
+                res.customResponse(200, "Add New Strategies Spot Successful", []);
             }
             else {
-                res.customResponse(400, "Add New Strategies Failed", "");
+                res.customResponse(400, "Add New Strategies Spot Failed", "");
             }
 
         }
@@ -350,13 +352,13 @@ const dataCoinByBitController = {
 
             const { parentID, newData, symbol } = req.body
 
-            const result = await StrategiesModel.updateOne(
+            const result = await SpotModel.updateOne(
                 { "children._id": strategiesID, _id: parentID },
                 { $set: { "children.$": newData } }
             )
 
-            if (dataCoinByBitController.checkConditionStrategies(newData)) {
-                dataCoinByBitController.sendDataRealtime({
+            if (spotController.checkConditionStrategies(newData)) {
+                spotController.sendDataRealtime({
                     type: "update",
                     data: [{
                         ...newData,
@@ -400,7 +402,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
 
             if (bulkResult.modifiedCount === dataList.length) {
                 res.customResponse(200, "Update Mul-Strategies Successful", "");
@@ -410,9 +412,9 @@ const dataCoinByBitController = {
 
             }
 
-            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+            const newDataSocketWithBotData = await spotController.getAllStrategiesNewUpdate(TimeTemp)
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+            newDataSocketWithBotData.length > 0 && spotController.sendDataRealtime({
                 type: "update",
                 data: newDataSocketWithBotData
             })
@@ -429,7 +431,7 @@ const dataCoinByBitController = {
 
             const strategiesID = req.params.id;
 
-            const resultGet = await StrategiesModel.findOne(
+            const resultGet = await SpotModel.findOne(
                 { _id: strategiesID },
             ).populate("children.botID")
 
@@ -439,12 +441,12 @@ const dataCoinByBitController = {
                 return child
             }) || []
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+            newDataSocketWithBotData.length > 0 && spotController.sendDataRealtime({
                 type: "delete",
                 data: newDataSocketWithBotData
             })
 
-            const result = await StrategiesModel.deleteOne(
+            const result = await SpotModel.deleteOne(
                 { _id: strategiesID },
             );
 
@@ -468,7 +470,7 @@ const dataCoinByBitController = {
 
             const { id, parentID } = req.body;
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await SpotModel.aggregate([
                 {
                     $match: {
                         "_id": new mongoose.Types.ObjectId(parentID),
@@ -490,7 +492,7 @@ const dataCoinByBitController = {
                 }
             ]);
 
-            const resultGet = await StrategiesModel.populate(resultFilter, {
+            const resultGet = await SpotModel.populate(resultFilter, {
                 path: 'children.botID',
             })
             const newDataSocketWithBotData = resultGet[0].children.map(child => {
@@ -499,12 +501,12 @@ const dataCoinByBitController = {
                 return child
             }) || []
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+            newDataSocketWithBotData.length > 0 && spotController.sendDataRealtime({
                 type: "delete",
                 data: newDataSocketWithBotData
             })
 
-            const result = await StrategiesModel.updateOne(
+            const result = await SpotModel.updateOne(
                 { _id: parentID },
                 { $pull: { children: { _id: id } } }
             );
@@ -532,7 +534,7 @@ const dataCoinByBitController = {
             const parentIDs = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.parentID));
             const ids = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.id));
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await SpotModel.aggregate([
                 {
                     $match: {
                         "_id": { $in: parentIDs }
@@ -556,7 +558,7 @@ const dataCoinByBitController = {
                 }
             ]);
 
-            const resultGet = await StrategiesModel.populate(resultFilter, {
+            const resultGet = await SpotModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -566,7 +568,7 @@ const dataCoinByBitController = {
                 return child
             })) || []
 
-            handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
+            handleResult.length > 0 && spotController.sendDataRealtime({
                 type: "delete",
                 data: handleResult
             })
@@ -578,7 +580,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
 
             // if (result.acknowledged && result.deletedCount !== 0) {
             if (bulkResult.modifiedCount === strategiesIDList.length) {
@@ -629,7 +631,7 @@ const dataCoinByBitController = {
                 });
             });
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
 
             if (bulkResult.modifiedCount === symbolList.length) {
 
@@ -638,9 +640,9 @@ const dataCoinByBitController = {
             else {
                 res.customResponse(400, "Copy Strategies To Symbol Failed", "");
             }
-            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+            const newDataSocketWithBotData = await spotController.getAllStrategiesNewUpdate(TimeTemp)
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+            newDataSocketWithBotData.length > 0 && spotController.sendDataRealtime({
                 type: "update",
                 data: newDataSocketWithBotData
             })
@@ -682,7 +684,7 @@ const dataCoinByBitController = {
                 }
             }))
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
 
             if (bulkResult.modifiedCount === symbolListData.length) {
                 res.customResponse(200, "Copy Strategies To Bot Successful", "");
@@ -691,9 +693,9 @@ const dataCoinByBitController = {
                 res.customResponse(400, "Copy Strategies To Bot Failed", "");
             }
 
-            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+            const newDataSocketWithBotData = await spotController.getAllStrategiesNewUpdate(TimeTemp)
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+            newDataSocketWithBotData.length > 0 && spotController.sendDataRealtime({
                 type: "update",
                 data: newDataSocketWithBotData
             })
@@ -707,16 +709,16 @@ const dataCoinByBitController = {
 
     },
 
-    syncSymbol: async (req, res) => {
+    syncSymbolSpot: async (req, res) => {
         try {
             const userID = req.user._id
 
-            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud(userID);
+            const listSymbolObject = await spotController.getSymbolFromCloud(userID);
 
             if (listSymbolObject?.length) {
 
 
-                const existingDocs = await StrategiesModel.find({ value: { $in: listSymbolObject.map(item => item.symbol) } });
+                const existingDocs = await SpotModel.find({ value: { $in: listSymbolObject.map(item => item.symbol) } });
 
                 const existingValues = existingDocs.map(doc => doc.value);
 
@@ -734,16 +736,16 @@ const dataCoinByBitController = {
                     });
                     newSymbolNameList.push(value.symbol);
                 })
-                await StrategiesModel.insertMany(newSymbolList)
+                await SpotModel.insertMany(newSymbolList)
 
                 if (newSymbolList.length > 0) {
                     res.customResponse(200, "Have New Sync Successful", newSymbolList[0].label)
 
-                    const newSymbolResult = await StrategiesModel.find({
+                    const newSymbolResult = await SpotModel.find({
                         value: { $in: newSymbolNameList }
                     })
 
-                    dataCoinByBitController.sendDataRealtime({
+                    spotController.sendDataRealtime({
                         type: "sync-symbol",
                         data: newSymbolResult
                     })
@@ -795,7 +797,7 @@ const dataCoinByBitController = {
             // UNIFIED: Future
             const { amount, futureLarger, botID } = req.body
 
-            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+            const resultApiKey = await spotController.getApiKeyByBot(botID)
 
             if (resultApiKey) {
 
@@ -863,7 +865,7 @@ const dataCoinByBitController = {
         try {
             const botID = req.params.id
 
-            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+            const resultApiKey = await spotController.getApiKeyByBot(botID)
 
             if (resultApiKey) {
                 const client = new RestClientV5({
@@ -901,7 +903,7 @@ const dataCoinByBitController = {
         try {
             const botID = req.params.id
 
-            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+            const resultApiKey = await spotController.getApiKeyByBot(botID)
 
             if (resultApiKey) {
                 const client = new RestClientV5({
@@ -939,7 +941,7 @@ const dataCoinByBitController = {
 
         try {
 
-            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+            const resultApiKey = await spotController.getApiKeyByBot(botID)
 
             if (resultApiKey) {
                 const API_KEY = resultApiKey.API_KEY;
@@ -987,7 +989,7 @@ const dataCoinByBitController = {
 
         try {
 
-            const resultApiKey = await dataCoinByBitController.getApiKeyByBot(botID)
+            const resultApiKey = await spotController.getApiKeyByBot(botID)
 
             if (resultApiKey) {
                 const API_KEY = resultApiKey.API_KEY;
@@ -1081,7 +1083,7 @@ const dataCoinByBitController = {
         try {
             require("../models/bot.model")
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await SpotModel.aggregate([
                 {
                     $match: { "children.IsActive": true }
                 },
@@ -1100,7 +1102,7 @@ const dataCoinByBitController = {
                     }
                 }
             ]);
-            const result = await StrategiesModel.populate(resultFilter, {
+            const result = await SpotModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -1115,12 +1117,12 @@ const dataCoinByBitController = {
 
             // const handleResult = result.reduce((result, child) => {
             //     if (child.children.length > 0 && child.children.some(childData =>
-            //         dataCoinByBitController.checkConditionStrategies(childData)
+            //         spotController.checkConditionStrategies(childData)
             //     )) {
             //         result.push({
             //             ...child,
             //             children: child.children.filter(item =>
-            //                 dataCoinByBitController.checkConditionStrategies(item)
+            //                 spotController.checkConditionStrategies(item)
             //             )
             //         })
             //     }
@@ -1133,7 +1135,7 @@ const dataCoinByBitController = {
     },
     getAllSymbolBE: async (req, res) => {
         try {
-            const result = await StrategiesModel.find();
+            const result = await SpotModel.find();
             return result || []
 
         } catch (err) {
@@ -1143,4 +1145,4 @@ const dataCoinByBitController = {
 
 }
 
-module.exports = dataCoinByBitController 
+module.exports = spotController 

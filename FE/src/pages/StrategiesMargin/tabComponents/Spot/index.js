@@ -3,26 +3,28 @@ import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrow
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import { MenuItem, Select, TextField, Avatar, CircularProgress, FormLabel, FormControl } from '@mui/material';
+import { MenuItem, Select, TextField, Avatar, CircularProgress, FormLabel, FormControl, Tooltip } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
-import { getAllStrategies, getTotalFutureByBot, syncSymbol } from '../../../../services/dataCoinByBitService';
 import { useDispatch, useSelector } from 'react-redux';
+import AddBreadcrumbs from '../../../../components/BreadcrumbsCutom';
+import { handleCheckAllCheckBox } from '../../../../functions';
+import { getAllBotActiveByUserID } from '../../../../services/botService';
+import { getTotalFutureByBot, getAllStrategies, syncSymbol } from '../../../../services/dataCoinByBitService';
 import { addMessageToast } from '../../../../store/slices/Toast';
-import CreateStrategy from '../../components/CreateStrategy';
+import { setTotalFuture } from '../../../../store/slices/TotalFuture';
 import EditMulTreeItem from '../../components/EditMulTreeItem';
 import FilterDialog from '../../components/FilterDialog';
 import TreeParent from '../../components/TreeView/TreeParent';
-import { handleCheckAllCheckBox } from '../../../../functions';
 import clsx from 'clsx';
-import { getAllBotActiveByUserID } from '../../../../services/botService';
-import { setTotalFuture } from '../../../../store/slices/TotalFuture';
+import CreateStrategy from './components/CreateStrategy';
+import { getAllStrategiesSpot, syncSymbolSpot } from '../../../../services/spotService';
 
 function Spot() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
-    
+
     const SCROLL_INDEX = 5
     const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
@@ -205,7 +207,7 @@ function Spot() {
         try {
             window.scrollTo(0, 0)
 
-            const res = await getAllStrategies()
+            const res = await getAllStrategiesSpot()
             const { status, message, data: resData } = res.data
 
             const newDataCheckTree = handleDataTree(resData)
@@ -226,7 +228,7 @@ function Spot() {
         if (!loadingUploadSymbol) {
             try {
                 setLoadingUploadSymbol(true)
-                const res = await syncSymbol()
+                const res = await syncSymbolSpot()
                 const { status, message, data: resData } = res.data
 
                 dispatch(addMessageToast({
@@ -339,53 +341,53 @@ function Spot() {
 
 
     useEffect(() => {
-        if(userData.userName)
-        {
-            handleGetAllBotByUserID()
+        if (userData.userName) {
+            // handleGetAllBotByUserID()
             handleGetAllStrategies()
-            handleGetTotalFutureByBot()
+            // handleGetTotalFutureByBot()
         }
 
     }, [userData]);
 
     useEffect(() => {
-        if (dataCheckTree.length > 0) {
+        // if (dataCheckTree.length > 0) {
 
 
-            if (selectAllRef.current) {
-                document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
-                    if (dataTreeViewIndex - SCROLL_INDEX - 1 <= index && index < dataTreeViewIndex) {
-                        item.checked = false
-                        item.click()
-                    }
-                })
-                // document.querySelectorAll(".nodeItemSelected")?.forEach((item, index) => {
-                //     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
-                //         // console.log('gasn child');
-                //         item.checked = true
-                //     }
-                // })
-            }
-            if (dataTreeViewIndex < dataCheckTree.length) {
+        //     if (selectAllRef.current) {
+        //         document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
+        //             if (dataTreeViewIndex - SCROLL_INDEX - 1 <= index && index < dataTreeViewIndex) {
+        //                 item.checked = false
+        //                 item.click()
+        //             }
+        //         })
+        //         // document.querySelectorAll(".nodeItemSelected")?.forEach((item, index) => {
+        //         //     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
+        //         //         // console.log('gasn child');
+        //         //         item.checked = true
+        //         //     }
+        //         // })
+        //     }
+        //     if (dataTreeViewIndex < dataCheckTree.length) {
 
-                document.addEventListener('scroll', handleScrollData);
-            }
-            return () => document.removeEventListener('scroll', handleScrollData);
+        //         document.addEventListener('scroll', handleScrollData);
+        //     }
+        //     return () => document.removeEventListener('scroll', handleScrollData);
 
-        }
+        // }
     }, [dataCheckTree, dataTreeViewIndex]);
 
     useEffect(() => {
-        dataCheckTreeRef.current = dataCheckTree
-        resetAfterSuccess(filterQuantityRef.current.length ? true : false, true)
+        // dataCheckTreeRef.current = dataCheckTree
+        // resetAfterSuccess(filterQuantityRef.current.length ? true : false, true)
     }, [filterQuantityRef.current.length]);
 
     useEffect(() => {
-        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange)  && handleGetAllStrategies()
+        // (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
     return (
         <div className={styles.strategies}>
+            <AddBreadcrumbs list={["Strategies"]} />
 
             <div
                 style={{
@@ -591,44 +593,54 @@ function Spot() {
             }
 
             <div className={styles.strategiesBtnAction}>
-                <div className={styles.strategiesBtnActionItem}
-                    onClick={handleSyncSymbol}
-                >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
+                <Tooltip title="Sync Symbol" placement="left">
+                    <div className={styles.strategiesBtnActionItem}
+                        onClick={handleSyncSymbol}
+                    >
 
-                        {
-                            !loadingUploadSymbol ? <CloudSyncIcon /> : <CircularProgress style={{ width: "50%", height: "50%" }} color='inherit' />
-                        }
+                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
 
-                    </Avatar>
-                </div>
-                <div className={styles.strategiesBtnActionItem}
-                    onClick={() => {
-                        dataCheckTreeSelectedRef.current.length > 0 && setOpenEditTreeItemMultipleDialog({
-                            dataChange: false,
-                            isOpen: true
-                        })
-                    }}
-                >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
-                        <EditIcon />
-                    </Avatar>
-                </div>
-                <div
-                    className={styles.strategiesBtnActionItem}
-                    onClick={() => {
-                        setOpenCreateStrategy(openCreateStrategy => ({
-                            ...openCreateStrategy,
-                            isOpen: true,
+                            {
+                                !loadingUploadSymbol ? <CloudSyncIcon /> : <CircularProgress style={{ width: "50%", height: "50%" }} color='inherit' />
+                            }
 
-                        }))
-                    }}
-                >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
-                        <AddIcon
-                        />
-                    </Avatar>
-                </div>
+                        </Avatar>
+                    </div>
+                </Tooltip>
+                <Tooltip title="Edit" placement="left">
+
+                    <div className={styles.strategiesBtnActionItem}
+                        onClick={() => {
+                            dataCheckTreeSelectedRef.current.length > 0 && setOpenEditTreeItemMultipleDialog({
+                                dataChange: false,
+                                isOpen: true
+                            })
+                        }}
+                    >
+                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
+                            <EditIcon />
+                        </Avatar>
+                    </div>
+                </Tooltip>
+                <Tooltip title="Add" placement="left">
+
+                    <div
+                        className={styles.strategiesBtnActionItem}
+                        onClick={() => {
+                            setOpenCreateStrategy(openCreateStrategy => ({
+                                ...openCreateStrategy,
+                                isOpen: true,
+
+                            }))
+                        }}
+                    >
+                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
+                            <AddIcon
+                            />
+                        </Avatar>
+                    </div>
+                </Tooltip>
+
                 {dataTreeViewIndex <= dataCheckTree.length && <KeyboardDoubleArrowDownIcon className={styles.scrollDownIcon} />}
             </div>
 

@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import { MenuItem, Select, TextField, Avatar, Checkbox, CircularProgress, FormLabel, FormControl } from '@mui/material';
+import { MenuItem, Select, TextField, Avatar, Checkbox, CircularProgress, FormLabel, FormControl, Tooltip } from '@mui/material';
 import AddBreadcrumbs from '../../components/BreadcrumbsCutom';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -24,7 +24,7 @@ import { setTotalFuture } from '../../store/slices/TotalFuture';
 function Strategies() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
-    
+
     const SCROLL_INDEX = 5
     const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
@@ -341,8 +341,7 @@ function Strategies() {
 
 
     useEffect(() => {
-        if(userData.userName)
-        {
+        if (userData.userName) {
             handleGetAllBotByUserID()
             handleGetAllStrategies()
             handleGetTotalFutureByBot()
@@ -383,7 +382,7 @@ function Strategies() {
     }, [filterQuantityRef.current.length]);
 
     useEffect(() => {
-        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange)  && handleGetAllStrategies()
+        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
     return (
@@ -594,44 +593,54 @@ function Strategies() {
             }
 
             <div className={styles.strategiesBtnAction}>
-                <div className={styles.strategiesBtnActionItem}
-                    onClick={handleSyncSymbol}
-                >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
+                <Tooltip title="Sync Symbol" placement="left">
+                    <div className={styles.strategiesBtnActionItem}
+                        onClick={handleSyncSymbol}
+                    >
 
-                        {
-                            !loadingUploadSymbol ? <CloudSyncIcon /> : <CircularProgress style={{ width: "50%", height: "50%" }} color='inherit' />
-                        }
+                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
 
-                    </Avatar>
-                </div>
-                <div className={styles.strategiesBtnActionItem}
-                    onClick={() => {
-                        dataCheckTreeSelectedRef.current.length > 0 && setOpenEditTreeItemMultipleDialog({
-                            dataChange: false,
-                            isOpen: true
-                        })
-                    }}
-                >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
-                        <EditIcon />
-                    </Avatar>
-                </div>
-                <div
-                    className={styles.strategiesBtnActionItem}
-                    onClick={() => {
-                        setOpenCreateStrategy(openCreateStrategy => ({
-                            ...openCreateStrategy,
-                            isOpen: true,
+                            {
+                                !loadingUploadSymbol ? <CloudSyncIcon /> : <CircularProgress style={{ width: "50%", height: "50%" }} color='inherit' />
+                            }
 
-                        }))
-                    }}
-                >
-                    <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
-                        <AddIcon
-                        />
-                    </Avatar>
-                </div>
+                        </Avatar>
+                    </div>
+                </Tooltip>
+                <Tooltip title="Edit" placement="left">
+
+                    <div className={styles.strategiesBtnActionItem}
+                        onClick={() => {
+                            dataCheckTreeSelectedRef.current.length > 0 && setOpenEditTreeItemMultipleDialog({
+                                dataChange: false,
+                                isOpen: true
+                            })
+                        }}
+                    >
+                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
+                            <EditIcon />
+                        </Avatar>
+                    </div>
+                </Tooltip>
+                <Tooltip title="Add" placement="left">
+
+                    <div
+                        className={styles.strategiesBtnActionItem}
+                        onClick={() => {
+                            setOpenCreateStrategy(openCreateStrategy => ({
+                                ...openCreateStrategy,
+                                isOpen: true,
+
+                            }))
+                        }}
+                    >
+                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
+                            <AddIcon
+                            />
+                        </Avatar>
+                    </div>
+                </Tooltip>
+
                 {dataTreeViewIndex <= dataCheckTree.length && <KeyboardDoubleArrowDownIcon className={styles.scrollDownIcon} />}
             </div>
 

@@ -5,6 +5,8 @@ const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBi
 
 var botListTelegram = {}
 
+var botBalance = {}
+
 const sendMessageWithRetryByBot = async ({
     messageText,
     retries = 5,
@@ -58,18 +60,18 @@ const sendMessageWithRetryByBot = async ({
 
 const handleWalletBalance = async () => {
 
-    let totalBalanceAllBot = 0
-
-    let telegramInfo = ""
 
     const botListDataActiveRes = await getAllBotActive()
     if (botListDataActiveRes.length > 0) {
         const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
-            const result = await getFutureSpotBE(item._id)
+            const botID = item._id
+
+            const result = await getFutureSpotBE(botID)
 
             // Trả về đối tượng mới cho mỗi item trong mảng
             return {
-                id: item._id,
+                id: botID,
+                botType: item.botType,
                 spotSavings: +item?.spotSavings || 0,
                 future: +result.future || 0,
                 spotTotal: +result.spotTotal || 0,
@@ -97,14 +99,28 @@ const handleWalletBalance = async () => {
                     SECRET_KEY: botData.SECRET_KEY,
                 })
 
-                console.log(`-> Saving ( ${botData.botName} ) Successful`);
+                console.log(`\n[V] Saving ( ${botData.botName} ) Successful\n`);
 
                 const balancePrice = botData.spotTotal + botData.future
-                totalBalanceAllBot += balancePrice
 
-                telegramInfo = {
-                    telegramID: botData.telegramID,
-                    telegramToken: botData.telegramToken,
+                const botID = `${botData.id}-${botData.botType}`
+
+                if (!botBalance[botID]) {
+                    botBalance[botID] = {
+                        totalBalanceAllBot: 0,
+                        telegramInfo: {
+                            telegramID: "",
+                            telegramToken: ""
+                        }
+                    }
+                }
+
+                botBalance[botID] = {
+                    totalBalanceAllBot: balancePrice + botBalance[botID].totalBalanceAllBot,
+                    telegramInfo: {
+                        telegramID: botData.telegramID,
+                        telegramToken: botData.telegramToken,
+                    }
                 }
 
                 sendMessageWithRetryByBot({
@@ -115,33 +131,30 @@ const handleWalletBalance = async () => {
                 })
             }
             else {
-                console.log(`-> Saving ( ${botData.botName} ) Failed ( < 1 )`);
+                console.log(`\n[!] Saving ( ${botData.botName} ) Failed ( < 1 )\n`);
             }
         }))
     }
-    return {
-        totalBalanceAllBot: totalBalanceAllBot.toFixed(3),
-        telegramInfo
-    }
+    // return {
+    //     totalBalanceAllBot: totalBalanceAllBot.toFixed(3),
+    //     telegramInfo
+    // }
 }
 
 
 try {
 
     cron.schedule('0 */3 * * *', async () => {
-        const {
-            totalBalanceAllBot,
-            telegramInfo
-        } = await handleWalletBalance();
-
-        telegramInfo && setTimeout(() => {
+        await handleWalletBalance();
+        const list = Object.values(botBalance)
+        list.length > 0 && list.map(item => {
             sendMessageWithRetryByBot({
-                messageText: `<b> 🍑 Total Balance Of Bot: ${totalBalanceAllBot}$ </b>`,
-                telegramID: telegramInfo.telegramID,
-                telegramToken: telegramInfo.telegramToken,
+                messageText: `<b> 🍑 Total Balance Of Bot: ${(item.totalBalanceAllBot).toFixed(3)}$ </b>`,
+                telegramID: item.telegramInfo.telegramID,
+                telegramToken: item.telegramInfo.telegramToken,
                 botName: "Total Bot"
             })
-        }, 500)
+        })
     });
 }
 
