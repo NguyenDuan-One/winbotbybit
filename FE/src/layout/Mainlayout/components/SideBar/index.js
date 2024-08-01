@@ -1,3 +1,4 @@
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PersonIcon from '@mui/icons-material/Person';
 import GridViewIcon from '@mui/icons-material/GridView';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -48,7 +49,7 @@ function SideBar({
         {
             linK: "/StrategiesMargin",
             name: "Strategies Margin",
-            icon: <LocalMallIcon className={styles.icon} />
+            icon: <ShoppingCartIcon className={styles.icon} />
         },
         {
             linK: "/Coin",
@@ -93,7 +94,7 @@ function SideBar({
                     <div key={item.linK}>
 
                         {
-                            roleList.includes(item.name) && <NavLink
+                            roleList.includes(item.linK.replace("/","")) && <NavLink
                                 className={({ isActive }) => clsx(styles.sidebarItem, isActive ? styles.active : undefined)}
                                 to={item.linK}
                             >

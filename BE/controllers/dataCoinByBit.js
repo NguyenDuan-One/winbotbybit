@@ -737,7 +737,7 @@ const dataCoinByBitController = {
                 await StrategiesModel.insertMany(newSymbolList)
 
                 if (newSymbolList.length > 0) {
-                    res.customResponse(200, "Have New Sync Successful", [])
+                    res.customResponse(200, "Have New Sync Successful", newSymbolList[0].label)
 
                     const newSymbolResult = await StrategiesModel.find({
                         value: { $in: newSymbolNameList }

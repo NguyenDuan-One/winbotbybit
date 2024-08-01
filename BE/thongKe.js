@@ -69,56 +69,7 @@ async function sendMessageWithRetry(messageText, retries = 5) {
 
 }
 
-const sendMessageWithRetryByBot = async ({
-    messageText,
-    retries = 5,
-    telegramID,
-    telegramToken,
-    botName
-}) => {
 
-    let BOT_TOKEN_RUN_TRADE = botListTelegram[telegramToken]
-
-    try {
-        if (!BOT_TOKEN_RUN_TRADE) {
-            const newBotInit = new TelegramBot(telegramToken, {
-                polling: false,
-                request: {
-                    agentOptions: {
-                        family: 4
-                    }
-                }
-            })
-            BOT_TOKEN_RUN_TRADE = newBotInit
-            botListTelegram[telegramToken] = newBotInit
-            // BOT_TOKEN_RUN_TRADE.launch();
-        }
-        for (let i = 0; i < retries; i++) {
-            try {
-                if (messageText) {
-                    // await BOT_TOKEN_RUN_TRADE.telegram.sendMessage(telegramID, messageText);
-                    await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
-                        parse_mode: "HTML"
-                    });
-                    console.log(`[->] Message sent to ( ${botName} ) telegram successfully`);
-                    return;
-                }
-            } catch (error) {
-                if (error.code === 429) {
-                    const retryAfter = error.parameters.retry_after;
-                    console.log(changeColorConsole.yellowBright(`[!] Rate limited. Retrying after ${retryAfter} seconds...`));
-                    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-                } else {
-                    throw new Error(error);
-                }
-            }
-        }
-
-        throw new Error('[!] Failed to send message after multiple retries');
-    } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
-    }
-};
 
 async function ListCoinFT() {
     let data = []

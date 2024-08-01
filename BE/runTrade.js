@@ -591,7 +591,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 const botID = botApiData.id
                 const botName = botApiData.botName
 
-
+                const telegramID = botApiData.telegramID
+                const telegramToken = botApiData.telegramToken
 
                 // allSymbol.forEach(symbol => {
                 //     resetMissData({
@@ -636,8 +637,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                             if (strategy) {
 
                                 const strategyID = strategy.value
-                                const telegramID = strategy.botID.telegramID
-                                const telegramToken = strategy.botID.telegramToken
+
 
                                 if (orderStatus === "Filled") {
 
@@ -721,9 +721,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = TPNew
 
 
-
                                         allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.qty = qty
-
 
                                         // console.log("price",dataMain.price);
                                         // console.log("avgPrice",dataMain.avgPrice);
@@ -771,7 +769,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                         const newOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.newOC
 
-                                        console.log(`\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`);
+                                        console.log(`\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}\n`);
                                         // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
                                         const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
@@ -806,7 +804,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         // Fill toàn bộ
                                         if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
                                             // 
-                                            console.log(`[_FULL Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
+                                            console.log(`\n[_FULL Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
 
                                             missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
@@ -829,7 +827,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                         }
                                         else {
-                                            console.log(`[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
+                                            console.log(`\n[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
                                         }
 
                                         cancelAll({ strategyID, botID })
@@ -1096,11 +1094,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 })
 
 
-                !botApiData?.cronSchedule && cron.schedule(`*/1 * * * * *`, () => {
-                    getMoneyFuture([botApiData])
-                });
 
-                botApiList[botID].cronSchedule = true
             }))
         }
     } catch (error) {
@@ -1820,21 +1814,14 @@ const Main = async () => {
 
 try {
     Main()
-    cron.schedule('0 */3 * * *', async () => {
-        const {
-            totalBalanceAllBot,
-            telegramInfo
-        } = await handleWalletBalance();
 
-        telegramInfo && setTimeout(() => {
-            sendMessageWithRetryByBot({
-                messageText: `<b> 🍑 Total Balance Of Bot: ${totalBalanceAllBot}$ </b>`,
-                telegramID: telegramInfo.telegramID,
-                telegramToken: telegramInfo.telegramToken,
-                botName: "Total Bot"
-            })
-        }, 500)
-    });
+    setTimeout(() => {
+        cron.schedule(`*/1 * * * * *`, () => {
+            getMoneyFuture(botApiList)
+        });
+    }, 100000)
+
+ 
 }
 
 catch (e) {

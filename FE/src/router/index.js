@@ -12,6 +12,7 @@ import Group from "../pages/Group"
 import BotType from "../pages/BotType"
 import User from "../pages/User"
 import Dashboard from "../pages/Dashboard"
+import StrategiesMargin from "../pages/StrategiesMargin"
 
 
 const routeList = [
@@ -49,7 +50,7 @@ const routeList = [
             },
             {
                 path: "StrategiesMargin",
-                element: <Strategies />,
+                element: <StrategiesMargin />,
             },
             {
                 path: "Coin",
