@@ -74,14 +74,32 @@ const RoleController = {
             }))
 
             await RoleModel.insertMany(newData)
-
-            console.log("\nInitialization Role Successful");
+            console.log("\n[V] Initialization Role Successful");
 
         } catch (error) {
             // Xử lý lỗi nếu có
-            console.log("\nInitialization Role Error", error.message);
+            console.log("\n[!] Initialization Role Error:\n", error.message);
         }
     },
+
+    addMore: async () => {
+        try {
+            const result = await RoleModel.updateMany(
+                {},
+                { "$addToSet": { roleList: "StrategiesMargin" } },
+            );
+
+            if (result.modifiedCount > 0) {
+                console.log("\n[V] Add More Role Successful");
+            }
+            else {
+                console.log("\n[!] Add More Role Failed");
+            }
+
+        } catch (err) {
+            console.log("\n[!] Add More Role Error:\n", err.message);
+        }
+    }
 
 }
 

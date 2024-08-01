@@ -558,12 +558,15 @@ const sendMessageWithRetry = async ({
 
 const getMoneyFuture = async (botApiList) => {
 
-    const resultGetFuture = await Promise.all(Object.values(botApiList).map(async botData => getFutureBE(botData.id)))
+    const list = Object.values(botApiList)
+    if (list.length > 0) {
+        const resultGetFuture = await Promise.all(list.map(async botData => getFutureBE(botData.id)))
 
-    if (resultGetFuture.length > 0) {
-        resultGetFuture.forEach(data => {
-            botAmountListObject[data.botID] = +data.totalWalletBalance
-        })
+        if (resultGetFuture.length > 0) {
+            resultGetFuture.forEach(data => {
+                botAmountListObject[data.botID] = +data.totalWalletBalance
+            })
+        }
     }
 }
 
@@ -576,6 +579,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
         if (objectToArrayLength > 0) {
 
+
             await getMoneyFuture(botApiList)
 
             console.log("[...] Subscribe new-bot-list-api successful\n");
@@ -586,6 +590,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 const SecretKey = botApiData.SecretKey
                 const botID = botApiData.id
                 const botName = botApiData.botName
+
+
 
                 // allSymbol.forEach(symbol => {
                 //     resetMissData({
@@ -1090,6 +1096,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 })
 
 
+                !botApiData?.cronSchedule && cron.schedule(`*/1 * * * * *`, () => {
+                    getMoneyFuture([botApiData])
+                });
+
+                botApiList[botID].cronSchedule = true
             }))
         }
     } catch (error) {
@@ -1105,6 +1116,78 @@ async function delay(ms) {
 
 const checkConditionBot = (botData) => {
     return botData.botID?.Status === "Running" && botData.botID?.ApiKey && botData.botID?.SecretKey
+}
+
+// ----------------------------------------------------------------------------------
+
+const handleWalletBalance = async () => {
+
+    let totalBalanceAllBot = 0
+
+    let telegramInfo = ""
+
+    const botListDataActiveRes = await getAllBotActive()
+    if (botListDataActiveRes.length > 0) {
+        const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
+            const result = await getFutureSpotBE(item._id)
+
+            // Trả về đối tượng mới cho mỗi item trong mảng
+            return {
+                id: item._id,
+                spotSavings: +item?.spotSavings || 0,
+                future: +result.future || 0,
+                spotTotal: +result.spotTotal || 0,
+                API_KEY: result.API_KEY,
+                SECRET_KEY: result.SECRET_KEY,
+                telegramID: item?.telegramID,
+                telegramToken: item?.telegramToken,
+                telegramToken: item?.telegramToken,
+                botName: item?.botName,
+            };
+
+        }))
+        botListDataActive = botListDataActiveObject.map(item => item.value)
+
+        const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
+
+            const newSpotAvailable = botData.spotTotal - botData.spotSavings
+            const average = (newSpotAvailable + botData.future) / 2
+
+            if (Math.abs(botData.future - newSpotAvailable) >= 1) {
+                await balanceWalletBE({
+                    amount: Math.abs(newSpotAvailable - average),
+                    futureLarger: botData.future - newSpotAvailable > 0,
+                    API_KEY: botData.API_KEY,
+                    SECRET_KEY: botData.SECRET_KEY,
+                })
+
+                console.log(`-> Saving ( ${botData.botName} ) Successful`);
+
+                const balancePrice = botData.spotTotal + botData.future
+                totalBalanceAllBot += balancePrice
+
+                telegramInfo = {
+                    telegramID: botData.telegramID,
+                    telegramToken: botData.telegramToken,
+                }
+
+                sendMessageWithRetryByBot({
+                    messageText: `🍉 Balance ( ${botData.botName} ): ${balancePrice.toFixed(3)}$`,
+                    telegramID: botData.telegramID,
+                    telegramToken: botData.telegramToken,
+                    botName: botData.botName
+                })
+            }
+        }))
+
+        if (resultBalance.some(item => item.status === "fulfilled")) {
+            console.log(`-> Saving All Successful`);
+        }
+    }
+    return {
+        totalBalanceAllBot: totalBalanceAllBot.toFixed(3),
+        telegramInfo
+    }
 }
 
 const Main = async () => {
@@ -1730,16 +1813,25 @@ const Main = async () => {
         console.log(changeColorConsole.redBright("[!] Subscribe kline error:", err));
     })
 
-    cron.schedule(`*/1 * * * * *`, () => {
-        Object.values(botApiList).map(botItem => {
-            getMoneyFuture([botItem])
-        })
-    });
-
 }
 
 try {
     Main()
+    cron.schedule('0 */3 * * *', async () => {
+        const {
+            totalBalanceAllBot,
+            telegramInfo
+        } = await handleWalletBalance();
+
+        telegramInfo && setTimeout(() => {
+            sendMessageWithRetryByBot({
+                messageText: `<b> 🍑 Total Balance Of Bot: ${totalBalanceAllBot}$ </b>`,
+                telegramID: telegramInfo.telegramID,
+                telegramToken: telegramInfo.telegramToken,
+                botName: "Total Bot"
+            })
+        }, 500)
+    });
 }
 
 catch (e) {

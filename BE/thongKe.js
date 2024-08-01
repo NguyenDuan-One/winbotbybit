@@ -4,8 +4,6 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 var cron = require('node-cron');
-const { getAllBotActive } = require('./controllers/bot');
-const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
 
 const API_KEY = 'foRfrB7L1GgXt1Ly5O';
 const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
@@ -29,6 +27,8 @@ let ListCoin3m = []
 let ListCoin5m = []
 let digit = []
 let OpenTimem1 = []
+
+let botListTelegram = {}
 
 let wsConfig = {
     // key: API_KEY,
@@ -100,7 +100,7 @@ const sendMessageWithRetryByBot = async ({
                     await BOT_TOKEN_RUN_TRADE.sendMessage(telegramID, messageText, {
                         parse_mode: "HTML"
                     });
-                    console.log(`[->] Message sent to ${botName} telegram successfully`);
+                    console.log(`[->] Message sent to ( ${botName} ) telegram successfully`);
                     return;
                 }
             } catch (error) {
@@ -512,68 +512,17 @@ const handleStatistic = async (statisticLabel) => {
 }
 
 
-const handleWalletBalance = async () => {
-
-    let totalBalanceAllBot = 0
-
-    let telegramInfo = ""
-
-    const botListDataActiveRes = await getAllBotActive()
-    if (botListDataActiveRes.length > 0) {
-        const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
-            const result = await getFutureSpotBE(item._id)
-
-            // Trả về đối tượng mới cho mỗi item trong mảng
-            return {
-                id: item._id,
-                spotSavings: item?.spotSavings || 0,
-                future: result.future || 0,
-                spotTotal: result.spotTotal || 0,
-                API_KEY: result.API_KEY,
-                SECRET_KEY: result.SECRET_KEY,
-                telegramID: item?.telegramID,
-                telegramToken: item?.telegramToken,
-                telegramToken: item?.telegramToken,
-                botName: item?.botName,
-            };
-
-        }))
-        botListDataActive = botListDataActiveObject.map(item => item.value)
-
-        const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
-            const newSpotAvailable = botData.spotTotal - botData.spotSavings
-            const average = (newSpotAvailable + botData.future) / 2
-
-            if (Math.abs(botData.future - newSpotAvailable) >= 1) {
-                await balanceWalletBE({
-                    amount: Math.abs(newSpotAvailable - average),
-                    futureLarger: botData.future - newSpotAvailable > 0,
-                    API_KEY: botData.API_KEY,
-                    SECRET_KEY: botData.SECRET_KEY,
-                })
-            }
-        }))
-        if (resultBalance.some(item => item.status === "fulfilled")) {
-            console.log("-> Saving Successful");
-            const balancePrice = botData.spotTotal + botData.future
-            totalBalanceAllBot += balancePrice
-
-            telegramInfo = {
-                telegramID: botData.telegramID,
-                telegramToken: botData.telegramToken,
-            }
-
-            sendMessageWithRetryByBot({
-                messageText: `🍉 Balance ( ${botData.botName} ): ${balancePrice}`,
-                telegramID: botData.telegramID,
-                telegramToken: botData.telegramToken,
-                botName: botData.botName
-            })
-        }
-    }
-    return {
-        totalBalanceAllBot,
-        telegramInfo
+const handleTinhOC = ({
+    dataCoin,
+    symbol
+}) => {
+    const messageList = []
+    dataCoin.data.forEach((e) => {
+        tinhOC(symbol, e, messageList)
+    })
+    if (messageList.length) {
+        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
+        sendMessageWithRetry(messageList.join("\n"))
     }
 }
 
@@ -581,7 +530,6 @@ let Main = async () => {
 
     CoinFT = await ListCoinFT()
 
-    //sub allcoin
     wsSymbol.subscribeV5(ListCoin1m, 'linear').catch((err) => { console.log(err) });
     wsSymbol.subscribeV5(ListCoin3m, 'linear').catch((err) => { console.log(err) });
     wsSymbol.subscribeV5(ListCoin5m, 'linear').catch((err) => { console.log(err) });
@@ -636,21 +584,14 @@ let Main = async () => {
     ]
 
 
-    const handleTinhOC = ({
-        dataCoin,
-        symbol
-    }) => {
-        const messageList = []
-        dataCoin.data.forEach((e) => {
-            tinhOC(symbol, e, messageList)
-        })
-        if (messageList.length) {
-            console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
-            sendMessageWithRetry(messageList.join("\n"))
-        }
-    }
+
     wsSymbol.on('update', async (dataCoin) => {
         if (dataCoin.wsKey === "v5LinearPublic") {
+
+            if (dataCoin.data[0].confirm === true) {
+                const symbol = dataCoin.topic.split(".").slice(-1)[0]
+                handleTinhOC({ dataCoin, symbol })
+            }
 
             // if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
             //     if (dataCoin.data[0].confirm == true) {
@@ -658,20 +599,11 @@ let Main = async () => {
             //         !statistic1 && statisticTimeLoop1.map(item => {
             //             cron.schedule(`0 ${item.minute} ${item.hour} * * *`, () => {
             //                 handleStatistic("Statistic 1...")
-            //                 // handleWalletBalance()
             //             });
             //         })
             //         statistic1 = true
             //     }
             // }
-
-
-            if (dataCoin.data[0].confirm === true) {
-                const symbol = dataCoin.topic.split(".").slice(-1)[0]
-                handleTinhOC({ dataCoin, symbol })
-            }
-
-            // 3M
 
             // if (dataCoin.topic.indexOf("kline.3.BTCUSDT") != -1) {
             //     if (dataCoin.data[0].confirm == true) {
@@ -684,7 +616,6 @@ let Main = async () => {
             //         statistic3 = true
             //     }
             // }
-
 
 
             // if (dataCoin.topic.indexOf("kline.5.BTCUSDT") != -1) {
@@ -702,22 +633,8 @@ let Main = async () => {
 
         }
 
-
     });
 
-    cron.schedule('0 */3 * * *', () => {
-        const {
-            totalBalanceAllBot,
-            telegramInfo
-        } = handleWalletBalance();
-        
-        sendMessageWithRetryByBot({
-            messageText: `<b> 🍑 Total Balance Of Bot: ${totalBalanceAllBot}$ </b>`,
-            telegramID: telegramInfo.telegramID,
-            telegramToken: telegramInfo.telegramToken,
-        })
-        
-    });
 
     //Báo lỗi socket$ pm2 start app.js
     wsSymbol.on('error', (err) => {

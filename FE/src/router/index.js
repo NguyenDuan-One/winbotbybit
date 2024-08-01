@@ -48,6 +48,10 @@ const routeList = [
                 element: <Strategies />,
             },
             {
+                path: "StrategiesMargin",
+                element: <Strategies />,
+            },
+            {
                 path: "Coin",
                 element: <Coin />,
             },

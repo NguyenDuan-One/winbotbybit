@@ -99,7 +99,7 @@ function Wallet() {
             .then(res => {
                 const data = res.data.data;
                 if (data) {
-                    const newSpotSavings = +data?.spotSavings
+                    const newSpotSavings = +data?.spotSavings || 0
 
                     spotAvailable.current = {
                         dataBalance: 0,
@@ -109,7 +109,7 @@ function Wallet() {
                         }
                     }
 
-                    setSpotSaving(newSpotSavings || 0)
+                    setSpotSaving(newSpotSavings)
                 }
             }
 
@@ -205,7 +205,7 @@ function Wallet() {
 
                     <div className={styles.overviewInfoListItem}>
                         <p className={styles.label}>Spot Available</p>
-                        <p>{formatNumber(spotAvailable.current.dataBalance || spotAvailable.current.dataFirst.spotTotal - spotAvailable.current.dataFirst.spotSavings)} $</p>
+                        <p>{formatNumber(spotAvailable.current.dataBalance || (spotAvailable.current.dataFirst.spotTotal - spotAvailable.current.dataFirst.spotSavings))} $</p>
                     </div>
 
                     <div className={styles.overviewInfoListItem}>
@@ -236,7 +236,7 @@ function Wallet() {
                         /> */}
                         <TextField
                             size="small"
-                            value={spotSaving.toLocaleString("en-EN")}
+                            value={spotSaving}
                             type='number'
                             onChange={e => {
                                 const value = e.target.value;

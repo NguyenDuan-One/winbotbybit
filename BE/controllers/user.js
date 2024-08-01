@@ -18,14 +18,14 @@ const UserController = {
             const savedBot = await newUser.save();
 
             if (savedBot) {
-                console.log("\nAdd Account SuperAdmin Successful");
+                console.log("\n[V] Add Account SuperAdmin Successful");
             }
             else {
-                console.log("\nAdd Account SuperAdmin Failed");
+                console.log("\n[!] Add Account SuperAdmin Failed");
             }
 
         } catch (error) {
-            console.error("\nERROR: ", error.message);
+            console.error("\n[!] ERROR:\n", error.message);
         }
     },
     changePassword: async (req, res) => {
@@ -165,7 +165,7 @@ const UserController = {
                         _id: { $ne: userID },
                         roleName: { $in: ["Trader"] },
                         isActive: true,
-                        groupID: { $eq: groupID, $ne: null } 
+                        groupID: { $eq: groupID, $ne: null }
                     }, { password: 0 });
                     break
             }

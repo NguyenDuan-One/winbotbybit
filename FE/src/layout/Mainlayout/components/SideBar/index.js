@@ -46,6 +46,11 @@ function SideBar({
             icon: <LocalMallIcon className={styles.icon} />
         },
         {
+            linK: "/StrategiesMargin",
+            name: "Strategies Margin",
+            icon: <LocalMallIcon className={styles.icon} />
+        },
+        {
             linK: "/Coin",
             name: "Coin",
             icon: <CurrencyExchangeIcon className={styles.icon} />
