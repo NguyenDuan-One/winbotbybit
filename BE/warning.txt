@@ -13,7 +13,6 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 crontab -e
 0 */2 * * * /usr/bin/mongodump --out /root/backups/$(date +\%F_%H-%M-%S) && find /root/backups/ -type d -mtime +14 -exec rm -rf {} \; >> /var/log/mongo_backup.log 2>&1
-* * * * * echo "Cron job started at $(date)" >> /var/log/mongo_backup.log; /usr/bin/mongodump --out /root/backups/$(date +\%F_%H-%M-%S) >> /var/log/mongo_backup.log 2>&1; find /root/backups/ -type d -mtime +14 -exec rm -rf {} \; >> /var/log/mongo_backup.log 2>&1
 
 
 - WINDOW - ( Power Shell )

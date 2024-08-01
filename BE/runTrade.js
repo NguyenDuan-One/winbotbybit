@@ -1210,12 +1210,15 @@ const Main = async () => {
             const symbol = strategyItem.symbol
             const Candlestick = strategyItem.Candlestick.split("")[0]
 
+
             if (!botApiList[botID]) {
                 botApiList[botID] = {
                     id: botID,
                     botName,
                     ApiKey: strategyItem.botID.ApiKey,
                     SecretKey: strategyItem.botID.SecretKey,
+                    telegramID: strategyItem.botID.telegramID,
+                    telegramToken: strategyItem.botID.telegramToken,
                 }
             }
 
@@ -1878,12 +1881,16 @@ socketRealtime.on('add', async (newData = []) => {
                     botName,
                     ApiKey,
                     SecretKey,
+                    telegramID: newStrategiesData.botID.telegramID,
+                    telegramToken: newStrategiesData.botID.telegramToken,
                 }
                 newBotApiList[botID] = {
                     id: botID,
                     botName,
                     ApiKey,
-                    SecretKey
+                    SecretKey,
+                    telegramID: newStrategiesData.botID.telegramID,
+                    telegramToken: newStrategiesData.botID.telegramToken,
                 }
             }
 
@@ -1942,13 +1949,17 @@ socketRealtime.on('update', async (newData = []) => {
                         id: botID,
                         botName,
                         ApiKey,
-                        SecretKey
+                        SecretKey,
+                        telegramID: strategiesData.botID.telegramID,
+                        telegramToken: strategiesData.botID.telegramToken,
                     }
                     newBotApiList[botID] = {
                         id: botID,
                         botName,
                         ApiKey,
-                        SecretKey
+                        SecretKey,
+                        telegramID: strategiesData.botID.telegramID,
+                        telegramToken: strategiesData.botID.telegramToken,
                     }
                 }
             }
@@ -2114,13 +2125,17 @@ socketRealtime.on('bot-update', async (data = {}) => {
                     id: botID,
                     ApiKey,
                     SecretKey,
-                    botName
+                    botName,
+                    telegramID: strategiesData.botID.telegramID,
+                    telegramToken: strategiesData.botID.telegramToken,
                 }
                 newBotApiList[botID] = {
                     id: botID,
                     ApiKey,
                     SecretKey,
-                    botName
+                    botName,
+                    telegramID: strategiesData.botID.telegramID,
+                    telegramToken: strategiesData.botID.telegramToken,
                 }
             }
         }
