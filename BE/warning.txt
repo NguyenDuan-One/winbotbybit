@@ -12,7 +12,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ------------------------------------------------------------------------------------------------
 
 crontab -e
-0 */2 * * * /usr/bin/mongodump --out /backups/mongodb/$(date +\%F_%H-%M-%S) && find /backups/mongodb -type d -mtime +14 -exec rm -rf {} \; >> /var/log/mongo_backup.log 2>&1
+0 */2 * * * /usr/bin/mongodump --out /root/backups/$(date +\%F_%H-%M-%S) && find /root/backups/ -type d -mtime +14 -exec rm -rf {} \; >> /var/log/mongo_backup.log 2>&1
+* * * * * echo "Cron job started at $(date)" >> /var/log/mongo_backup.log; /usr/bin/mongodump --out /root/backups/$(date +\%F_%H-%M-%S) >> /var/log/mongo_backup.log 2>&1; find /root/backups/ -type d -mtime +14 -exec rm -rf {} \; >> /var/log/mongo_backup.log 2>&1
+
 
 - WINDOW - ( Power Shell )
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
@@ -22,9 +24,14 @@ mongodump --db crypto-bot --out "D:\crypro-bot\backups"
 
 ----------------------------------------------------------------
 
-mongosh --eval 'db.getSiblingDB("crypto-bot").dropDatabase()' && mongorestore --db crypto-bot /backups/crypto-bot
+mongosh --eval 'db.getSiblingDB("crypto-bot").dropDatabase()' && mongorestore --db crypto-bot /root/backups/...
 
 - WINDOW - ( Power Shell )
 mongorestore --db crypto-bot D:\backups\mongodb\backup_2024-07-29_09-57-47\crypto-bot
 
 ------------------------------------------------------------------------------------------------
+
+Check error CronTab:
+    grep CRON /var/log/syslog
+    
+
