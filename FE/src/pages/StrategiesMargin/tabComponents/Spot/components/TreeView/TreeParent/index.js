@@ -10,11 +10,11 @@ import clsx from "clsx";
 import styles from "./TreeParent.module.scss"
 import TreeChild from '../TreeChild';
 import { memo, useEffect, useState } from 'react';
-import DialogCustom from '../../../../../components/DialogCustom';
-import { deleteStrategies, updateStrategiesMultiple } from '../../../../../services/dataCoinByBitService';
 import { useDispatch } from 'react-redux';
-import { addMessageToast } from '../../../../../store/slices/Toast';
-import { handleCheckAllCheckBox } from '../../../../../functions';
+import DialogCustom from '../../../../../../../components/DialogCustom';
+import { handleCheckAllCheckBox } from '../../../../../../../functions';
+import { updateStrategiesMultiple, deleteStrategies } from '../../../../../../../services/dataCoinByBitService';
+import { addMessageToast } from '../../../../../../../store/slices/Toast';
 function TreeParent({
     treeData,
     dataCheckTreeSelectedRef,
@@ -247,15 +247,15 @@ function TreeParent({
                                     }>Action</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Bot</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Position</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Amount</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>OC</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Auto amount	</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Expire</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Reduce</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Extended</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Ignore</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>EntryTrailing</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>StopLose</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Amount ($)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>OC (%)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Auto amount	(%)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Expire (min)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Limit ($)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Auto OC (%)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Amount exp (min)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Adaptive</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Reverse</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Volume24h</TableCell>
                                 </TableRow>
                             </TableHead>

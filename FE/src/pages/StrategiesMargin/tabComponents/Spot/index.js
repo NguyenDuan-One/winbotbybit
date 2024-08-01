@@ -14,11 +14,11 @@ import { getAllBotActiveByUserID } from '../../../../services/botService';
 import { getTotalFutureByBot, getAllStrategies, syncSymbol } from '../../../../services/dataCoinByBitService';
 import { addMessageToast } from '../../../../store/slices/Toast';
 import { setTotalFuture } from '../../../../store/slices/TotalFuture';
-import EditMulTreeItem from '../../components/EditMulTreeItem';
-import FilterDialog from '../../components/FilterDialog';
-import TreeParent from '../../components/TreeView/TreeParent';
-import clsx from 'clsx';
+import EditMulTreeItem from './components/EditMulTreeItem';
+import FilterDialog from './components/FilterDialog';
+import TreeParent from './components/TreeView/TreeParent';
 import CreateStrategy from './components/CreateStrategy';
+import clsx from 'clsx';
 import { getAllStrategiesSpot, syncSymbolSpot } from '../../../../services/spotService';
 
 function Spot() {
@@ -54,36 +54,36 @@ function Spot() {
         },
     ]
 
-    const candlestickList = [
-        {
-            name: "All",
-            value: "All",
-        },
-        {
-            name: "1m",
-            value: "1m",
-        },
-        {
-            name: "3m",
-            value: "3m",
-        },
-        {
-            name: "5m",
-            value: "5m",
-        },
-        {
-            name: "15m",
-            value: "15m",
-        },
-        // {
-        //     name: "30m",
-        //     value: "30m",
-        // },
-        // {
-        //     name: "60m",
-        //     value: "60m",
-        // },
-    ]
+    // const candlestickList = [
+    //     {
+    //         name: "All",
+    //         value: "All",
+    //     },
+    //     {
+    //         name: "1m",
+    //         value: "1m",
+    //     },
+    //     {
+    //         name: "3m",
+    //         value: "3m",
+    //     },
+    //     {
+    //         name: "5m",
+    //         value: "5m",
+    //     },
+    //     {
+    //         name: "15m",
+    //         value: "15m",
+    //     },
+    //     // {
+    //     //     name: "30m",
+    //     //     value: "30m",
+    //     // },
+    //     // {
+    //     //     name: "60m",
+    //     //     value: "60m",
+    //     // },
+    // ]
 
 
     const [openFilterDialog, setOpenFilterDialog] = useState(false);
@@ -113,7 +113,7 @@ function Spot() {
     const [botTypeSelected, setBotTypeSelected] = useState("All");
     const [botSelected, setBotSelected] = useState("All");
     const [positionSideSelected, setPositionSideSelected] = useState(positionSideList[0].value);
-    const [candlestickSelected, setCandlestickSelected] = useState(candlestickList[0].value);
+    // const [candlestickSelected, setCandlestickSelected] = useState(candlestickList[0].value);
 
     const filterQuantityRef = useRef([])
     const searchRef = useRef("")
@@ -264,10 +264,10 @@ function Spot() {
                 name: "PositionSide",
                 value: positionSideSelected
             },
-            {
-                name: "Candlestick",
-                value: candlestickSelected
-            }
+            // {
+            //     name: "Candlestick",
+            //     value: candlestickSelected
+            // }
         ]
 
         const filterList = filterListDefault.map(filterItem => {
@@ -327,7 +327,7 @@ function Spot() {
             setBotSelected('All')
             setBotTypeSelected("All")
             setPositionSideSelected(positionSideList[0].value)
-            setCandlestickSelected(candlestickList[0].value)
+            // setCandlestickSelected(candlestickList[0].value)
         }
     }
 
@@ -342,7 +342,7 @@ function Spot() {
 
     useEffect(() => {
         if (userData.userName) {
-            // handleGetAllBotByUserID()
+            handleGetAllBotByUserID()
             handleGetAllStrategies()
             // handleGetTotalFutureByBot()
         }
@@ -492,14 +492,14 @@ function Spot() {
                         </Select>
                     </FormControl>
 
-                    <FormControl className={styles.strategiesHeaderItem}>
+                    {/* <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Candle</FormLabel>
                         <Select
                             value={candlestickSelected}
                             size="small"
                             onChange={e => {
                                 const value = e.target.value;
-                                setCandlestickSelected(value);
+                                // setCandlestickSelected(value);
                                 handleFilterAll({
                                     name: "Candlestick",
                                     value
@@ -512,7 +512,7 @@ function Spot() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
 
                 </div>
 

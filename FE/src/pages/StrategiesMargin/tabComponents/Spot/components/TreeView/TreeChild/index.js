@@ -1,15 +1,16 @@
+import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import styles from "./TreeChild.module.scss"
-import { deleteStrategiesItem, updateStrategiesByID } from '../../../../../services/dataCoinByBitService';
-import { addMessageToast } from '../../../../../store/slices/Toast';
 import { useDispatch } from 'react-redux';
-import DialogCustom from '../../../../../components/DialogCustom';
 import { memo, useCallback, useState } from 'react';
 import { TableRow, TableCell, Switch } from '@mui/material';
 import UpdateStrategy from '../../UpdateStrategy';
 import clsx from 'clsx';
-import { formatNumberString, handleCheckAllCheckBox } from '../../../../../functions';
+import DialogCustom from '../../../../../../../components/DialogCustom';
+import { handleCheckAllCheckBox, formatNumberString } from '../../../../../../../functions';
+import { deleteStrategiesItem, updateStrategiesByID } from '../../../../../../../services/dataCoinByBitService';
+import { addMessageToast } from '../../../../../../../store/slices/Toast';
 
 function TreeChild({
     treeData,
@@ -195,7 +196,7 @@ function TreeChild({
                                 // }
 
                                 // dataCheckTreeSelectedRef.current = newDataCheckTreeSelected;
-                                dataCheckTreeSelectedRef.current = dataCheckTreeSelectedRef.current.filter(currentItem=>currentItem !== targetString);
+                                dataCheckTreeSelectedRef.current = dataCheckTreeSelectedRef.current.filter(currentItem => currentItem !== targetString);
 
                             }
                         }}
@@ -264,12 +265,19 @@ function TreeChild({
                 <TableCell className={styles.tableBodyCell} style={{
                     color: treeNode.PositionSide === "Long" ? "green" : "red"
                 }}>{treeNode.PositionSide}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.Amount}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.OrderChange}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
-        </TableRow >
-        {
-            openDeleteTreeItem.isOpen &&
+                <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.Amount)}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.OrderChange}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.AmountAutoPercent}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.Expire}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.Limit)}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.AmountIncreaseOC}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.AmountExpire}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.Adaptive && <CheckIcon/>}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.Reverse && <CheckIcon/>}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
+            </TableRow >
+            {
+                openDeleteTreeItem.isOpen &&
 
                 <DialogCustom
                     dialogTitle='The action requires confirmation'
@@ -289,22 +297,22 @@ function TreeChild({
                     <p>Are you remove this item?</p>
                 </DialogCustom>
 
-        }
+            }
 
 
-    {
-        openUpdateStrategy.isOpen &&
+            {
+                openUpdateStrategy.isOpen &&
 
-        <UpdateStrategy
-            onClose={(data) => {
-                setOpenUpdateStrategy(data)
-            }}
-            treeNodeValue={openUpdateStrategy.data.treeNode}
-            symbolValue={openUpdateStrategy.data.symbolValue}
-            handleUpdateDataAfterSuccess={handleUpdateDataAfterSuccess}
-        />
+                <UpdateStrategy
+                    onClose={(data) => {
+                        setOpenUpdateStrategy(data)
+                    }}
+                    treeNodeValue={openUpdateStrategy.data.treeNode}
+                    symbolValue={openUpdateStrategy.data.symbolValue}
+                    handleUpdateDataAfterSuccess={handleUpdateDataAfterSuccess}
+                />
 
-    }
+            }
         </>
     );
 }

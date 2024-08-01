@@ -1,12 +1,11 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useEffect, useMemo, useRef, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
 import { Autocomplete, Button, Checkbox, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 import { useDispatch } from 'react-redux';
-import { addMessageToast } from '../../../../store/slices/Toast';
-import { copyMultipleStrategiesToBot, copyMultipleStrategiesToSymbol, deleteStrategiesMultiple, getAllSymbol, updateStrategiesMultiple } from '../../../../services/dataCoinByBitService';
-import { getAllBot } from '../../../../services/botService';
+import DialogCustom from '../../../../../../components/DialogCustom';
+import { addMessageToast } from '../../../../../../store/slices/Toast';
+import { updateStrategiesMultiple, deleteStrategiesMultiple, copyMultipleStrategiesToSymbol, copyMultipleStrategiesToBot, getAllSymbol } from '../../../../../../services/dataCoinByBitService';
 
 function EditMulTreeItem({
     onClose,

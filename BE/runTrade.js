@@ -852,6 +852,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
 
                                         if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal - missTPDataBySymbol[botSymbolMissID].size > 0) {
+                                            missTPDataBySymbol[botSymbolMissID].gongLai = true
                                             updatePositionBE({
                                                 newDataUpdate: {
                                                     Miss: true,
@@ -862,6 +863,10 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 console.log(message);
                                             }).catch(err => {
                                                 console.log(changeColorConsole.redBright(err));
+                                            })
+                                            resetMissData({
+                                                botID,
+                                                symbol,
                                             })
                                         }
 
@@ -1821,7 +1826,7 @@ try {
         });
     }, 100000)
 
- 
+
 }
 
 catch (e) {

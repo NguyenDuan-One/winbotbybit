@@ -3,9 +3,9 @@ import { NumericFormat } from 'react-number-format';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useEffect, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
 import { Checkbox, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
-import { handleCheckAllCheckBox } from '../../../../functions';
+import DialogCustom from '../../../../../../components/DialogCustom';
+import { handleCheckAllCheckBox } from '../../../../../../functions';
 
 function FilterDialog({
     onClose,
