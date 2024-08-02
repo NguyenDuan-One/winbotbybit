@@ -611,8 +611,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
                     wsOrder.on('update', async (dataCoin) => {
 
-                        const telegramID = botApiData.telegramID
-                        const telegramToken = botApiData.telegramToken
+                        const telegramID = botApiList[botID].telegramID
+                        const telegramToken = botApiList[botID].telegramToken
 
                         const dataMain = dataCoin.data[0]
                         const symbol = dataMain.symbol
