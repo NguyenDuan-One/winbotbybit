@@ -104,16 +104,11 @@ function Strategies() {
 
     const dataCheckTreeSelectedRef = useRef([])
     const dataCheckTreeDefaultRef = useRef([])
-    const dataCheckTreeRef = useRef([])
     const [dataCheckTree, setDataCheckTree] = useState([]);
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
     const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX_FIRST);
 
     // Filter
-    const [botTypeSelected, setBotTypeSelected] = useState("All");
-    const [botSelected, setBotSelected] = useState("All");
-    const [positionSideSelected, setPositionSideSelected] = useState(positionSideList[0].value);
-    const [candlestickSelected, setCandlestickSelected] = useState(candlestickList[0].value);
 
     const filterQuantityRef = useRef([])
     const searchRef = useRef("")
@@ -309,13 +304,6 @@ function Strategies() {
         setDataTreeViewIndex(SCROLL_INDEX_FIRST)
     }
 
-    // const dataCheckTreeCurrentLength = useMemo(() => {
-    //     const list = dataCheckTreeRef.current.length > 0 ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
-    //     const result = list.reduce((pre, cur) => {
-    //         return pre += cur.children.length
-    //     }, 0)
-    //     return result
-    // }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
 
     useEffect(() => {
         if (userData.userName) {
@@ -357,7 +345,6 @@ function Strategies() {
         (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
-    console.log('chanfge');
     return (
         <div className={styles.strategies}>
             <AddBreadcrumbs list={["Strategies"]} />

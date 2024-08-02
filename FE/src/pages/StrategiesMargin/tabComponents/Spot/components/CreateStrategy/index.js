@@ -358,19 +358,19 @@ function CreateStrategy({
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Amount expire"
+                            label="Expire"
                             variant="outlined"
-                            defaultValue={50}
+                            defaultValue={100}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
                                     min
                                 </InputAdornment>
                             }}
-                            {...register("AmountExpire", { required: true, min: formControlMinValue })}
+                            {...register("Expire", { required: true, min: formControlMinValue })}
                         />
-                        {errors.AmountExpire?.type === 'required' && <p className="formControlErrorLabel">The Amount expire field is required.</p>}
-                        {errors.AmountExpire?.type === "min" && <p className="formControlErrorLabel">The Amount expire must bigger 0.1.</p>}
+                        {errors.Expire?.type === 'required' && <p className="formControlErrorLabel">The Expire field is required.</p>}
+                        {errors.Expire?.type === "min" && <p className="formControlErrorLabel">The Expire must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -415,19 +415,19 @@ function CreateStrategy({
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Expire"
+                            label="Amount expire"
                             variant="outlined"
-                            defaultValue={100}
+                            defaultValue={50}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
                                     min
                                 </InputAdornment>
                             }}
-                            {...register("Expire", { required: true, min: formControlMinValue })}
+                            {...register("AmountExpire", { required: true, min: formControlMinValue })}
                         />
-                        {errors.Expire?.type === 'required' && <p className="formControlErrorLabel">The Expire field is required.</p>}
-                        {errors.Expire?.type === "min" && <p className="formControlErrorLabel">The Expire must bigger 0.1.</p>}
+                        {errors.AmountExpire?.type === 'required' && <p className="formControlErrorLabel">The Amount expire field is required.</p>}
+                        {errors.AmountExpire?.type === "min" && <p className="formControlErrorLabel">The Amount expire must bigger 0.1.</p>}
 
                     </FormControl>
 

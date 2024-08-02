@@ -345,7 +345,7 @@ const spotController = {
     },
 
     // UPDATE
-    updateStrategiesByID: async (req, res) => {
+    updateStrategiesSpotByID: async (req, res) => {
         try {
 
             const strategiesID = req.params.id;
@@ -369,15 +369,15 @@ const spotController = {
             }
 
             if (result.acknowledged && result.matchedCount !== 0) {
-                res.customResponse(200, "Update Strategies Successful", "");
+                res.customResponse(200, "Update Strategies Spot Successful", "");
             }
             else {
-                res.customResponse(400, "Update Strategies Failed", "");
+                res.customResponse(400, "Update Strategies Spot Failed", "");
             }
 
         } catch (error) {
             // Xử lý lỗi nếu có
-            res.status(500).json({ message: "Update Strategies Error" });
+            res.status(500).json({ message: "Update Strategies Spot Error" });
         }
     },
 
@@ -967,7 +967,7 @@ const spotController = {
                 const result = await Promise.all([getFuture, getSpot])
                 if (result.every(item => item.retCode === 0)) {
                     return {
-                        future: result[0]?.result?.list?.[0]?.totalWalletBalance || 0,
+                        future: result[0]?.result?.list?.[0]?.coin[0].walletBalance || 0,
                         spotTotal: result[1]?.result?.balance?.[0]?.walletBalance || 0,
                         API_KEY,
                         SECRET_KEY
@@ -1011,7 +1011,7 @@ const spotController = {
 
                 if (result.retCode === 0) {
                     return {
-                        totalWalletBalance: result.result?.list?.[0]?.totalWalletBalance || 0,
+                        totalWalletBalance: result.result?.list?.[0]?.coin[0].walletBalance || 0,
                         botID
                     }
                 }

@@ -93,6 +93,23 @@ const AuthController = {
         }
     },
 
+    verifyTokenVIP: async (req, res) => {
+
+        const {token} = req.body;
+
+        jwt.verify(token, secretKey, async (err, user) => {
+            if (err) {
+                return res.customResponse(400, "Your session has expired", "");
+            }
+            const result = await UserModel.findById(user._id)
+            if (!result?.isActive) {
+                return res.customResponse(400, "UserName Is Not Active", "");
+            }
+            return res.customResponse(200, "Verify VIP successful", user);
+        });
+
+    },
+
 }
 
 module.exports = AuthController 

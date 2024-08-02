@@ -11,7 +11,8 @@ function FilterDialog({
     onClose,
     filterQuantityRef,
     dataCheckTreeDefaultRef,
-    setDataCheckTree
+    setDataCheckTree,
+    resetAfterSuccess
 }) {
 
     const compareFilterListDefault = [
@@ -22,25 +23,6 @@ function FilterDialog({
         "<=",
     ]
 
-    const candlestickValueList = [
-        {
-            name: "1m",
-            value: "1m"
-        },
-        {
-            name: "3m",
-            value: "3m"
-        },
-        {
-            name: "5m",
-            value: "5m"
-        },
-        {
-            name: "15m",
-            value: "15m"
-        },
-
-    ]
 
     const positionValueList = [
         {
@@ -86,8 +68,8 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "Extended",
-            value: "ExtendedOCPercent",
+            name: "Auto amount",
+            value: "AmountAutoPercent",
             compareFilterList: compareFilterListDefault,
 
         },
@@ -97,8 +79,8 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "TP",
-            value: "TakeProfit",
+            name: "Expire",
+            value: "Expire",
             compareFilterList: compareFilterListDefault,
 
         },
@@ -107,8 +89,8 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "Reduce",
-            value: "ReduceTakeProfit",
+            name: "Limit",
+            value: "Limit",
             compareFilterList: compareFilterListDefault,
         },
         {
@@ -116,19 +98,20 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "Ignore",
-            value: "Ignore",
+            name: "Auto OC",
+            value: "AmountIncreaseOC",
             compareFilterList: compareFilterListDefault,
         },
         {
             data: {
                 compare: "=",
-                value: "1m"
+                value: ""
             },
-            name: "Candlestick",
-            value: "Candlestick",
-            compareFilterList: ["="],
+            name: "Amount exp",
+            value: "AmountExpire",
+            compareFilterList: compareFilterListDefault,
         },
+
         {
             data: {
                 compare: "=",
@@ -142,21 +125,23 @@ function FilterDialog({
         {
             data: {
                 compare: "=",
-                value: ""
+                value: false
             },
-            name: "EntryTrailing",
-            value: "EntryTrailing",
-            compareFilterList: compareFilterListDefault,
+            name: "Adaptive",
+            value: "Adaptive",
+            compareFilterList: ["="],
+
         },
         {
             data: {
                 compare: "=",
-                value: ""
+                value: false
             },
-            name: "StopLose",
-            value: "StopLose",
-            compareFilterList: compareFilterListDefault,
+            name: "Reverse",
+            value: "Reverse",
+            compareFilterList: ["="],
         },
+
         {
             data: {
                 compare: "=",
@@ -204,10 +189,12 @@ function FilterDialog({
     const handleCompare = (value1, compareValue, value2, filterValue) => {
 
         if (filterValue !== "PositionSide" &&
-            filterValue !== "Candlestick" &&
-            filterValue !== "IsActive") {
-                value1 = +value1
-                value2 = +value2
+            filterValue !== "IsActive" &&
+            filterValue !== "Reverse" &&
+            filterValue !== "Adaptive"
+        ) {
+            value1 = +value1
+            value2 = +value2
         }
         // if (checkFloatString(value1)) {
         //     value1 = +value1
@@ -257,25 +244,17 @@ function FilterDialog({
                         ))
                     }
                 </Select>
-            case "Candlestick":
-                return <Select
-                    value={item.data.value}
-                    defaultValue=""
-                    size="small"
-                    style={{
-                        width: "100%"
-                    }}
-                >
-                    {
-                        candlestickValueList.map(item => (
-                            <MenuItem value={item.value} key={item.value}
-                                onClick={() => { handleChangeValue(item.value, indexRow) }}
-
-                            >{item.name}</MenuItem>
-                        ))
-                    }
-                </Select>
             case "IsActive":
+                return <Checkbox
+                    checked={item.data.value}
+                    onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
+                />
+            case "Adaptive":
+                return <Checkbox
+                    checked={item.data.value}
+                    onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
+                />
+            case "Reverse":
                 return <Checkbox
                     checked={item.data.value}
                     onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
@@ -307,7 +286,6 @@ function FilterDialog({
                         padding: "0 12px",
                         borderRadius: "6px"
                     }}
-
                 >
                 </NumericFormat>
         }
@@ -362,6 +340,7 @@ function FilterDialog({
             ? dataCheckTreeDefaultRef.current.map(dataItem => handleFilterExpression(dataItem)).filter(dataItem => dataItem.children.length > 0)
             : dataCheckTreeDefaultRef.current)
         handleCheckAllCheckBox(false)
+        resetAfterSuccess()
         onClose()
     }
 

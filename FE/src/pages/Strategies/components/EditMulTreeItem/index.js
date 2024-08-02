@@ -1,12 +1,13 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DialogCustom from "../../../../components/DialogCustom";
 import { Autocomplete, Button, Checkbox, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../../../store/slices/Toast';
 import { copyMultipleStrategiesToBot, copyMultipleStrategiesToSymbol, deleteStrategiesMultiple, getAllSymbol, updateStrategiesMultiple } from '../../../../services/dataCoinByBitService';
-import { getAllBot } from '../../../../services/botService';
+import { verifyTokenVIP } from '../../../../services/authService';
+import { getUserByID } from '../../../../services/userService';
 
 function EditMulTreeItem({
     onClose,
@@ -14,6 +15,7 @@ function EditMulTreeItem({
     dataCheckTreeSelected,
 }) {
 
+    const userData = useSelector(state => state.userDataSlice.userData)
 
     const compareFilterListDefault = [
         "=",
@@ -114,6 +116,8 @@ function EditMulTreeItem({
 
     const dispatch = useDispatch()
 
+
+
     const [copyType, setCopyType] = useState("Symbol");
     const [symbolListData, setSymbolListData] = useState([]);
     const [symbolListSelected, setSymbolListSelected] = useState([]);
@@ -124,11 +128,31 @@ function EditMulTreeItem({
     const [filterDataRowList, setFilterDataRowList] = useState([fieldFilterList[1]]);
     const [radioValue, setRadioValue] = useState("Update");
     const [loadingSubmit, setLoadingSubmit] = useState(false);
-
+    const [roleNameMainVIP, setRoleNameMainVIP] = useState("");
 
     const handleDataCheckTreeSelected = useMemo(() => {
         return dataCheckTreeSelected.map(item => JSON.parse(item))
     }, [dataCheckTreeSelected])
+
+    const handleVerifyLogin = async () => {
+        try {
+            const res = await verifyTokenVIP({
+                token:localStorage.getItem("tk_crypto")
+            })
+            const userData = res.data.data
+
+            const resUser = await getUserByID(userData._id)
+            const { data: resUserData } = resUser.data
+            setRoleNameMainVIP(resUserData.roleName === "SuperAdmin" || resUserData.roleName === "Admin")
+        } catch (error) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Role User Main Error",
+            }))
+        }
+    }
+
+
 
     const addFilterRow = () => {
         setFilterDataRowList(filterRowList => [
@@ -540,6 +564,176 @@ function EditMulTreeItem({
     //     }
     // }
 
+    const handleRenderContentRadio = () => {
+        switch (copyType) {
+            case "Symbol":
+                return <div>
+                    <Autocomplete
+                        multiple
+                        limitTags={1}
+                        value={symbolListSelected}
+                        disableCloseOnSelect
+                        options={symbolListData}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setSymbolListSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setSymbolListSelected(symbolListData)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setSymbolListSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || symbolListSelected.findIndex(item => item.value === option.value) > -1}
+                                    />
+                                    {option.name}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+                    </Autocomplete>
+                    {!symbolListSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                </div>
+            case "Bot":
+                return <div>
+                    <Autocomplete
+                        multiple
+                        limitTags={1}
+                        value={botLisSelected}
+                        disableCloseOnSelect
+                        options={botListInput}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setBotLisSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected(botListInput)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || botLisSelected.findIndex(item => item.value === option.value) > -1}
+                                    />
+                                    {option.name}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+                    </Autocomplete>
+                    {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                </div>
+            case "BotVip":
+
+                return roleNameMainVIP && <div>
+                    <Autocomplete
+                        multiple
+                        limitTags={1}
+                        value={botLisSelected}
+                        disableCloseOnSelect
+                        options={botListInput}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setBotLisSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected(botListInput)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || botLisSelected.findIndex(item => item.value === option.value) > -1}
+                                    />
+                                    {option.name}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+                    </Autocomplete>
+                    {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                </div>
+        }
+    }
     const handleElementWhenChangeRatio = () => {
         switch (radioValue) {
             case "Update":
@@ -665,123 +859,10 @@ function EditMulTreeItem({
                             >
                                 <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
                                 <FormControlLabel value="Bot" control={<Radio />} label="Bot" />
+                                {roleNameMainVIP && <FormControlLabel value="BotVip" control={<Radio />} label="Bot (*)" style={{ color: "var(--blueLightColor)" }} />}
                             </RadioGroup>
                         </FormControl>
-                        {
-                            copyType === "Symbol"
-                                ? (
-                                    <div>
-                                        <Autocomplete
-                                            multiple
-                                            limitTags={1}
-                                            value={symbolListSelected}
-                                            disableCloseOnSelect
-                                            options={symbolListData}
-                                            size="small"
-                                            getOptionLabel={(option) => option.name}
-                                            onChange={(e, value) => {
-                                                setSymbolListSelected(value)
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} placeholder="Select..." />
-                                            )}
-                                            renderOption={(props, option, { selected, index }) => (
-                                                <>
-                                                    {index === 0 && (
-                                                        <>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setSymbolListSelected(symbolListData)
-                                                                }}
-                                                            >
-                                                                Select All
-                                                            </Button>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setSymbolListSelected([])
-                                                                }}
-                                                            >
-                                                                Deselect All
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                    <li {...props}>
-                                                        <Checkbox
-                                                            checked={selected || symbolListSelected.findIndex(item => item.value === option.value) > -1}
-                                                        />
-                                                        {option.name}
-                                                    </li>
-                                                </>
-                                            )}
-                                            renderTags={(value) => {
-                                                return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
-                                            }}
-                                        >
-                                        </Autocomplete>
-                                        {!symbolListSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
-                                    </div>
-                                )
-                                : (
-                                    <div>
-                                        <Autocomplete
-                                            multiple
-                                            limitTags={1}
-                                            value={botLisSelected}
-                                            disableCloseOnSelect
-                                            options={botListInput}
-                                            size="small"
-                                            getOptionLabel={(option) => option.name}
-                                            onChange={(e, value) => {
-                                                setBotLisSelected(value)
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} placeholder="Select..." />
-                                            )}
-                                            renderOption={(props, option, { selected, index }) => (
-                                                <>
-                                                    {index === 0 && (
-                                                        <>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setBotLisSelected(botListInput)
-                                                                }}
-                                                            >
-                                                                Select All
-                                                            </Button>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setBotLisSelected([])
-                                                                }}
-                                                            >
-                                                                Deselect All
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                    <li {...props}>
-                                                        <Checkbox
-                                                            checked={selected || botLisSelected.findIndex(item => item.value === option.value) > -1}
-                                                        />
-                                                        {option.name}
-                                                    </li>
-                                                </>
-                                            )}
-                                            renderTags={(value) => {
-                                                return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
-                                            }}
-                                        >
-                                        </Autocomplete>
-                                        {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
-                                    </div>
-                                )
-                        }
+                        {handleRenderContentRadio()}
                     </div>
                 )
             default:
@@ -799,7 +880,10 @@ function EditMulTreeItem({
     }
 
     useEffect(() => {
-        radioValue === "Copy" && handleGetSymbolList()
+        if (radioValue === "Copy") {
+            handleGetSymbolList()
+            handleVerifyLogin()
+        }
         // handleGetAllBot()
     }, [radioValue]);
 

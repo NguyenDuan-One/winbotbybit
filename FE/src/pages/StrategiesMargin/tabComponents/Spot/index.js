@@ -8,17 +8,17 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
 import { useDispatch, useSelector } from 'react-redux';
-import AddBreadcrumbs from '../../../../components/BreadcrumbsCutom';
-import { handleCheckAllCheckBox } from '../../../../functions';
-import { getAllBotActiveByUserID } from '../../../../services/botService';
-import { getTotalFutureByBot, getAllStrategies, syncSymbol } from '../../../../services/dataCoinByBitService';
-import { addMessageToast } from '../../../../store/slices/Toast';
-import { setTotalFuture } from '../../../../store/slices/TotalFuture';
 import EditMulTreeItem from './components/EditMulTreeItem';
 import FilterDialog from './components/FilterDialog';
 import TreeParent from './components/TreeView/TreeParent';
-import CreateStrategy from './components/CreateStrategy';
 import clsx from 'clsx';
+import AddBreadcrumbs from '../../../../components/BreadcrumbsCutom';
+import { handleCheckAllCheckBox } from '../../../../functions';
+import { getAllBotActiveByUserID } from '../../../../services/botService';
+import { getTotalFutureByBot } from '../../../../services/dataCoinByBitService';
+import { addMessageToast } from '../../../../store/slices/Toast';
+import { setTotalFuture } from '../../../../store/slices/TotalFuture';
+import CreateStrategy from './components/CreateStrategy';
 import { getAllStrategiesSpot, syncSymbolSpot } from '../../../../services/spotService';
 
 function Spot() {
@@ -54,36 +54,7 @@ function Spot() {
         },
     ]
 
-    // const candlestickList = [
-    //     {
-    //         name: "All",
-    //         value: "All",
-    //     },
-    //     {
-    //         name: "1m",
-    //         value: "1m",
-    //     },
-    //     {
-    //         name: "3m",
-    //         value: "3m",
-    //     },
-    //     {
-    //         name: "5m",
-    //         value: "5m",
-    //     },
-    //     {
-    //         name: "15m",
-    //         value: "15m",
-    //     },
-    //     // {
-    //     //     name: "30m",
-    //     //     value: "30m",
-    //     // },
-    //     // {
-    //     //     name: "60m",
-    //     //     value: "60m",
-    //     // },
-    // ]
+
 
 
     const [openFilterDialog, setOpenFilterDialog] = useState(false);
@@ -104,19 +75,15 @@ function Spot() {
 
     const dataCheckTreeSelectedRef = useRef([])
     const dataCheckTreeDefaultRef = useRef([])
-    const dataCheckTreeRef = useRef([])
     const [dataCheckTree, setDataCheckTree] = useState([]);
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
     const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX_FIRST);
 
-    // Filter
-    const [botTypeSelected, setBotTypeSelected] = useState("All");
-    const [botSelected, setBotSelected] = useState("All");
-    const [positionSideSelected, setPositionSideSelected] = useState(positionSideList[0].value);
-    // const [candlestickSelected, setCandlestickSelected] = useState(candlestickList[0].value);
-
     const filterQuantityRef = useRef([])
     const searchRef = useRef("")
+    const botTypeSelectedRef = useRef("All")
+    const botSelectedRef = useRef("All")
+    const positionSideSelectedRef = useRef("All")
     const selectAllRef = useRef(false)
 
     const dispatch = useDispatch()
@@ -203,7 +170,7 @@ function Spot() {
     }
 
     const handleGetAllStrategies = async () => {
-        resetAfterSuccess(true)
+        resetAfterSuccess()
         try {
             window.scrollTo(0, 0)
 
@@ -235,7 +202,6 @@ function Spot() {
                     status: status,
                     message: message,
                 }))
-                // status === 200 && handleGetAllStrategies()
 
                 setLoadingUploadSymbol(false)
             }
@@ -249,47 +215,24 @@ function Spot() {
         }
     }
 
-    const handleFilterAll = (filterInput = {}) => {
-
-        const filterListDefault = [
-            // {
-            //     name: "botType",
-            //     value: botTypeSelected
-            // },
-            {
-                name: "botID",
-                value: botSelected
-            },
-            {
-                name: "PositionSide",
-                value: positionSideSelected
-            },
-            // {
-            //     name: "Candlestick",
-            //     value: candlestickSelected
-            // }
-        ]
-
-        const filterList = filterListDefault.map(filterItem => {
-            if (filterItem.name === filterInput.name) {
-                return filterInput
-            }
-            return filterItem
-        }).filter(item => item.value !== "All")
-        const listData = filterList.length > 0 ? dataCheckTreeDefaultRef.current.map(data => {
+    const handleFilterAll = () => {
+        filterQuantityRef.current = []
+        const listData = dataCheckTreeDefaultRef.current.map(data => {
             return {
                 ...data,
-                children: data?.children?.filter(item => filterList.every(filterItem => {
-                    if (filterItem.name === "botID") {
-                        return item[filterItem.name]._id === filterItem.value
-                    }
-                    return item[filterItem.name] === filterItem.value
-                }))
+                children: data?.children?.filter(item => {
+                    const checkBotType = botTypeSelectedRef.current !== "All" ? botTypeSelectedRef.current === item.botID.botType : true
+                    const checkBot = botSelectedRef.current !== "All" ? botSelectedRef.current === item.botID._id : true
+                    const checkPosition = positionSideSelectedRef.current !== "All" ? positionSideSelectedRef.current === item.PositionSide : true
+                    const checkSearch = searchRef.current !== "" ? data.label.toUpperCase().includes(searchRef.current.toUpperCase()?.trim()) : true
+                    return checkBotType && checkBot && checkPosition  && checkSearch
+                })
             }
-        }).filter(data => data?.children?.length > 0) : dataCheckTreeDefaultRef.current
+        }).filter(data => data?.children?.length > 0)
 
-        resetAfterSuccess()
         setDataCheckTree(listData)
+        handleCheckAllCheckBox(false)
+
     }
 
 
@@ -305,7 +248,6 @@ function Spot() {
             const newIndex = dataTreeViewIndex + SCROLL_INDEX
             if (scrollPercentage >= 80) {
                 setDataTreeViewIndex(newIndex)
-
             }
 
         }
@@ -313,76 +255,67 @@ function Spot() {
             window.removeEventListener('scroll', handleScrollData)
             setDataTreeViewIndex(dataTreeViewIndex + SCROLL_INDEX)
         }
+
     }
 
-    const resetAfterSuccess = (setFilterBox = false, filter = false) => {
+    const resetAfterSuccess = () => {
         dataCheckTreeSelectedRef.current = []
-        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        botTypeSelectedRef.current = "All"
+        botSelectedRef.current = "All"
+        positionSideSelectedRef.current = "All"
         searchRef.current = ""
-        handleCheckAllCheckBox(false)
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
-        !filter && (filterQuantityRef.current = [])
-        if (setFilterBox) {
-            setBotSelected('All')
-            setBotTypeSelected("All")
-            setPositionSideSelected(positionSideList[0].value)
-            // setCandlestickSelected(candlestickList[0].value)
-        }
+        handleCheckAllCheckBox(false)
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
     }
 
-    const dataCheckTreeCurrentLength = useMemo(() => {
-        const list = dataCheckTreeRef.current.length > 0 ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
-        const result = list.reduce((pre, cur) => {
-            return pre += cur.children.length
-        }, 0)
-        return result
-    }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
-
+    // const dataCheckTreeCurrentLength = useMemo(() => {
+    //     const list = dataCheckTreeRef.current.length > 0 ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
+    //     const result = list.reduce((pre, cur) => {
+    //         return pre += cur.children.length
+    //     }, 0)
+    //     return result
+    // }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
 
     useEffect(() => {
         if (userData.userName) {
             handleGetAllBotByUserID()
             handleGetAllStrategies()
-            // handleGetTotalFutureByBot()
+            handleGetTotalFutureByBot()
         }
 
     }, [userData.userName]);
 
     useEffect(() => {
-        // if (dataCheckTree.length > 0) {
+        if (dataCheckTree.length > 0) {
 
 
-        //     if (selectAllRef.current) {
-        //         document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
-        //             if (dataTreeViewIndex - SCROLL_INDEX - 1 <= index && index < dataTreeViewIndex) {
-        //                 item.checked = false
-        //                 item.click()
-        //             }
-        //         })
-        //         // document.querySelectorAll(".nodeItemSelected")?.forEach((item, index) => {
-        //         //     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
-        //         //         // console.log('gasn child');
-        //         //         item.checked = true
-        //         //     }
-        //         // })
-        //     }
-        //     if (dataTreeViewIndex < dataCheckTree.length) {
+            if (selectAllRef.current) {
+                document.querySelectorAll(".nodeParentSelected")?.forEach((item, index) => {
+                    if (dataTreeViewIndex - SCROLL_INDEX - 1 <= index && index < dataTreeViewIndex) {
+                        item.checked = false
+                        item.click()
+                    }
+                })
+                // document.querySelectorAll(".nodeItemSelected")?.forEach((item, index) => {
+                //     if (dataTreeViewIndex - SCROLL_INDEX <= index && index < dataTreeViewIndex) {
+                //         // console.log('gasn child');
+                //         item.checked = true
+                //     }
+                // })
+            }
+            if (dataTreeViewIndex < dataCheckTree.length) {
 
-        //         document.addEventListener('scroll', handleScrollData);
-        //     }
-        //     return () => document.removeEventListener('scroll', handleScrollData);
+                document.addEventListener('scroll', handleScrollData);
+            }
+            return () => document.removeEventListener('scroll', handleScrollData);
 
-        // }
+        }
     }, [dataCheckTree, dataTreeViewIndex]);
 
     useEffect(() => {
-        // dataCheckTreeRef.current = dataCheckTree
-        // resetAfterSuccess(filterQuantityRef.current.length ? true : false, true)
-    }, [filterQuantityRef.current.length]);
-
-    useEffect(() => {
-        // (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
+        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
     return (
@@ -404,17 +337,9 @@ function Spot() {
                         size="small"
                         placeholder="Search"
                         onChange={(e) => {
-                            resetAfterSuccess(true)
-                            setDataCheckTree(() => {
-                                const key = e.target.value
-                                searchRef.current = key
-                                let listFilter = filterQuantityRef.current.length ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
-                                if (key) {
-                                    const newList = listFilter.filter(item => item.label.toUpperCase().includes(key.toUpperCase()?.trim()))
-                                    return newList.length > 0 ? newList : []
-                                }
-                                return listFilter
-                            })
+                            const key = e.target.value
+                            searchRef.current = key
+                            handleFilterAll()
                         }}
                         className={styles.strategiesFilterInput}
                     />
@@ -426,7 +351,6 @@ function Spot() {
                         }}
                         onClick={() => {
                             setOpenFilterDialog(true)
-                            searchRef.current = ""
                         }}
                     />
                     {filterQuantityRef.current.length ? <p>{filterQuantityRef.current.length} filters</p> : ""}
@@ -436,8 +360,13 @@ function Spot() {
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
-                            value={botTypeSelected}
+                            value={botTypeSelectedRef.current}
                             size="small"
+                            onChange={e => {
+                                const value = e.target.value;
+                                botTypeSelectedRef.current = value
+                                handleFilterAll()
+                            }}
                         >
                             {
                                 botTypeList.map(item => (
@@ -450,15 +379,12 @@ function Spot() {
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>
                         <Select
-                            value={botSelected}
+                            value={botSelectedRef.current}
                             size="small"
                             onChange={e => {
                                 const value = e.target.value;
-                                setBotSelected(value);
-                                handleFilterAll({
-                                    name: "botID",
-                                    value
-                                })
+                                botSelectedRef.current = value
+                                handleFilterAll()
                             }}
                         >
                             {
@@ -472,16 +398,12 @@ function Spot() {
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Position</FormLabel>
                         <Select
-                            value={positionSideSelected}
+                            value={positionSideSelectedRef.current}
                             size="small"
                             onChange={e => {
                                 const value = e.target.value;
-                                setPositionSideSelected(value);
-
-                                handleFilterAll({
-                                    name: "PositionSide",
-                                    value
-                                })
+                                positionSideSelectedRef.current = value
+                                handleFilterAll()
                             }}
                         >
                             {
@@ -491,28 +413,6 @@ function Spot() {
                             }
                         </Select>
                     </FormControl>
-
-                    {/* <FormControl className={styles.strategiesHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Candle</FormLabel>
-                        <Select
-                            value={candlestickSelected}
-                            size="small"
-                            onChange={e => {
-                                const value = e.target.value;
-                                // setCandlestickSelected(value);
-                                handleFilterAll({
-                                    name: "Candlestick",
-                                    value
-                                })
-                            }}
-                        >
-                            {
-                                candlestickList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl> */}
 
                 </div>
 
@@ -575,7 +475,6 @@ function Spot() {
                                     treeData={treeData}
                                     setOpenCreateStrategy={setOpenCreateStrategy}
                                     setDataCheckTree={setDataCheckTree}
-                                    dataCheckTreeCurrentLength={dataCheckTreeCurrentLength}
                                     dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                                     key={treeData._id}
                                 />
@@ -651,6 +550,7 @@ function Spot() {
                     filterQuantityRef={filterQuantityRef}
                     dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                     setDataCheckTree={setDataCheckTree}
+                    resetAfterSuccess={resetAfterSuccess}
                     onClose={() => {
                         setOpenFilterDialog(false)
                     }}

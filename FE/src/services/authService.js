@@ -13,6 +13,9 @@ export const login = async (data) => {
 export const loginSwitch = async (data) => {
   return await api.post("/auth/loginSwitch", data)
 }
+export const verifyTokenVIP = async (data) => {
+  return await api.post("/auth/verifyTokenVIP", data)
+}
 
 
 api.interceptors.response.use(

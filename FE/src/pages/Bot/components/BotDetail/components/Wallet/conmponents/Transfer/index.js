@@ -1,7 +1,7 @@
 import { FormControl, FormLabel, MenuItem, Select, TextField } from "@mui/material";
 import styles from "./Transfer.module.scss"
 import { useForm } from "react-hook-form";
-import { memo } from "react";
+import { memo, useState } from "react";
 import DialogCustom from "../../../../../../../../components/DialogCustom";
 import { balanceWallet } from "../../../../../../../../services/dataCoinByBitService";
 import { useDispatch } from "react-redux";
@@ -23,7 +23,8 @@ function Transfer({
     open,
     botID,
     onClose,
-    limitMaxSpotAvailable
+    spotAvailableMax,
+    futureAvailableMax
 }, ref) {
 
     const {
@@ -34,6 +35,7 @@ function Transfer({
     } = useForm();
 
     const dispatch = useDispatch()
+    const [limitMaxSpotAvailable, setLimitMaxSpotAvailable] = useState(spotAvailableMax);
 
     const handleSubmitTransfer = async data => {
         try {
@@ -92,6 +94,9 @@ function Transfer({
                         defaultValue={botTypeList[0].value}
                         size="small"
                         {...register("TransferFrom", { required: true })}
+                        onChange={e=>{
+                            e.target.value ? setLimitMaxSpotAvailable(futureAvailableMax) : setLimitMaxSpotAvailable(spotAvailableMax)
+                        }}
                     >
                         {
                             botTypeList.map(item => (

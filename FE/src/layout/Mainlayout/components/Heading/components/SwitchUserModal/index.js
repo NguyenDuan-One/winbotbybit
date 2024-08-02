@@ -122,7 +122,9 @@ function SwitchUserModal({
                 navigate("/")
                 navigate(0)
                 localStorage.setItem('tk_crypto_temp', resData.token)
-                dispatch(setUserDataLocal(resData.user))
+                setTimeout(()=>{
+                    dispatch(setUserDataLocal(resData.user))
+                },500)
             }
         } catch (error) {
             dispatch(addMessageToast({

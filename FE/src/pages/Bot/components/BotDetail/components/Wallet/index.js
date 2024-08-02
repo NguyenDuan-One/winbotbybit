@@ -29,7 +29,6 @@ function Wallet() {
         }
     })
 
-
     const { botID } = useParams()
 
     const dispatch = useDispatch()
@@ -41,7 +40,7 @@ function Wallet() {
             const { status, data, message } = res.data
 
             if (status === 200) {
-                const value = +data.result?.list?.[0]?.totalWalletBalance || 0
+                const value = +data.result?.list?.[0]?.coin[0].walletBalance || 0
                 setFutureAvailable(value)
                 futureAvailableDefault.current = value
             }
@@ -304,7 +303,8 @@ function Wallet() {
                 onClose={(data) => {
                     setOpenTransfer(data)
                 }}
-                limitMaxSpotAvailable={spotTotal - spotSaving}
+                spotAvailableMax={spotAvailable.current.dataBalance || (spotAvailable.current.dataFirst.spotTotal - spotAvailable.current.dataFirst.spotSavings)}
+                futureAvailableMax={futureAvailable}
             />}
             {/* 
             {openSavings && <Savings

@@ -993,9 +993,10 @@ const dataCoinByBitController = {
                     coin: 'USDT'
                 })
                 const result = await Promise.all([getFuture, getSpot])
+
                 if (result.every(item => item.retCode === 0)) {
                     return {
-                        future: result[0]?.result?.list?.[0]?.totalWalletBalance || 0,
+                        future: result[0]?.result?.list?.[0]?.coin[0].walletBalance || 0,
                         spotTotal: result[1]?.result?.balance?.[0]?.walletBalance || 0,
                         API_KEY,
                         SECRET_KEY
@@ -1037,9 +1038,10 @@ const dataCoinByBitController = {
                     coin: 'USDT',
                 })
 
+                console.log(result.result?.list?.[0]);
                 if (result.retCode === 0) {
                     return {
-                        totalWalletBalance: result.result?.list?.[0]?.totalWalletBalance || 0,
+                        totalWalletBalance: result.result?.list?.[0]?.coin[0].walletBalance || 0,
                         botID
                     }
                 }

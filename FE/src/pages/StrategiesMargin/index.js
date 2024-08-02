@@ -23,7 +23,6 @@ function StrategiesMargin() {
     }
     return (
         <div>
-            <AddBreadcrumbs list={["Strategies"]} />
 
             <Tabs value={tabNumber} onChange={handleChangeTab}>
                 <Tab label="Spot" value="Spot"></Tab>

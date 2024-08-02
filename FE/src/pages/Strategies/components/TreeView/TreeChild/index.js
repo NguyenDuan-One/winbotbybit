@@ -193,7 +193,7 @@ function TreeChild({
                                 // }
 
                                 // dataCheckTreeSelectedRef.current = newDataCheckTreeSelected;
-                                dataCheckTreeSelectedRef.current = dataCheckTreeSelectedRef.current.filter(currentItem=>currentItem !== targetString);
+                                dataCheckTreeSelectedRef.current = dataCheckTreeSelectedRef.current.filter(currentItem => currentItem !== targetString);
 
                             }
                         }}
@@ -206,7 +206,7 @@ function TreeChild({
                         display: "flex",
                         alignItems: "center",
                         color: "#3277d5",
-                        margin: "0px -16px 0 -6px"
+                        marginLeft: "-10px "
                     }}>
                         <Switch
                             size='small'
@@ -258,23 +258,30 @@ function TreeChild({
                             }} />
                     </div>
                 </TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode?.botID?.botName}</TableCell>
+                <TableCell
+                    className={styles.tableBodyCell}
+                    style={{
+                        minWidth: "120px",
+                        whiteSpace: "nowrap",
+                    }}>
+                    {treeNode?.botID?.botName}
+                </TableCell>
                 <TableCell className={styles.tableBodyCell} style={{
                     color: treeNode.PositionSide === "Long" ? "green" : "red"
                 }}>{treeNode.PositionSide}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.Amount}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.OrderChange}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.Candlestick}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.TakeProfit}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.ReduceTakeProfit}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.ExtendedOCPercent}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.Ignore}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.EntryTrailing || 40}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{treeNode.StopLose}</TableCell>
-            <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
-        </TableRow >
-        {
-            openDeleteTreeItem.isOpen &&
+                <TableCell className={styles.tableBodyCell}>{treeNode.Amount}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.OrderChange}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.Candlestick}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.TakeProfit}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.ReduceTakeProfit}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.ExtendedOCPercent}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.Ignore}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.EntryTrailing || 40}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.StopLose}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
+            </TableRow >
+            {
+                openDeleteTreeItem.isOpen &&
 
                 <DialogCustom
                     dialogTitle='The action requires confirmation'
@@ -294,22 +301,22 @@ function TreeChild({
                     <p>Are you remove this item?</p>
                 </DialogCustom>
 
-        }
+            }
 
 
-    {
-        openUpdateStrategy.isOpen &&
+            {
+                openUpdateStrategy.isOpen &&
 
-        <UpdateStrategy
-            onClose={(data) => {
-                setOpenUpdateStrategy(data)
-            }}
-            treeNodeValue={openUpdateStrategy.data.treeNode}
-            symbolValue={openUpdateStrategy.data.symbolValue}
-            handleUpdateDataAfterSuccess={handleUpdateDataAfterSuccess}
-        />
+                <UpdateStrategy
+                    onClose={(data) => {
+                        setOpenUpdateStrategy(data)
+                    }}
+                    treeNodeValue={openUpdateStrategy.data.treeNode}
+                    symbolValue={openUpdateStrategy.data.symbolValue}
+                    handleUpdateDataAfterSuccess={handleUpdateDataAfterSuccess}
+                />
 
-    }
+            }
         </>
     );
 }

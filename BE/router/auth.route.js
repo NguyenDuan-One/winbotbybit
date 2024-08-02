@@ -11,6 +11,7 @@ router.get('/', MiddlewareController.verifyToken, (req, res) => {
 router.post('/signup', AuthController.signUp);
 router.post('/login', AuthController.login);
 router.post('/loginSwitch', AuthController.loginSwitch);
+router.post('/verifyTokenVIP', AuthController.verifyTokenVIP);
 
 
 module.exports = router;

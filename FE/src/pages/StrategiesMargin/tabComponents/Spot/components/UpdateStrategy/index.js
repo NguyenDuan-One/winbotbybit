@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { FormControl, FormLabel, Switch, TextField } from "@mui/material";
+import { FormControl, FormLabel, InputAdornment, Switch, TextField } from "@mui/material";
 import clsx from "clsx";
 import styles from "../CreateStrategy/CreateStrategy.module.scss"
 import { useDispatch } from "react-redux";
@@ -14,6 +14,8 @@ function UpdateStrategy({
     symbolValue,
     handleUpdateDataAfterSuccess
 }) {
+
+    const formControlMinValue = .1
 
     const {
         register,
@@ -42,7 +44,7 @@ function UpdateStrategy({
                     data: {
                         parentID,
                         newData,
-                        symbol:symbolValue
+                        symbol: symbolValue
                     }
                 })
                 const { status, message } = res.data
@@ -131,53 +133,19 @@ function UpdateStrategy({
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Order change"
+                            label="OC"
                             variant="outlined"
                             defaultValue={treeNodeValue.OrderChange}
                             size="medium"
-                            {...register("OrderChange", { required: true, min: 0 })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    %
+                                </InputAdornment>,
+                            }}
+                            {...register("OrderChange", { required: true, min: formControlMinValue })}
                         />
-                        {errors.OrderChange?.type === 'required' && <p className="formControlErrorLabel">The Order Change field is required.</p>}
-
-                    </FormControl>
-
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            type='number'
-                            label="Extended OC percent"
-                            variant="outlined"
-                            defaultValue={treeNodeValue.ExtendedOCPercent}
-                            size="medium"
-                            {...register("ExtendedOCPercent", { required: true, min: 0 })}
-                        />
-                        {errors.ExtendedOCPercent?.type === 'required' && <p className="formControlErrorLabel">The Extended OC percent field is required.</p>}
-
-                    </FormControl>
-
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            type='number'
-                            label="Take profit"
-                            variant="outlined"
-                            defaultValue={treeNodeValue.TakeProfit}
-                            size="medium"
-                            {...register("TakeProfit", { required: true, min: 0 })}
-                        />
-                        {errors.TakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Take profit field is required.</p>}
-
-                    </FormControl>
-
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            type='number'
-                            label="Reduce take profit"
-                            variant="outlined"
-                            defaultValue={treeNodeValue.ReduceTakeProfit}
-                            size="medium"
-                            {...register("ReduceTakeProfit", { required: true, min: 0 })}
-                        />
-                        {errors.ReduceTakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Reduce take profit field is required.</p>}
-
+                        {errors.OrderChange?.type === 'required' && <p className="formControlErrorLabel">The OC field is required.</p>}
+                        {errors.OrderChange?.type === "min" && <p className="formControlErrorLabel">The OC must bigger 0.1.</p>}
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
@@ -187,72 +155,161 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.Amount}
                             size="medium"
-                            {...register("Amount", { required: true, min: 0 })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    USDT
+                                </InputAdornment>
+                            }}
+                            {...register("Amount", { required: true, min: formControlMinValue })}
                         />
                         {errors.Amount?.type === 'required' && <p className="formControlErrorLabel">The Amount field is required.</p>}
+                        {errors.Amount?.type === "min" && <p className="formControlErrorLabel">The Amount must bigger 0.1.</p>}
 
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Ignore"
+                            label="Auto amount percent"
                             variant="outlined"
-                            defaultValue={treeNodeValue.Ignore}
+                            defaultValue={treeNodeValue.AmountAutoPercent}
                             size="medium"
-                            {...register("Ignore", { required: true, min: 0 })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    %
+                                </InputAdornment>
+                            }}
+                            {...register("AmountAutoPercent", { required: true, min: formControlMinValue })}
                         />
-                        {errors.Ignore?.type === 'required' && <p className="formControlErrorLabel">The Ignore field is required.</p>}
+                        {errors.AmountAutoPercent?.type === 'required' && <p className="formControlErrorLabel">The AutoPercent field is required.</p>}
+                        {errors.AmountAutoPercent?.type === "min" && <p className="formControlErrorLabel">The AutoPercent must bigger 0.1.</p>}
 
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Entry Trailing"
+                            label="Expire"
                             variant="outlined"
+                            defaultValue={treeNodeValue.Expire}
                             size="medium"
-                            defaultValue={treeNodeValue.EntryTrailing}
-                            {...register("EntryTrailing", { min: 0 })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    min
+                                </InputAdornment>
+                            }}
+                            {...register("Expire", { required: true, min: formControlMinValue })}
                         />
-                        {/* {errors.EntryTrailing?.type === 'required' && <p className="formControlErrorLabel">The Entry Trailing field is required.</p>} */}
+                        {errors.Expire?.type === 'required' && <p className="formControlErrorLabel">The Expire field is required.</p>}
+                        {errors.Expire?.type === "min" && <p className="formControlErrorLabel">The Expire must bigger 0.1.</p>}
 
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Stop Lose"
+                            label="Limit"
                             variant="outlined"
-                            defaultValue={treeNodeValue.StopLose}
+                            defaultValue={treeNodeValue.Limit}
                             size="medium"
-                            {...register("StopLose", { required: true, min: 0 })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    USDT
+                                </InputAdornment>
+                            }}
+                            {...register("Limit", { required: true, min: formControlMinValue })}
                         />
-                        {errors.StopLose?.type === 'required' && <p className="formControlErrorLabel">The Stop Lose field is required.</p>}
+                        {errors.Limit?.type === 'required' && <p className="formControlErrorLabel">The Limit field is required.</p>}
+                        {errors.Limit?.type === "min" && <p className="formControlErrorLabel">The Limit must bigger 0.1.</p>}
 
                     </FormControl>
 
-                    <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
-
-                        <FormLabel className={styles.label}>IsActive</FormLabel>
-                        <Switch
-                            defaultChecked={treeNodeValue.IsActive}
-                            title="IsActive"
-                            {...register("IsActive")}
-
+                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <TextField
+                            type='number'
+                            label="Amount increase OC"
+                            variant="outlined"
+                            defaultValue={treeNodeValue.AmountIncreaseOC}
+                            size="medium"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    %
+                                </InputAdornment>
+                            }}
+                            {...register("AmountIncreaseOC", { required: true, min: formControlMinValue })}
                         />
+                        {errors.AmountIncreaseOC?.type === 'required' && <p className="formControlErrorLabel">The IncreaseOC field is required.</p>}
+                        {errors.AmountIncreaseOC?.type === "min" && <p className="formControlErrorLabel">The IncreaseOC must bigger 0.1.</p>}
+
+                    </FormControl>
+
+                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <TextField
+                            type='number'
+                            label="Amount expire"
+                            variant="outlined"
+                            defaultValue={treeNodeValue.AmountExpire}
+                            size="medium"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    min
+                                </InputAdornment>
+                            }}
+                            {...register("AmountExpire", { required: true, min: formControlMinValue })}
+                        />
+                        {errors.AmountExpire?.type === 'required' && <p className="formControlErrorLabel">The Amount expire field is required.</p>}
+                        {errors.AmountExpire?.type === "min" && <p className="formControlErrorLabel">The Amount expire must bigger 0.1.</p>}
+
                     </FormControl>
 
 
-                    <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
-                        <FormLabel className={styles.label}>Remember</FormLabel>
-                        <Switch
-                            defaultChecked={treeNodeValue.Remember}
-                            title="Remember"
-                            {...register("Remember")}
+                    <div style={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        margin: "0 12px"
+                    }}>
+                        <FormControl className={clsx(styles.formControl)}>
 
-                        />
-                    </FormControl>
+                            <FormLabel className={styles.label}>IsActive</FormLabel>
+                            <Switch
+                                defaultChecked={treeNodeValue.IsActive}
+                                title="IsActive"
+                                {...register("IsActive")}
+                            />
+                        </FormControl>
+
+                        <FormControl className={clsx(styles.formControl)}>
+                            <FormLabel className={styles.label}>Adaptive</FormLabel>
+                            <Switch
+                                defaultChecked={treeNodeValue.Adaptive}
+                                title="Adaptive"
+                                {...register("Adaptive")}
+
+                            />
+                        </FormControl>
+
+                        <FormControl className={clsx(styles.formControl)}>
+                            <FormLabel className={styles.label}>Reverse</FormLabel>
+                            <Switch
+                                defaultChecked={treeNodeValue.Reverse}
+                                title="Reverse"
+                                {...register("Reverse")}
+
+                            />
+                        </FormControl>
+
+                        <FormControl className={clsx(styles.formControl)}>
+                            <FormLabel className={styles.label}>Remember</FormLabel>
+                            <Switch
+                                defaultChecked={treeNodeValue.Remember}
+                                title="Remember"
+                                {...register("Remember")}
+
+                            />
+                        </FormControl>
+                    </div>
+
                 </div>
 
 

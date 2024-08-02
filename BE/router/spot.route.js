@@ -13,7 +13,7 @@ router.get('/getSpotTotal/:id', MiddlewareController.verifyToken, spotController
 
 router.post('/createStrategiesSpot', MiddlewareController.verifyToken, spotController.createStrategiesSpot)
 
-router.put('/updateStrategies/:id', MiddlewareController.verifyToken, spotController.updateStrategiesByID)
+router.put('/updateStrategiesSpotByID/:id', MiddlewareController.verifyToken, spotController.updateStrategiesSpotByID)
 router.post('/updateStrategiesMultiple', MiddlewareController.verifyToken, spotController.updateStrategiesMultiple)
 
 router.post('/deleteStrategiesItem', MiddlewareController.verifyToken, spotController.deleteStrategiesItem)

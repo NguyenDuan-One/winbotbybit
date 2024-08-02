@@ -28,8 +28,8 @@ export const createStrategiesSpot = async (data) => {
 }
 
 // UPDATE
-export const updateStrategiesByID = async ({ id, data }) => {
-    return await api.put(`/spot/updateStrategies/${id}`, data)
+export const updateStrategiesSpotByID = async ({ id, data }) => {
+    return await api.put(`/spot/updateStrategiesSpotByID/${id}`, data)
 }
 export const updateStrategiesMultiple = async (data) => {
     return await api.post("/spot/updateStrategiesMultiple", data)

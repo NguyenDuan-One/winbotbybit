@@ -11,13 +11,13 @@ import DialogCustom from '../../../../../../../components/DialogCustom';
 import { handleCheckAllCheckBox, formatNumberString } from '../../../../../../../functions';
 import { deleteStrategiesItem, updateStrategiesByID } from '../../../../../../../services/dataCoinByBitService';
 import { addMessageToast } from '../../../../../../../store/slices/Toast';
+import { updateStrategiesSpotByID } from '../../../../../../../services/spotService';
 
 function TreeChild({
     treeData,
     treeNode,
     dataCheckTreeSelectedRef,
     setDataCheckTree,
-    dataCheckTreeCurrentLength,
     dataCheckTreeDefaultRef,
 }) {
 
@@ -136,7 +136,7 @@ function TreeChild({
         symbol
     }) => {
         try {
-            const res = await updateStrategiesByID({
+            const res = await updateStrategiesSpotByID({
                 id: id,
                 data: {
                     parentID,
@@ -175,7 +175,6 @@ function TreeChild({
                     <input
                         type='checkbox'
                         className={clsx("nodeItemSelected", `nodeItemSelected-${treeData._id}`, styles.checkboxStyle)}
-                        // checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
                         onClick={(e) => {
                             const check = e.target.checked;
                             if (check) {
@@ -209,7 +208,7 @@ function TreeChild({
                         display: "flex",
                         alignItems: "center",
                         color: "#3277d5",
-                        margin: "0px -16px 0 -6px"
+                        marginLeft: "-10px "
                     }}>
                         <Switch
                             size='small'
@@ -261,7 +260,14 @@ function TreeChild({
                             }} />
                     </div>
                 </TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode?.botID?.botName}</TableCell>
+                <TableCell
+                    className={styles.tableBodyCell}
+                    style={{
+                        minWidth: "120px",
+                        whiteSpace: "nowrap",
+                    }}>
+                    {treeNode?.botID?.botName}
+                </TableCell>
                 <TableCell className={styles.tableBodyCell} style={{
                     color: treeNode.PositionSide === "Long" ? "green" : "red"
                 }}>{treeNode.PositionSide}</TableCell>
