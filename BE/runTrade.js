@@ -662,8 +662,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
                                         console.log(`\n[V] Filled OC: \n${symbol.replace("USDT", "")} | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}\n`);
-                                        // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
-                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+                                        // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
 
                                         if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
 
@@ -769,8 +769,8 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         const newOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.newOC
 
                                         console.log(`\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}\n`);
-                                        // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
-                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
+                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
+                                        // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
                                         const priceWinPercent = (Math.abs(closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
                                         const priceWin = ((closePrice - openTradeOCFilled) * qty).toFixed(2) || 0;
@@ -1749,7 +1749,7 @@ const Main = async () => {
 }
 
 try {
-    Main()
+    // Main()
 
     setTimeout(() => {
         cron.schedule(`*/3 * * * * *`, () => {
@@ -2277,6 +2277,7 @@ socketRealtime.on('bot-delete', async (data) => {
 });
 
 socketRealtime.on('bot-telegram', async (data) => {
+
     const { newData, botID: botIDMain, newApiData } = data;
 
     const botNameExist = botApiList[botIDMain]?.botName || botIDMain
@@ -2288,7 +2289,6 @@ socketRealtime.on('bot-telegram', async (data) => {
     const telegramToken = newApiData.telegramToken
 
     await Promise.allSettled(newData.map(strategiesData => {
-
 
         if (checkConditionBot(strategiesData)) {
 
@@ -2309,8 +2309,16 @@ socketRealtime.on('bot-telegram', async (data) => {
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
             allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesDataUpdate
+
         }
     }))
+
+    botApiList[botIDMain] = {
+        ...botApiList[botIDMain],
+        telegramID,
+        telegramToken
+    }
+
 
     // if (botListTelegram[telegramTokenOld]) {
     //     botListTelegram[telegramTokenOld]?.stopPolling()
