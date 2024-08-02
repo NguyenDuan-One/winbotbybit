@@ -16,7 +16,6 @@ function TreeChild({
     treeNode,
     dataCheckTreeSelectedRef,
     setDataCheckTree,
-    dataCheckTreeCurrentLength,
     dataCheckTreeDefaultRef,
 }) {
 
@@ -174,7 +173,6 @@ function TreeChild({
                     <input
                         type='checkbox'
                         className={clsx("nodeItemSelected", `nodeItemSelected-${treeData._id}`, styles.checkboxStyle)}
-                        // checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
                         onClick={(e) => {
                             const check = e.target.checked;
                             if (check) {
@@ -208,7 +206,7 @@ function TreeChild({
                         display: "flex",
                         alignItems: "center",
                         color: "#3277d5",
-                        margin: "0 -16px"
+                        margin: "0px -16px 0 -6px"
                     }}>
                         <Switch
                             size='small'

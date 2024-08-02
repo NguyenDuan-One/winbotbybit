@@ -17,6 +17,9 @@ export const getFutureAvailable = async (botID) => {
 export const getTotalFutureByBot = async (userID) => {
     return await api.get(`/dataCoinByBit/getTotalFutureByBot/${userID}`)
 }
+export const getTotalFutureSpot = async (userID) => {
+    return await api.get(`/dataCoinByBit/getTotalFutureSpot/${userID}`)
+}
 
 export const getSpotTotal = async (botID) => {
     return await api.get(`/dataCoinByBit/getSpotTotal/${botID}`)

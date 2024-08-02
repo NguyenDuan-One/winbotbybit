@@ -14,6 +14,7 @@ function UpdateStrategy({
     symbolValue,
     handleUpdateDataAfterSuccess
 }) {
+    const formControlMinValue= .1
 
     const {
         register,
@@ -144,9 +145,10 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.OrderChange}
                             size="medium"
-                            {...register("OrderChange", { required: true, min: 0 })}
+                            {...register("OrderChange", { required: true, min: formControlMinValue })}
                         />
                         {errors.OrderChange?.type === 'required' && <p className="formControlErrorLabel">The Order Change field is required.</p>}
+                        {errors.OrderChange?.type === "min" && <p className="formControlErrorLabel">The OC must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -157,9 +159,10 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.ExtendedOCPercent}
                             size="medium"
-                            {...register("ExtendedOCPercent", { required: true, min: 0 })}
+                            {...register("ExtendedOCPercent", { required: true, min: formControlMinValue })}
                         />
                         {errors.ExtendedOCPercent?.type === 'required' && <p className="formControlErrorLabel">The Extended OC percent field is required.</p>}
+                        {errors.ExtendedOCPercent?.type === "min" && <p className="formControlErrorLabel">The Extended must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -170,9 +173,10 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.TakeProfit}
                             size="medium"
-                            {...register("TakeProfit", { required: true, min: 0 })}
+                            {...register("TakeProfit", { required: true, min: formControlMinValue })}
                         />
                         {errors.TakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Take profit field is required.</p>}
+                        {errors.TakeProfit?.type === "min" && <p className="formControlErrorLabel">The TP must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -183,9 +187,10 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.ReduceTakeProfit}
                             size="medium"
-                            {...register("ReduceTakeProfit", { required: true, min: 0 })}
+                            {...register("ReduceTakeProfit", { required: true, min: formControlMinValue })}
                         />
                         {errors.ReduceTakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Reduce take profit field is required.</p>}
+                        {errors.ReduceTakeProfit?.type === "min" && <p className="formControlErrorLabel">The Reduce TP must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -196,9 +201,10 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.Amount}
                             size="medium"
-                            {...register("Amount", { required: true, min: 0 })}
+                            {...register("Amount", { required: true, min: formControlMinValue })}
                         />
                         {errors.Amount?.type === 'required' && <p className="formControlErrorLabel">The Amount field is required.</p>}
+                        {errors.Amount?.type === "min" && <p className="formControlErrorLabel">The Amount must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -209,9 +215,10 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.Ignore}
                             size="medium"
-                            {...register("Ignore", { required: true, min: 0 })}
+                            {...register("Ignore", { required: true, min: formControlMinValue })}
                         />
                         {errors.Ignore?.type === 'required' && <p className="formControlErrorLabel">The Ignore field is required.</p>}
+                        {errors.Ignore?.type === "min" && <p className="formControlErrorLabel">The Ignore must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -222,7 +229,7 @@ function UpdateStrategy({
                             variant="outlined"
                             size="medium"
                             defaultValue={treeNodeValue.EntryTrailing}
-                            {...register("EntryTrailing", { min: 0 })}
+                            {...register("EntryTrailing", { min: formControlMinValue })}
                         />
                         {/* {errors.EntryTrailing?.type === 'required' && <p className="formControlErrorLabel">The Entry Trailing field is required.</p>} */}
 
@@ -235,9 +242,10 @@ function UpdateStrategy({
                             variant="outlined"
                             defaultValue={treeNodeValue.StopLose}
                             size="medium"
-                            {...register("StopLose", { required: true, min: 0 })}
+                            {...register("StopLose", { required: true, min: formControlMinValue })}
                         />
                         {errors.StopLose?.type === 'required' && <p className="formControlErrorLabel">The Stop Lose field is required.</p>}
+                        {errors.StopLose?.type === "min" && <p className="formControlErrorLabel">The StopLose must bigger 0.1.</p>}
 
                     </FormControl>
 

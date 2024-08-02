@@ -242,7 +242,8 @@ function TreeParent({
                                     <TableCell className={styles.tableHeadCell} style={
                                         {
                                             padding: "3px 10px !important",
-                                            textAlign: "left"
+                                            textAlign: "left",
+                                            minWidth: "80px"
                                         }
                                     }>Action</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Bot</TableCell>

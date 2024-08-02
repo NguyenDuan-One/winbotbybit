@@ -347,7 +347,7 @@ function Spot() {
             // handleGetTotalFutureByBot()
         }
 
-    }, [userData]);
+    }, [userData.userName]);
 
     useEffect(() => {
         // if (dataCheckTree.length > 0) {

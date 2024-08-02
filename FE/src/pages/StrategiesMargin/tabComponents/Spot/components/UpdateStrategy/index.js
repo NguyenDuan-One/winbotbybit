@@ -127,15 +127,6 @@ function UpdateStrategy({
                             disabled
                         />
                     </FormControl>
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            label="Candlestick"
-                            variant="outlined"
-                            value={treeNodeValue.Candlestick}
-                            size="medium"
-                            disabled
-                        />
-                    </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField

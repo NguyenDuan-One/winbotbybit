@@ -34,7 +34,7 @@ function EditUser({
             )
         }
         return ROLE_LIST
-    }, [userData])
+    }, [userData.roleName])
 
     const {
         register,
@@ -123,7 +123,7 @@ function EditUser({
 
     useEffect(() => {
         userData.userName &&   handleGetAllGroup()
-    }, [userData]);
+    }, [userData.userName]);
 
     return (
         <DialogCustom

@@ -29,11 +29,8 @@ function StrategiesMargin() {
                 <Tab label="Spot" value="Spot"></Tab>
                 <Tab label="Margin" value="Margin" ></Tab>
             </Tabs>
-            <div style={{
-                marginTop: "24px"
-            }}>
+          
                 {handleTabContent()}
-            </div>
         </div>
     );
 }

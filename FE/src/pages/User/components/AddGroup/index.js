@@ -37,7 +37,7 @@ function AddGroup({
             )
         }
         return ROLE_LIST
-    }, [userData])
+    }, [userData.roleName])
 
     const {
         register,
@@ -122,7 +122,7 @@ function AddGroup({
 
     useEffect(() => {
         userData.userName &&  handleGetAllGroup()
-    }, [userData]);
+    }, [userData.userName]);
 
     return (
         <DialogCustom

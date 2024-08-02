@@ -85,7 +85,6 @@ function CoinContent() {
                 tableColumns={tableColumns}
                 tableRows={tableRows}
                 checkboxSelection={false}
-                hideFooter={false}
             />
         </div>
     );

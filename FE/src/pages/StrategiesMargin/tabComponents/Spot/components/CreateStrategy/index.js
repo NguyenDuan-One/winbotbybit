@@ -91,7 +91,6 @@ function CreateStrategy({
 
     const handleSubmitCreate = async data => {
         let dataChange = false
-        console.log(data);
         if (symbolGroupData.length > 0 && botList.length > 0) {
             try {
                 const res = await createStrategiesSpot({

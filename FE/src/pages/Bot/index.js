@@ -11,6 +11,8 @@ import styles from "./Bot.module.scss"
 import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import DialogCustom from '../../components/DialogCustom';
+import { getTotalFutureSpot } from '../../services/dataCoinByBitService';
+import { formatNumber } from '../../functions';
 
 function Bot() {
 
@@ -223,6 +225,7 @@ function Bot() {
     const [openEditMultiple, setOpenEditMultiple] = useState(false);
     const [confirmActiveBot, setConfirmActiveBot] = useState(false);
     const [statusBotSelected, setStatusBotSelected] = useState('All');
+    const [totalFutureSpot, setTotalFutureSpot] = useState(0);
 
     const botListDefaultRef = useRef()
 
@@ -338,9 +341,31 @@ function Bot() {
         setOpenEditMultiple(false)
     }
 
+    const handleGetTotalFutureSpot = async () => {
+
+        try {
+            const res = await getTotalFutureSpot(userData._id)
+            const { data: resData } = res.data
+
+            setTotalFutureSpot(resData)
+
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Total Future-Spot Error",
+            }))
+        }
+    }
+
+
     useEffect(() => {
-        userData.userName && handleGetAllBot()
-    }, [userData]);
+        if (userData.userName) {
+
+            handleGetAllBot()
+            handleGetTotalFutureSpot()
+        }
+    }, [userData.userName]);
 
     useEffect(() => {
         const newData = openAddBot.dataChange
@@ -393,7 +418,7 @@ function Bot() {
             </div>
             <div className={styles.botTableContainer}>
                 <div className={styles.botTableContainerTitle}>
-                    <b style={{ fontWeight: "bold" }}>Total: 0$</b>
+                    <b style={{ fontWeight: "bold", fontSize: "1.2rem" }}>Total: {formatNumber(totalFutureSpot)} $</b>
                     <div>
                         {dataTableChange.length > 0 && (
                             <Button

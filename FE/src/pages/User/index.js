@@ -21,7 +21,7 @@ function Group() {
 
     const checkAdminTrue = useMemo(() => {
         return userData?.roleName === "Admin" || userData?.roleName === "SuperAdmin"
-    }, [userData])
+    }, [userData.roleName])
 
     const checkRoleEditable = (userRole) => {
         const roleOfMe = userData?.roleName
@@ -321,7 +321,7 @@ function Group() {
 
     useEffect(() => {
         userData.userName &&  handleGetAllGroup()
-    }, [userData]);
+    }, [userData.userName]);
 
     useEffect(() => {
         const newData = openAddBot.dataChange || openEditBot.dataChange

@@ -191,12 +191,11 @@ const PositionController = {
                                         // }
                                     }
                                     else {
-                                        // return PositionController.createPositionBE({
-                                        //     ...positionDataNew,
-                                        //     botID: dataBotItem.value,
-                                        //     Miss: true
-                                        // });
-
+                                        return PositionController.createPositionBE({
+                                            ...positionDataNew,
+                                            botID: dataBotItem.value,
+                                            Miss: true
+                                        });
                                     }
                                 }))
                             }

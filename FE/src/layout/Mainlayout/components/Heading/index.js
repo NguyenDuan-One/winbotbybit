@@ -11,7 +11,7 @@ import { Popover } from "@mui/material";
 import { useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import styles from "./Heading.module.scss"
-import { removeLocalStorage } from "../../../../functions";
+import { formatNumber, removeLocalStorage } from "../../../../functions";
 import { useSelector } from "react-redux";
 import SwitchUserModal from './components/SwitchUserModal';
 
@@ -39,7 +39,6 @@ function Heading({
     }, [location])
 
 
-
     return (
         <div className={styles.heading}>
             <NavLink className={styles.headingLogo} to="/">
@@ -52,7 +51,7 @@ function Heading({
             />
             {
                 routeName === "Strategies" &&
-                <p className={styles.totalMoneyFutureBot}>{Number.parseFloat((+totalFuture || 0).toFixed(2)).toLocaleString("vn-VN")} $</p>
+                <p className={styles.totalMoneyFutureBot}>{formatNumber(Number.parseFloat((+totalFuture || 0)))} $</p>
             }
             <div className={styles.headingInfor} >
                 <div className={styles.avatar} onClick={(e) => {
@@ -91,7 +90,7 @@ function Heading({
                             <p className={styles.subMain}>{userData.roleName}</p>
                         </div>
                         <div className={styles.list}>
-                            {userData?.roleName !== "Trader" && <div
+                            {(userData?.roleName !== "Trader" || localStorage.getItem("tk_crypto_temp")) && <div
                                 className={styles.listItem}
                                 style={{
                                     textAlign: "center",

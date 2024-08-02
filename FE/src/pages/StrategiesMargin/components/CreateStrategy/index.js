@@ -442,7 +442,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={50}
                             size="medium"
-                            {...register("StopLose", { required: true, min: 0.1 })}
+                            {...register("StopLose", { required: true, formControlMinValue })}
                         />
                         {errors.StopLose?.type === 'required' && <p className="formControlErrorLabel">The StopLose field is required.</p>}
                         {errors.StopLose?.type === "min" && <p className="formControlErrorLabel">The StopLose must bigger 0.1.</p>}

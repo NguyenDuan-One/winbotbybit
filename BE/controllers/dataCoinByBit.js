@@ -237,6 +237,36 @@ const dataCoinByBitController = {
             res.status(500).json({ message: error.message });
         }
     },
+    getTotalFutureSpot: async (req, res) => {
+        try {
+
+            const userID = req.params.id;
+
+            const botListId = await BotModel.find({
+                userID,
+                ApiKey: { $exists: true, $ne: null },
+                SecretKey: { $exists: true, $ne: null }
+            })
+                .select({ telegramToken: 0 }) // Loại bỏ trường telegramToken trong kết quả trả về
+                .sort({ Created: -1 });
+
+            const resultAll = await Promise.allSettled(botListId.map(async botData => dataCoinByBitController.getFutureSpotBE(botData._id)))
+
+            if (resultAll.some(item => item?.value?.future && item?.value?.spotTotal)) {
+                res.customResponse(200, "Get Total Future-Spot Successful", resultAll.reduce((pre, cur) => {
+                    return pre + (+cur?.value?.future || 0) + (+cur?.value?.spotTotal || 0)
+                }, 0))
+            }
+            else {
+                res.customResponse(400, "Get Total Future-Spot Failed", "");
+            }
+
+        }
+
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
     // CREATE
     createStrategies: async (req, res) => {
 

@@ -14,7 +14,7 @@ function SwitchUserModal({
     onClose
 }) {
 
-    const userData= useSelector(state => state.userDataSlice.userData)
+    const userData = useSelector(state => state.userDataSlice.userData)
 
     const roleName = userData?.roleName
 
@@ -35,7 +35,7 @@ function SwitchUserModal({
                     <span
                         style={{
                             color: "var(--blueLightColor)",
-                            lineHeight:"100%",
+                            lineHeight: "100%",
                             cursor: "pointer"
                         }}
                         onClick={() => {
@@ -81,7 +81,7 @@ function SwitchUserModal({
 
             const res = await getAllUserByRoleName({
                 roleName,
-                groupID:userData?.groupID
+                groupID: userData?.groupID
             })
             const { status, data: resData } = res.data
             if (status === 200) {
@@ -119,10 +119,10 @@ function SwitchUserModal({
             }))
 
             if (status === 200) {
-                localStorage.setItem('tk_crypto_temp', resData.token)
-                dispatch(setUserDataLocal(resData.user))
                 navigate("/")
                 navigate(0)
+                localStorage.setItem('tk_crypto_temp', resData.token)
+                dispatch(setUserDataLocal(resData.user))
             }
         } catch (error) {
             dispatch(addMessageToast({
@@ -134,9 +134,9 @@ function SwitchUserModal({
 
 
     useEffect(() => {
-        userData.userName && handleGetAllUserByRoleName()
-    }, [userData]);
-    
+        userData.userName && userData.roleName !== "Trader" && handleGetAllUserByRoleName()
+    }, [userData.userName]);
+
     return (
         <DialogCustom
             open={true}
@@ -162,11 +162,11 @@ function SwitchUserModal({
             >
                 Back To Main Account
             </Button>}
-            <DataGridCustom
+            {userData.roleName !== "Trader" && <DataGridCustom
                 tableRows={userList}
                 tableColumns={tableColumns}
                 checkboxSelection={false}
-            />
+            />}
         </DialogCustom>
     );
 }

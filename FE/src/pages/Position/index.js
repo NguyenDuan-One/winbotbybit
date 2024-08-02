@@ -292,7 +292,7 @@ function Position() {
 
         userData.userName && handleGetAllBotByUserID()
 
-    }, [userData]);
+    }, [userData.userName]);
 
     useEffect(() => {
         if (openAddLimit.isOpen || openAddMarket.isOpen || openAddLimit.dataChange || openAddMarket.dataChange) {

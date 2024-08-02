@@ -209,7 +209,7 @@ function TreeChild({
                         display: "flex",
                         alignItems: "center",
                         color: "#3277d5",
-                        margin: "0 -16px"
+                        margin: "0px -16px 0 -6px"
                     }}>
                         <Switch
                             size='small'

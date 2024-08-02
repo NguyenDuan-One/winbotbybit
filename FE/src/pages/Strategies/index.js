@@ -117,6 +117,10 @@ function Strategies() {
 
     const filterQuantityRef = useRef([])
     const searchRef = useRef("")
+    const botTypeSelectedRef = useRef("All")
+    const botSelectedRef = useRef("All")
+    const positionSideSelectedRef = useRef("All")
+    const candlestickSelectedRef = useRef("All")
     const selectAllRef = useRef(false)
 
     const dispatch = useDispatch()
@@ -203,7 +207,7 @@ function Strategies() {
     }
 
     const handleGetAllStrategies = async () => {
-        resetAfterSuccess(true)
+        resetAfterSuccess()
         try {
             window.scrollTo(0, 0)
 
@@ -235,7 +239,6 @@ function Strategies() {
                     status: status,
                     message: message,
                 }))
-                // status === 200 && handleGetAllStrategies()
 
                 setLoadingUploadSymbol(false)
             }
@@ -249,47 +252,25 @@ function Strategies() {
         }
     }
 
-    const handleFilterAll = (filterInput = {}) => {
-
-        const filterListDefault = [
-            // {
-            //     name: "botType",
-            //     value: botTypeSelected
-            // },
-            {
-                name: "botID",
-                value: botSelected
-            },
-            {
-                name: "PositionSide",
-                value: positionSideSelected
-            },
-            {
-                name: "Candlestick",
-                value: candlestickSelected
-            }
-        ]
-
-        const filterList = filterListDefault.map(filterItem => {
-            if (filterItem.name === filterInput.name) {
-                return filterInput
-            }
-            return filterItem
-        }).filter(item => item.value !== "All")
-        const listData = filterList.length > 0 ? dataCheckTreeDefaultRef.current.map(data => {
+    const handleFilterAll = () => {
+        filterQuantityRef.current = []
+        const listData = dataCheckTreeDefaultRef.current.map(data => {
             return {
                 ...data,
-                children: data?.children?.filter(item => filterList.every(filterItem => {
-                    if (filterItem.name === "botID") {
-                        return item[filterItem.name]._id === filterItem.value
-                    }
-                    return item[filterItem.name] === filterItem.value
-                }))
+                children: data?.children?.filter(item => {
+                    const checkBotType = botTypeSelectedRef.current !== "All" ? botTypeSelectedRef.current === item.botID.botType : true
+                    const checkBot = botSelectedRef.current !== "All" ? botSelectedRef.current === item.botID._id : true
+                    const checkPosition = positionSideSelectedRef.current !== "All" ? positionSideSelectedRef.current === item.PositionSide : true
+                    const checkCandle = candlestickSelectedRef.current !== "All" ? candlestickSelectedRef.current === item.Candlestick : true
+                    const checkSearch = searchRef.current !== "" ? data.label.toUpperCase().includes(searchRef.current.toUpperCase()?.trim()) : true
+                    return checkBotType && checkBot && checkPosition && checkCandle && checkSearch
+                })
             }
-        }).filter(data => data?.children?.length > 0) : dataCheckTreeDefaultRef.current
+        }).filter(data => data?.children?.length > 0)
 
-        resetAfterSuccess()
         setDataCheckTree(listData)
+        handleCheckAllCheckBox(false)
+
     }
 
 
@@ -305,7 +286,6 @@ function Strategies() {
             const newIndex = dataTreeViewIndex + SCROLL_INDEX
             if (scrollPercentage >= 80) {
                 setDataTreeViewIndex(newIndex)
-
             }
 
         }
@@ -313,32 +293,29 @@ function Strategies() {
             window.removeEventListener('scroll', handleScrollData)
             setDataTreeViewIndex(dataTreeViewIndex + SCROLL_INDEX)
         }
+
     }
 
-    const resetAfterSuccess = (setFilterBox = false, filter = false) => {
+    const resetAfterSuccess = () => {
         dataCheckTreeSelectedRef.current = []
-        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        botTypeSelectedRef.current = "All"
+        botSelectedRef.current = "All"
+        positionSideSelectedRef.current = "All"
+        candlestickSelectedRef.current = "All"
         searchRef.current = ""
-        handleCheckAllCheckBox(false)
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
-        !filter && (filterQuantityRef.current = [])
-        if (setFilterBox) {
-            setBotSelected('All')
-            setBotTypeSelected("All")
-            setPositionSideSelected(positionSideList[0].value)
-            setCandlestickSelected(candlestickList[0].value)
-        }
+        handleCheckAllCheckBox(false)
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
     }
 
-    const dataCheckTreeCurrentLength = useMemo(() => {
-        const list = dataCheckTreeRef.current.length > 0 ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
-        const result = list.reduce((pre, cur) => {
-            return pre += cur.children.length
-        }, 0)
-        return result
-    }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
-
+    // const dataCheckTreeCurrentLength = useMemo(() => {
+    //     const list = dataCheckTreeRef.current.length > 0 ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
+    //     const result = list.reduce((pre, cur) => {
+    //         return pre += cur.children.length
+    //     }, 0)
+    //     return result
+    // }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
 
     useEffect(() => {
         if (userData.userName) {
@@ -347,7 +324,7 @@ function Strategies() {
             handleGetTotalFutureByBot()
         }
 
-    }, [userData]);
+    }, [userData.userName]);
 
     useEffect(() => {
         if (dataCheckTree.length > 0) {
@@ -377,14 +354,10 @@ function Strategies() {
     }, [dataCheckTree, dataTreeViewIndex]);
 
     useEffect(() => {
-        dataCheckTreeRef.current = dataCheckTree
-        resetAfterSuccess(filterQuantityRef.current.length ? true : false, true)
-    }, [filterQuantityRef.current.length]);
-
-    useEffect(() => {
         (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
+    console.log('chanfge');
     return (
         <div className={styles.strategies}>
             <AddBreadcrumbs list={["Strategies"]} />
@@ -404,17 +377,9 @@ function Strategies() {
                         size="small"
                         placeholder="Search"
                         onChange={(e) => {
-                            resetAfterSuccess(true)
-                            setDataCheckTree(() => {
-                                const key = e.target.value
-                                searchRef.current = key
-                                let listFilter = filterQuantityRef.current.length ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
-                                if (key) {
-                                    const newList = listFilter.filter(item => item.label.toUpperCase().includes(key.toUpperCase()?.trim()))
-                                    return newList.length > 0 ? newList : []
-                                }
-                                return listFilter
-                            })
+                            const key = e.target.value
+                            searchRef.current = key
+                            handleFilterAll()
                         }}
                         className={styles.strategiesFilterInput}
                     />
@@ -426,7 +391,6 @@ function Strategies() {
                         }}
                         onClick={() => {
                             setOpenFilterDialog(true)
-                            searchRef.current = ""
                         }}
                     />
                     {filterQuantityRef.current.length ? <p>{filterQuantityRef.current.length} filters</p> : ""}
@@ -436,8 +400,13 @@ function Strategies() {
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
-                            value={botTypeSelected}
+                            value={botTypeSelectedRef.current}
                             size="small"
+                            onChange={e => {
+                                const value = e.target.value;
+                                botTypeSelectedRef.current = value
+                                handleFilterAll()
+                            }}
                         >
                             {
                                 botTypeList.map(item => (
@@ -450,15 +419,12 @@ function Strategies() {
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>
                         <Select
-                            value={botSelected}
+                            value={botSelectedRef.current}
                             size="small"
                             onChange={e => {
                                 const value = e.target.value;
-                                setBotSelected(value);
-                                handleFilterAll({
-                                    name: "botID",
-                                    value
-                                })
+                                botSelectedRef.current = value
+                                handleFilterAll()
                             }}
                         >
                             {
@@ -472,16 +438,12 @@ function Strategies() {
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Position</FormLabel>
                         <Select
-                            value={positionSideSelected}
+                            value={positionSideSelectedRef.current}
                             size="small"
                             onChange={e => {
                                 const value = e.target.value;
-                                setPositionSideSelected(value);
-
-                                handleFilterAll({
-                                    name: "PositionSide",
-                                    value
-                                })
+                                positionSideSelectedRef.current = value
+                                handleFilterAll()
                             }}
                         >
                             {
@@ -495,15 +457,12 @@ function Strategies() {
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Candle</FormLabel>
                         <Select
-                            value={candlestickSelected}
+                            value={candlestickSelectedRef.current}
                             size="small"
                             onChange={e => {
                                 const value = e.target.value;
-                                setCandlestickSelected(value);
-                                handleFilterAll({
-                                    name: "Candlestick",
-                                    value
-                                })
+                                candlestickSelectedRef.current = value
+                                handleFilterAll()
                             }}
                         >
                             {
@@ -575,7 +534,6 @@ function Strategies() {
                                     treeData={treeData}
                                     setOpenCreateStrategy={setOpenCreateStrategy}
                                     setDataCheckTree={setDataCheckTree}
-                                    dataCheckTreeCurrentLength={dataCheckTreeCurrentLength}
                                     dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                                     key={treeData._id}
                                 />
@@ -651,6 +609,7 @@ function Strategies() {
                     filterQuantityRef={filterQuantityRef}
                     dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                     setDataCheckTree={setDataCheckTree}
+                    resetAfterSuccess={resetAfterSuccess}
                     onClose={() => {
                         setOpenFilterDialog(false)
                     }}

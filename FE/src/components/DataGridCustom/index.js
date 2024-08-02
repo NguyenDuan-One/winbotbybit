@@ -26,7 +26,10 @@ function DataGridCustom({
             disableMultipleRowSelection={disableMultipleRowSelection}
             isRowSelectable={params => disabledListRow.length > 0 ? !disabledListRow.includes(params.row.id) : params}
             onRowSelectionModelChange={data => { setDataTableChange(data) }}
-            hideFooter={hideFooter}
+            pageSizeOptions={[10, 25, 50]}
+            initialState={{
+                pagination: { paginationModel: { pageSize: 10 } },
+            }}
             sx={{
                 ".MuiDataGrid-columnHeaderTitle": {
                     fontWeight: "bold"
@@ -39,6 +42,9 @@ function DataGridCustom({
                 },
                 ".MuiDataGrid-cell--textRight": {
                     textAlign: "left"
+                },
+                ".MuiDataGrid-main": {
+                    overflow: "auto"
                 }
                 // "& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-columnHeaderTitleContainer": {
                 //     display: "none"

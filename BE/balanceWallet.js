@@ -146,15 +146,28 @@ try {
 
     cron.schedule('0 */3 * * *', async () => {
         await handleWalletBalance();
-        const list = Object.values(botBalance)
-        list.length > 0 && list.map(item => {
-            sendMessageWithRetryByBot({
-                messageText: `<b> 🍑 Total Balance Of Bot: ${(item.totalBalanceAllBot).toFixed(3)}$ </b>`,
-                telegramID: item.telegramInfo.telegramID,
-                telegramToken: item.telegramInfo.telegramToken,
-                botName: "Total Bot"
-            })
-        })
+        const list = Object.entries(botBalance)
+        if (list.length > 0) {
+            await Promise.allSettled(list.map(async item => {
+                const key = item[0]
+                const value = item[1]
+                await sendMessageWithRetryByBot({
+                    messageText: `<b> 🍑 Total Balance Of Bot: ${(value.totalBalanceAllBot).toFixed(3)}$ </b>`,
+                    telegramID: value.telegramInfo.telegramID,
+                    telegramToken: value.telegramInfo.telegramToken,
+                    botName: "Total Bot"
+                })
+
+                botBalance[key] = {
+                    totalBalanceAllBot: 0,
+                    telegramInfo: {
+                        telegramID: "",
+                        telegramToken: ""
+                    }
+                }
+            }))
+
+        }
     });
 }
 

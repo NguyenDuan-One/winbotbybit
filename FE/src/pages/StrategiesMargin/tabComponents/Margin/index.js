@@ -346,7 +346,7 @@ function Margin() {
             handleGetTotalFutureByBot()
         }
 
-    }, [userData]);
+    }, [userData.userName]);
 
     useEffect(() => {
         if (dataCheckTree.length > 0) {

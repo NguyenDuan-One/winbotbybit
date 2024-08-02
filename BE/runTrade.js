@@ -995,7 +995,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                                             if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
-                                                console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                                console.log(changeColorConsole.redBright(`\n⛔ [_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
 
                                                 // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
                                                 let TPNew = openTrade
@@ -1037,7 +1037,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                     console.log(err);
                                                 })
                                                 sendMessageWithRetry({
-                                                    messageText: `<b>⛔ MISS ( ${botName} - ${side} - ${symbol} ): ${missSize}</b>`,
+                                                    messageText: `<b>⛔ [MISS] ( ${botName} - ${side} - ${symbol} ): ${missSize}</b>`,
                                                     telegramID,
                                                     telegramToken
                                                 })
@@ -1059,7 +1059,7 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                         }
                                     }
                                     else {
-                                        console.log(changeColorConsole.redBright(`\n[_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                        console.log(changeColorConsole.redBright(`\n⛔ [_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
                                         updatePositionBE({
                                             newDataUpdate: {
                                                 Miss: true,
@@ -1119,75 +1119,6 @@ const checkConditionBot = (botData) => {
 
 // ----------------------------------------------------------------------------------
 
-const handleWalletBalance = async () => {
-
-    let totalBalanceAllBot = 0
-
-    let telegramInfo = ""
-
-    const botListDataActiveRes = await getAllBotActive()
-    if (botListDataActiveRes.length > 0) {
-        const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
-            const result = await getFutureSpotBE(item._id)
-
-            // Trả về đối tượng mới cho mỗi item trong mảng
-            return {
-                id: item._id,
-                spotSavings: +item?.spotSavings || 0,
-                future: +result.future || 0,
-                spotTotal: +result.spotTotal || 0,
-                API_KEY: result.API_KEY,
-                SECRET_KEY: result.SECRET_KEY,
-                telegramID: item?.telegramID,
-                telegramToken: item?.telegramToken,
-                telegramToken: item?.telegramToken,
-                botName: item?.botName,
-            };
-
-        }))
-        botListDataActive = botListDataActiveObject.map(item => item.value)
-
-        const resultBalance = await Promise.allSettled(botListDataActive.map(async botData => {
-
-            const newSpotAvailable = botData.spotTotal - botData.spotSavings
-            const average = (newSpotAvailable + botData.future) / 2
-
-            if (Math.abs(botData.future - newSpotAvailable) >= 1) {
-                await balanceWalletBE({
-                    amount: Math.abs(newSpotAvailable - average),
-                    futureLarger: botData.future - newSpotAvailable > 0,
-                    API_KEY: botData.API_KEY,
-                    SECRET_KEY: botData.SECRET_KEY,
-                })
-
-                console.log(`-> Saving ( ${botData.botName} ) Successful`);
-
-                const balancePrice = botData.spotTotal + botData.future
-                totalBalanceAllBot += balancePrice
-
-                telegramInfo = {
-                    telegramID: botData.telegramID,
-                    telegramToken: botData.telegramToken,
-                }
-
-                sendMessageWithRetryByBot({
-                    messageText: `🍉 Balance ( ${botData.botName} ): ${balancePrice.toFixed(3)}$`,
-                    telegramID: botData.telegramID,
-                    telegramToken: botData.telegramToken,
-                    botName: botData.botName
-                })
-            }
-        }))
-
-        if (resultBalance.some(item => item.status === "fulfilled")) {
-            console.log(`-> Saving All Successful`);
-        }
-    }
-    return {
-        totalBalanceAllBot: totalBalanceAllBot.toFixed(3),
-        telegramInfo
-    }
-}
 
 const Main = async () => {
 

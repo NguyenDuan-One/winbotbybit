@@ -11,7 +11,8 @@ function FilterDialog({
     onClose,
     filterQuantityRef,
     dataCheckTreeDefaultRef,
-    setDataCheckTree
+    setDataCheckTree,
+    resetAfterSuccess
 }) {
 
     const compareFilterListDefault = [
@@ -362,6 +363,7 @@ function FilterDialog({
             ? dataCheckTreeDefaultRef.current.map(dataItem => handleFilterExpression(dataItem)).filter(dataItem => dataItem.children.length > 0)
             : dataCheckTreeDefaultRef.current)
         handleCheckAllCheckBox(false)
+        resetAfterSuccess()
         onClose()
     }
 
