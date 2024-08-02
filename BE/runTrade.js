@@ -555,9 +555,9 @@ const sendMessageWithRetry = async ({
     }
 };
 
-const getMoneyFuture = async (botApiList) => {
+const getMoneyFuture = async (botApiListInput) => {
 
-    const list = Object.values(botApiList)
+    const list = Object.values(botApiListInput)
     if (list.length > 0) {
         const resultGetFuture = await Promise.all(list.map(async botData => getFutureBE(botData.id)))
 
@@ -569,17 +569,17 @@ const getMoneyFuture = async (botApiList) => {
     }
 }
 
-const handleSocketBotApiList = async (botApiList = {}) => {
+const handleSocketBotApiList = async (botApiListInput = {}) => {
 
     try {
-        const objectToArray = Object.values(botApiList);
+        const objectToArray = Object.values(botApiListInput);
         const objectToArrayLength = objectToArray.length;
         console.log(changeColorConsole.greenBright("[New-Bot-API] Length:", objectToArrayLength));
 
         if (objectToArrayLength > 0) {
 
 
-            await getMoneyFuture(botApiList)
+            await getMoneyFuture(botApiListInput)
 
             console.log("[...] Subscribe new-bot-list-api successful\n");
 
@@ -588,7 +588,6 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                 const ApiKey = botApiData.ApiKey
                 const SecretKey = botApiData.SecretKey
                 const botID = botApiData.id
-                const botName = botApiData.botName
 
 
                 // allSymbol.forEach(symbol => {
@@ -610,6 +609,11 @@ const handleSocketBotApiList = async (botApiList = {}) => {
 
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
                     wsOrder.on('update', async (dataCoin) => {
+
+                        const ApiKey = botApiData.ApiKey
+                        const SecretKey = botApiData.SecretKey
+                        const botID = botApiData.id
+                        const botName = botApiData.botName
 
                         const telegramID = botApiList[botID].telegramID
                         const telegramToken = botApiList[botID].telegramToken
