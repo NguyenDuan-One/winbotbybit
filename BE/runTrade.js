@@ -1749,7 +1749,7 @@ const Main = async () => {
 }
 
 try {
-    // Main()
+    Main()
 
     setTimeout(() => {
         cron.schedule(`*/3 * * * * *`, () => {
