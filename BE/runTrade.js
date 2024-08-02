@@ -1752,7 +1752,7 @@ try {
     Main()
 
     setTimeout(() => {
-        cron.schedule(`*/1 * * * * *`, () => {
+        cron.schedule(`*/3 * * * * *`, () => {
             getMoneyFuture(botApiList)
         });
     }, 100000)
