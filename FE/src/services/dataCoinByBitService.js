@@ -1,8 +1,8 @@
 import api from "../utils/api"
 
 // GET
-export const getAllStrategies = async () => {
-    return await api.get("/dataCoinByBit/getAllStrategies")
+export const getAllStrategies = async (botListInput) => {
+    return await api.post("/dataCoinByBit/getAllStrategies",{botListInput})
 }
 export const getAllSymbol = async () => {
     return await api.get("/dataCoinByBit/getAllSymbol")

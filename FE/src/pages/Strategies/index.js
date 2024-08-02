@@ -154,6 +154,8 @@ function Strategies() {
                     ...newData
                 ]
                 setBotList(newMain)
+            handleGetAllStrategies(newData)
+
             })
             .catch(error => {
             }
@@ -201,12 +203,12 @@ function Strategies() {
         return newDataCheckTree
     }
 
-    const handleGetAllStrategies = async () => {
+    const handleGetAllStrategies = async (botListInput = botList.slice(1)) => {
         resetAfterSuccess()
         try {
             window.scrollTo(0, 0)
 
-            const res = await getAllStrategies()
+            const res = await getAllStrategies(botListInput?.map(item=>item?.value))
             const { status, message, data: resData } = res.data
 
             const newDataCheckTree = handleDataTree(resData)
@@ -308,7 +310,6 @@ function Strategies() {
     useEffect(() => {
         if (userData.userName) {
             handleGetAllBotByUserID()
-            handleGetAllStrategies()
             handleGetTotalFutureByBot()
         }
 

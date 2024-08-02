@@ -113,12 +113,16 @@ const dataCoinByBitController = {
 
     getAllStrategies: async (req, res) => {
         try {
-            const userID = req.user._id
+            // const userID = req.user._id
+            const { botListInput } = req.body
+
+            const botList = botListInput.map(item=>new mongoose.Types.ObjectId(item))
 
             // const result = await StrategiesModel.find({ "children.userID": { "$in": [userID] } }).sort({ "label": 1 }).populate("children.botID")
             const resultFilter = await StrategiesModel.aggregate([
                 {
-                    $match: { "children.userID": new mongoose.Types.ObjectId(userID) }
+                    // $match: { "children.userID": new mongoose.Types.ObjectId(userID) }
+                    $match: { "children.botID": { $in: botList } }
                 },
                 {
                     $addFields: {
@@ -127,7 +131,7 @@ const dataCoinByBitController = {
                                 input: "$children",
                                 as: "child",
                                 cond: {
-                                    $eq: ["$$child.userID", new mongoose.Types.ObjectId(userID)],
+                                    $in: ["$$child.botID", botList],
                                 }
                             }
                         }

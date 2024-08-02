@@ -8,6 +8,7 @@ import { addMessageToast } from '../../../../store/slices/Toast';
 import { copyMultipleStrategiesToBot, copyMultipleStrategiesToSymbol, deleteStrategiesMultiple, getAllSymbol, updateStrategiesMultiple } from '../../../../services/dataCoinByBitService';
 import { verifyTokenVIP } from '../../../../services/authService';
 import { getUserByID } from '../../../../services/userService';
+import { getAllBot } from '../../../../services/botService';
 
 function EditMulTreeItem({
     onClose,
@@ -124,6 +125,7 @@ function EditMulTreeItem({
 
     // const [botListData, setBotListData] = useState([]);
     const [botLisSelected, setBotLisSelected] = useState([]);
+    const [botListInputVIP, setBotListInputVIP] = useState([]);
 
     const [filterDataRowList, setFilterDataRowList] = useState([fieldFilterList[1]]);
     const [radioValue, setRadioValue] = useState("Update");
@@ -137,13 +139,29 @@ function EditMulTreeItem({
     const handleVerifyLogin = async () => {
         try {
             const res = await verifyTokenVIP({
-                token:localStorage.getItem("tk_crypto")
+                token: localStorage.getItem("tk_crypto")
             })
             const userData = res.data.data
 
             const resUser = await getUserByID(userData._id)
             const { data: resUserData } = resUser.data
             setRoleNameMainVIP(resUserData.roleName === "SuperAdmin" || resUserData.roleName === "Admin")
+        } catch (error) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Role User Main Error",
+            }))
+        }
+    }
+    const handleGetAllBot = async () => {
+        try {
+            const res = await getAllBot()
+            const { data: resUserData } = res.data
+            setBotListInputVIP(resUserData.map(item=>({
+                name:item.botName,
+                value:item._id
+            })))
+
         } catch (error) {
             dispatch(addMessageToast({
                 status: 500,
@@ -677,14 +695,13 @@ function EditMulTreeItem({
                     {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
                 </div>
             case "BotVip":
-
                 return roleNameMainVIP && <div>
                     <Autocomplete
                         multiple
                         limitTags={1}
                         value={botLisSelected}
                         disableCloseOnSelect
-                        options={botListInput}
+                        options={botListInputVIP}
                         size="small"
                         getOptionLabel={(option) => option.name}
                         onChange={(e, value) => {
@@ -701,7 +718,7 @@ function EditMulTreeItem({
                                             color="inherit"
                                             style={{ width: '50%' }}
                                             onClick={() => {
-                                                setBotLisSelected(botListInput)
+                                                setBotLisSelected(botListInputVIP)
                                             }}
                                         >
                                             Select All
@@ -859,7 +876,7 @@ function EditMulTreeItem({
                             >
                                 <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
                                 <FormControlLabel value="Bot" control={<Radio />} label="Bot" />
-                                {roleNameMainVIP && <FormControlLabel value="BotVip" control={<Radio />} label="Bot (*)" style={{ color: "var(--blueLightColor)" }} />}
+                                {roleNameMainVIP && <FormControlLabel value="BotVip" control={<Radio />} label="Bot VIP" style={{ color: "var(--blueLightColor)" }} />}
                             </RadioGroup>
                         </FormControl>
                         {handleRenderContentRadio()}
@@ -883,6 +900,7 @@ function EditMulTreeItem({
         if (radioValue === "Copy") {
             handleGetSymbolList()
             handleVerifyLogin()
+            handleGetAllBot()
         }
         // handleGetAllBot()
     }, [radioValue]);
