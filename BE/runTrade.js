@@ -414,7 +414,6 @@ const handleCancelOrderTP = async ({
                         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                     }).then(message => {
                         console.log(message);
-                        updateMongoMiss = true
                     }).catch(err => {
                         console.log(changeColorConsole.redBright(err));
                     })
@@ -812,13 +811,14 @@ const handleSocketBotApiList = async (botApiList = {}) => {
                                                 deletePositionBE({
                                                     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
                                                 }).then(message => {
+                                                    console.log(`[...] Delete Position ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                                     console.log(message);
                                                 }).catch(err => {
                                                     console.log(changeColorConsole.redBright(err));
                                                 })
                                             }
 
-                                            console.log("[...] Reset All");
+                                            console.log(`[...] Reset All ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
 
                                             resetMissData({
                                                 botID,
@@ -1779,7 +1779,7 @@ socketRealtime.on('add', async (newData = []) => {
 
     const newBotApiList = {}
 
-    await Promise.allSettled(newData.map(async strategiesData => {
+    await Promise.allSettled(newData.map(async newStrategiesData => {
 
         if (checkConditionBot(newStrategiesData)) {
 
@@ -1836,9 +1836,7 @@ socketRealtime.on('update', async (newData = []) => {
 
     const newBotApiList = {}
 
-    let updateMongoMiss = false
-
-    await Promise.allSettled(newData.map((strategiesData, index) => {
+    await Promise.allSettled(newData.map((strategiesData) => {
 
         if (checkConditionBot(strategiesData)) {
 
