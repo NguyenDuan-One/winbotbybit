@@ -1038,7 +1038,6 @@ const dataCoinByBitController = {
                     coin: 'USDT',
                 })
 
-                console.log(result.result?.list?.[0]);
                 if (result.retCode === 0) {
                     return {
                         totalWalletBalance: result.result?.list?.[0]?.coin[0].walletBalance || 0,
