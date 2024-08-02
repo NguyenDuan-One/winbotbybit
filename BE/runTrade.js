@@ -610,6 +610,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
                     wsOrder.on('update', async (dataCoin) => {
 
+                        await delay(250)
+
                         const ApiKey = botApiData.ApiKey
                         const SecretKey = botApiData.SecretKey
                         const botID = botApiData.id
@@ -631,7 +633,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
 
                         if (dataCoin.topic === "order") {
-                            await delay(200)
                             const strategyData = allStrategiesByBotIDAndOrderID[botID]?.[orderID]
 
                             const strategy = strategyData?.strategy
