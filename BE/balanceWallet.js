@@ -148,8 +148,6 @@ const handleWalletBalance = async () => {
 try {
 
     cron.schedule('0 */3 * * *', async () => {
-    });
-    (async () => {
         await handleWalletBalance();
         setTimeout(() => {
             const list = Object.entries(botBalance)
@@ -174,7 +172,7 @@ try {
                 }))
             }
         }, 500)
-    })()
+    });
 }
 
 catch (e) {
