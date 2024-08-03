@@ -206,6 +206,7 @@ function Strategies() {
 
     const handleGetAllStrategies = async (botListInput = botList.slice(1)) => {
         setLoadingDataCheckTree(true)
+        filterQuantityRef.current = []
         resetAfterSuccess()
         try {
             window.scrollTo(0, 0)
@@ -347,7 +348,9 @@ function Strategies() {
     }, [dataCheckTree, dataTreeViewIndex]);
 
     useEffect(() => {
-        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
+        if (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) {
+            handleGetAllStrategies()
+        }
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
     return (
@@ -538,7 +541,7 @@ function Strategies() {
                         textAlign: "center",
                         margin: "16px 0 6px",
                         fontWeight: 500
-                    }}>{loadingDataCheckTree ? "Loading..."  : "No data"}</p>
+                    }}>{loadingDataCheckTree ? "Loading..." : "No data"}</p>
             }
 
             <div className={styles.strategiesBtnAction}>
