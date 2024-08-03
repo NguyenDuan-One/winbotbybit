@@ -1001,7 +1001,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
-                                                console.log(changeColorConsole.redBright(`\n⛔ [_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                                const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⛔ [_MISS_]`
+                                                console.log(changeColorConsole.redBright(`\n${teleText}\n`));
 
                                                 // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
                                                 let TPNew = openTrade
@@ -1043,7 +1044,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                     console.log(err);
                                                 })
                                                 sendMessageWithRetry({
-                                                    messageText: `<b>⛔ [MISS] ( ${botName} - ${side} - ${symbol} ): ${missSize}</b>`,
+                                                    messageText: teleText,
                                                     telegramID,
                                                     telegramToken
                                                 })
@@ -1065,7 +1066,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         }
                                     }
                                     else {
-                                        console.log(changeColorConsole.redBright(`\n⛔ [_ MISS _] TP ( ${botName} - ${side} - ${symbol} ): ${missSize}\n`));
+                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⛔ [_MISS_]`
+                                        console.log(changeColorConsole.redBright(`\n${teleText}\n`));
                                         updatePositionBE({
                                             newDataUpdate: {
                                                 Miss: true,

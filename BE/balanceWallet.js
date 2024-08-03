@@ -104,11 +104,11 @@ const handleWalletBalance = async () => {
 
                 const balancePrice = botData.spotTotal + botData.future
 
-                const botID = `${userID}-${botData.botType}`
+                const botID = `${botData.userID}-${botData.botType}`
 
                 if (!botBalance[botID]) {
                     botBalance[botID] = {
-                        botType:botData.botType,
+                        botType: "",
                         totalBalanceAllBot: 0,
                         telegramInfo: {
                             telegramID: "",
@@ -118,6 +118,7 @@ const handleWalletBalance = async () => {
                 }
 
                 botBalance[botID] = {
+                    botType: botData.botType,
                     totalBalanceAllBot: balancePrice + botBalance[botID].totalBalanceAllBot,
                     telegramInfo: {
                         telegramID: botData.telegramID,
@@ -126,7 +127,7 @@ const handleWalletBalance = async () => {
                 }
 
                 sendMessageWithRetryByBot({
-                    messageText: `🍉 Balance | ${balancePrice.toFixed(3)}$ \nBot: ( ${botData.botName} )`,
+                    messageText: `<b>Bot:${botData.botName}</b>\n🍉 Balance | ${balancePrice.toFixed(3)}$`,
                     telegramID: botData.telegramID,
                     telegramToken: botData.telegramToken,
                     botName: botData.botName
@@ -147,30 +148,33 @@ const handleWalletBalance = async () => {
 try {
 
     cron.schedule('0 */3 * * *', async () => {
-        await handleWalletBalance();
-        const list = Object.entries(botBalance)
-        if (list.length > 0) {
-            await Promise.allSettled(list.map(async item => {
-                const key = item[0]
-                const value = item[1]
-                await sendMessageWithRetryByBot({
-                    messageText: `🍑 Total Balance | ${(value.totalBalanceAllBot).toFixed(3)}$ \nBotType: ( ${value.botType} )`,
-                    telegramID: value.telegramInfo.telegramID,
-                    telegramToken: value.telegramInfo.telegramToken,
-                    botName: "Total Bot"
-                })
-
-                botBalance[key] = {
-                    totalBalanceAllBot: 0,
-                    telegramInfo: {
-                        telegramID: "",
-                        telegramToken: ""
-                    }
-                }
-            }))
-
-        }
     });
+    (async () => {
+        await handleWalletBalance();
+        setTimeout(() => {
+            const list = Object.entries(botBalance)
+            if (list.length > 0) {
+                Promise.allSettled(list.map(async item => {
+                    const key = item[0]
+                    const value = item[1]
+                    sendMessageWithRetryByBot({
+                        messageText: `<b>BotType: ${value.botType}</b>\n🍑 Total Balance | ${(value.totalBalanceAllBot).toFixed(3)}$`,
+                        telegramID: value.telegramInfo.telegramID,
+                        telegramToken: value.telegramInfo.telegramToken,
+                        botName: "Total Bot"
+                    })
+
+                    botBalance[key] = {
+                        totalBalanceAllBot: 0,
+                        telegramInfo: {
+                            telegramID: "",
+                            telegramToken: ""
+                        }
+                    }
+                }))
+            }
+        }, 500)
+    })()
 }
 
 catch (e) {
