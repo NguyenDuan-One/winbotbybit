@@ -71,6 +71,7 @@ const handleWalletBalance = async () => {
             // Trả về đối tượng mới cho mỗi item trong mảng
             return {
                 id: botID,
+                userID: item.userID,
                 botType: item.botType,
                 spotSavings: +item?.spotSavings || 0,
                 future: +result.future || 0,
@@ -103,10 +104,11 @@ const handleWalletBalance = async () => {
 
                 const balancePrice = botData.spotTotal + botData.future
 
-                const botID = `${botData.id}-${botData.botType}`
+                const botID = `${userID}-${botData.botType}`
 
                 if (!botBalance[botID]) {
                     botBalance[botID] = {
+                        botType:botData.botType,
                         totalBalanceAllBot: 0,
                         telegramInfo: {
                             telegramID: "",
@@ -124,7 +126,7 @@ const handleWalletBalance = async () => {
                 }
 
                 sendMessageWithRetryByBot({
-                    messageText: `🍉 Balance ( ${botData.botName} ): ${balancePrice.toFixed(3)}$`,
+                    messageText: `🍉 Balance | ${balancePrice.toFixed(3)}$ \nBot: ( ${botData.botName} )`,
                     telegramID: botData.telegramID,
                     telegramToken: botData.telegramToken,
                     botName: botData.botName
@@ -152,7 +154,7 @@ try {
                 const key = item[0]
                 const value = item[1]
                 await sendMessageWithRetryByBot({
-                    messageText: `<b> 🍑 Total Balance Of Bot: ${(value.totalBalanceAllBot).toFixed(3)}$ </b>`,
+                    messageText: `🍑 Total Balance | ${(value.totalBalanceAllBot).toFixed(3)}$ \nBotType: ( ${value.botType} )`,
                     telegramID: value.telegramInfo.telegramID,
                     telegramToken: value.telegramInfo.telegramToken,
                     botName: "Total Bot"

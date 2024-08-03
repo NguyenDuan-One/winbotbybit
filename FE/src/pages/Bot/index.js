@@ -1,5 +1,5 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { Button, MenuItem, Select, Switch } from "@mui/material";
+import { Button, FormControl, FormLabel, MenuItem, Select, Switch } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import { Link } from 'react-router-dom';
 import { useState, memo, useEffect, useRef } from "react";
@@ -407,6 +407,22 @@ function Bot() {
                             ))
                         }
                     </Select>
+                </div>
+                <div className={styles.botFilterListItem}>
+
+                    <p className={styles.label}>My Bot</p>
+                    <Switch
+
+                        title="My Bot"
+                        onChange={e => {
+                            if (e.target.checked) {
+                                setBotList(botListDefaultRef.current.filter(bot => bot.userID._id == userData._id))
+                            }
+                            else {
+                                setBotList(botListDefaultRef.current)
+                            }
+                        }}
+                    />
                 </div>
             </div>
             <div className={styles.botTableContainer}>
