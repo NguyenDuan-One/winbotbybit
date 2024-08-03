@@ -21,8 +21,7 @@ const botSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: 'User',
   },
-  // server IP
-  serverIP:String
+
 });
 
 

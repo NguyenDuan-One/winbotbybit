@@ -3,6 +3,9 @@ import api from "../utils/api"
 export const getAllBot = async () => {
     return await api.get("/bot/getAllBot")
 }
+export const getAllBotActive = async () => {
+    return await api.get("/bot/getAllBotActive")
+}
 export const getAllBotByUserID = async (userID) => {
     return await api.get(`/bot/getAllBotByUserID/${userID}`)
 }

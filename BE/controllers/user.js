@@ -151,14 +151,14 @@ const UserController = {
                     data = await UserModel.find({
                         _id: { $ne: userID },
                         isActive: true
-                    }, { password: 0 });
+                    }, { password: 0 }).populate("groupID");
                     break
                 case "Admin":
                     data = await UserModel.find({
                         _id: { $ne: userID },
-                        roleName: { $in: ["Trader", "ManagerTrader"] },
+                        roleName: { $in: ["Trader", "ManagerTrader","Admin"] },
                         isActive: true
-                    }, { password: 0 });
+                    }, { password: 0 }).populate("groupID");
                     break
                 case "ManagerTrader":
                     data = await UserModel.find({
@@ -166,7 +166,7 @@ const UserController = {
                         roleName: { $in: ["Trader"] },
                         isActive: true,
                         groupID: { $eq: groupID, $ne: null }
-                    }, { password: 0 });
+                    }, { password: 0 }).populate("groupID");
                     break
             }
             res.customResponse(res.statusCode, "Get UserData Switch Successful", data);

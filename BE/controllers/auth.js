@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const UserModel = require('../models/user.model')
 // Tạo JWT token
 const secretKey = process.env.JWT_SECRET_KEY;
-
+const expiresIn = "8h"
 const AuthController = {
 
     signUp: async (req, res) => {
@@ -55,7 +55,7 @@ const AuthController = {
                         _id: user._id,
                     }
 
-                    const token = jwt.sign(userDataSign, secretKey, { expiresIn: "8h" });
+                    const token = jwt.sign(userDataSign, secretKey, { expiresIn: expiresIn });
 
                     res.customResponse(200, "Login Successful", {
                         token, user: userDataSign
@@ -82,7 +82,7 @@ const AuthController = {
                 _id: userID
             }
 
-            const token = jwt.sign(userDataSign, secretKey, { expiresIn: "8h" });
+            const token = jwt.sign(userDataSign, secretKey, { expiresIn: expiresIn });
 
             res.customResponse(200, "Switch User Successful", {
                 token, user: userDataSign

@@ -10,6 +10,7 @@ import { login, signUp } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet';
 import { setUserDataLocal } from '../../store/slices/UserData';
+import { useEffect } from 'react';
 
 function LoginPage() {
 
@@ -52,6 +53,11 @@ function LoginPage() {
             }));
         }
     }
+
+    useEffect(()=>{
+        localStorage.getItem('tk_crypto') && navigate("/")
+    },[])
+    
     return (
         <div className={styles.loginPage} onKeyDown={e => {
             if (e.key === "Enter") {

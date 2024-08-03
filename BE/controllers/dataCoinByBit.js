@@ -116,9 +116,8 @@ const dataCoinByBitController = {
             // const userID = req.user._id
             const { botListInput } = req.body
 
-            const botList = botListInput.map(item=>new mongoose.Types.ObjectId(item))
+            const botList = botListInput.map(item => new mongoose.Types.ObjectId(item));
 
-            // const result = await StrategiesModel.find({ "children.userID": { "$in": [userID] } }).sort({ "label": 1 }).populate("children.botID")
             const resultFilter = await StrategiesModel.aggregate([
                 {
                     // $match: { "children.userID": new mongoose.Types.ObjectId(userID) }
@@ -164,8 +163,6 @@ const dataCoinByBitController = {
             ]);
 
 
-
-
             const result = await StrategiesModel.populate(resultFilter, {
                 path: 'children.botID',
             })
@@ -179,6 +176,7 @@ const dataCoinByBitController = {
                 }
                 return result
             }, []) || []
+
 
             res.customResponse(res.statusCode, "Get All Strategies Successful", handleResult);
 
@@ -636,31 +634,51 @@ const dataCoinByBitController = {
 
             const TimeTemp = new Date().toString()
 
-            const bulkOperations = [];
+            // const bulkOperations = [];
 
-            // Lặp qua danh sách symbolList và tạo các thao tác push vào mảng bulkOperations
-            symbolList.forEach(symbol => {
-                const filter = { "value": symbol };
-                const update = {
-                    $push: {
-                        "children": {
-                            $each: symbolListData.map(data => {
-                                const newObj = { ...data, TimeTemp };
-                                delete newObj?._id
-                                delete newObj?.value
-                                return newObj
+            // // Lặp qua danh sách symbolList và tạo các thao tác push vào mảng bulkOperations
+            // symbolList.forEach(symbol => {
+            //     const filter = { "value": symbol };
+            //     const update = {
+            //         $push: {
+            //             "children": {
+            //                 $each: symbolListData.map(data => {
+            //                     const newObj = { ...data, TimeTemp };
+            //                     delete newObj?._id
+            //                     delete newObj?.value
+            //                     return newObj
 
-                            })
+            //                 })
+            //             }
+            //         }
+            //     };
+
+            //     bulkOperations.push({
+            //         updateOne: {
+            //             filter,
+            //             update
+            //         }
+            //     });
+            // });
+
+            const bulkOperations = symbolList.map(symbol => {
+                return {
+                    updateOne: {
+                        filter: { "value": symbol },
+                        update: {
+                            $push: {
+                                "children": {
+                                    $each: symbolListData.map(data => {
+                                        const newObj = { ...data, TimeTemp };
+                                        delete newObj?._id
+                                        delete newObj?.value
+                                        return newObj
+                                    })
+                                }
+                            }
                         }
                     }
-                };
-
-                bulkOperations.push({
-                    updateOne: {
-                        filter,
-                        update
-                    }
-                });
+                }
             });
 
             const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
@@ -768,10 +786,26 @@ const dataCoinByBitController = {
                     });
                     newSymbolNameList.push(value.symbol);
                 })
-                await StrategiesModel.insertMany(newSymbolList)
+
+                const insertSymbolNew = StrategiesModel.insertMany(newSymbolList)
+
+                const bulkOperations = listSymbolObject.map(data => ({
+                    updateOne: {
+                        filter: { "label": data.symbol },
+                        update: {
+                            $set: {
+                                "volume24h": data.volume24h
+                            }
+                        }
+                    }
+                }));
+
+                const insertVol24 = StrategiesModel.bulkWrite(bulkOperations);
+
+                await Promise.allSettled([insertSymbolNew, insertVol24])
 
                 if (newSymbolList.length > 0) {
-                    res.customResponse(200, "Have New Sync Successful", newSymbolList[0].label)
+                    res.customResponse(200, "Have New Sync Successful", newSymbolList)
 
                     const newSymbolResult = await StrategiesModel.find({
                         value: { $in: newSymbolNameList }

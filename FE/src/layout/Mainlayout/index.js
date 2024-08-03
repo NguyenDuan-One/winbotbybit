@@ -125,14 +125,20 @@ function MainLayout({ children }) {
 
             const { data: resUserData } = resUser.data
             if (resUserData) {
-                
+
                 dispatch(setUserDataLocal(resUserData))
                 setUserData(resUserData)
-                
+
                 const res = await getByRoleName(resUserData?.roleName || "")
                 const { data: resData } = res.data
 
-                setRoleList(resData.roleList || [])
+                const newRoleList = resData.roleList
+
+                const routeCurrent = location.pathname.replace("/", "")
+                if (!newRoleList.includes(routeCurrent) && routeCurrent) {
+                    navigate("/")
+                }
+                setRoleList(newRoleList || [])
             }
 
         } catch (error) {
@@ -152,7 +158,9 @@ function MainLayout({ children }) {
     useEffect(() => {
         window.innerWidth <= 740 && setMarginLeft("")
         window.scrollTo(0, 0)
+       
     }, [location]);
+
 
     return (
         <div

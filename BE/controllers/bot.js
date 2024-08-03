@@ -97,6 +97,23 @@ const BotController = {
             res.status(500).json({ message: err.message });
         }
     },
+
+    getAllBotActive: async (req,res) => {
+        try {
+            // ref: .populate({ path: "coinID", models: "Coin" })
+            const data = await BotModel.find(
+                {
+                    Status: "Running",
+                    ApiKey: { $exists: true, $ne: null },
+                    SecretKey: { $exists: true, $ne: null }
+                }
+            ).sort({ Created: -1 })
+            res.customResponse(200, "Get All Bot Active Successful", data);
+
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
     getAllBotOnlyApiKeyByUserID: async (req, res) => {
         try {
             const userID = req.params.id;
@@ -315,7 +332,7 @@ const BotController = {
 
     // OTHER 
 
-    getAllBotActive: async () => {
+    getAllBotActiveBE: async () => {
         try {
             // ref: .populate({ path: "coinID", models: "Coin" })
             const data = await BotModel.find(

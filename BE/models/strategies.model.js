@@ -42,9 +42,6 @@ const strategiesSchema = new mongoose.Schema({
 
 
 const Strategies = mongoose.model('Strategies', strategiesSchema);
-// Strategies.createIndexes();
-// const StrategiesChildren = mongoose.model('StrategiesChildren', childrenStrategiesSchema);
 
 
 module.exports = Strategies;
-// module.exports.StrategiesChildren = StrategiesChildren; 

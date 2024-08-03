@@ -5,6 +5,7 @@ const MiddlewareController = require('../controllers/middleware');
 const BotController = require('../controllers/bot');
 
 router.get('/getAllBot', MiddlewareController.verifyToken, BotController.getAllBot);
+router.get('/getAllBotActive', MiddlewareController.verifyToken, BotController.getAllBotActive);
 router.get('/getAllBotByUserID/:id', MiddlewareController.verifyToken, BotController.getAllBotByUserID);
 router.get('/getAllBotActiveByUserID/:id', MiddlewareController.verifyToken, BotController.getAllBotActiveByUserID);
 router.get('/getAllBotOnlyApiKeyByUserID/:id', MiddlewareController.verifyToken, BotController.getAllBotOnlyApiKeyByUserID);

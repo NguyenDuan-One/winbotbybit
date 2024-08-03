@@ -8,7 +8,7 @@ import { addMessageToast } from '../../../../store/slices/Toast';
 import { copyMultipleStrategiesToBot, copyMultipleStrategiesToSymbol, deleteStrategiesMultiple, getAllSymbol, updateStrategiesMultiple } from '../../../../services/dataCoinByBitService';
 import { verifyTokenVIP } from '../../../../services/authService';
 import { getUserByID } from '../../../../services/userService';
-import { getAllBot } from '../../../../services/botService';
+import { getAllBotActive } from '../../../../services/botService';
 
 function EditMulTreeItem({
     onClose,
@@ -155,7 +155,7 @@ function EditMulTreeItem({
     }
     const handleGetAllBot = async () => {
         try {
-            const res = await getAllBot()
+            const res = await getAllBotActive()
             const { data: resUserData } = res.data
             setBotListInputVIP(resUserData.map(item=>({
                 name:item.botName,
@@ -558,29 +558,7 @@ function EditMulTreeItem({
         }
     }
 
-    // const handleGetAllBot = async () => {
-    //     try {
-    //         const res = await getAllBot()
-    //         const { status, message, data: botListDataRes } = res.data
-
-    //         if (status === 200) {
-    //             const newSymbolList = botListDataRes.map(item => ({ name: item.botName, value: item._id }))
-    //             setBotListData(newSymbolList)
-    //         }
-    //         else {
-    //             dispatch(addMessageToast({
-    //                 status,
-    //                 message
-    //             }))
-    //         }
-    //     }
-    //     catch (err) {
-    //         dispatch(addMessageToast({
-    //             status: 500,
-    //             message: "Get All Bot Error",
-    //         }))
-    //     }
-    // }
+  
 
     const handleRenderContentRadio = () => {
         switch (copyType) {

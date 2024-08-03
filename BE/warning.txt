@@ -36,3 +36,6 @@ Check error CronTab:
 ------------------------------------------------------------------------------------------------
 Remote Mongo 
     sudo nano /etc/mongod.conf
+
+Find in ubuntu:
+    grep -i "eth" filename

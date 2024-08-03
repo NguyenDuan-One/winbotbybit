@@ -132,13 +132,13 @@ function Bot() {
             },
 
         },
-        {
-            field: 'Balance',
-            headerName: 'Balance',
-            minWidth: 150,
-            flex: window.innerWidth <= 740 ? undefined : 1,
+        // {
+        //     field: 'Balance',
+        //     headerName: 'Balance',
+        //     minWidth: 150,
+        //     flex: window.innerWidth <= 740 ? undefined : 1,
 
-        },
+        // },
         {
             field: 'botType',
             headerName: 'Type',
@@ -146,13 +146,6 @@ function Bot() {
             flex: window.innerWidth <= 740 ? undefined : 1,
 
         },
-
-        // { field: 'id', headerName: 'Id', minWidth: 200,
-        //  },
-        // { field: 'Server', headerName: 'Server',
-        //  },
-        // { field: 'Version', headerName: 'Version',
-        //  },
         {
             field: 'userName',
             headerName: 'User Created',
@@ -172,12 +165,12 @@ function Bot() {
             flex: window.innerWidth <= 740 ? undefined : 1,
 
         },
-        {
-            field: 'serverIP',
-            headerName: 'Server IP',
-            minWidth: 150,
-            flex: window.innerWidth <= 740 ? undefined : 1,
-        },
+        // {
+        //     field: 'Server',
+        //     headerName: 'Server IP',
+        //     minWidth: 150,
+        //     flex: window.innerWidth <= 740 ? undefined : 1,
+        // },
 
     ]
 

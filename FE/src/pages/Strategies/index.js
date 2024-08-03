@@ -1,4 +1,3 @@
-
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import ReactDOM from 'react-dom';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
@@ -101,6 +100,7 @@ function Strategies() {
         name: "All",
         value: "All"
     },]);
+    const [loadingDataCheckTree, setLoadingDataCheckTree] = useState(false);
 
     const dataCheckTreeSelectedRef = useRef([])
     const dataCheckTreeDefaultRef = useRef([])
@@ -136,6 +136,7 @@ function Strategies() {
     }, [dataCheckTree])
 
     const handleGetAllBotByUserID = () => {
+        setLoadingDataCheckTree(true)
 
         getAllBotActiveByUserID(userData._id)
             .then(res => {
@@ -154,7 +155,7 @@ function Strategies() {
                     ...newData
                 ]
                 setBotList(newMain)
-            handleGetAllStrategies(newData)
+                handleGetAllStrategies(newData)
 
             })
             .catch(error => {
@@ -204,11 +205,12 @@ function Strategies() {
     }
 
     const handleGetAllStrategies = async (botListInput = botList.slice(1)) => {
+        setLoadingDataCheckTree(true)
         resetAfterSuccess()
         try {
             window.scrollTo(0, 0)
 
-            const res = await getAllStrategies(botListInput?.map(item=>item?.value))
+            const res = await getAllStrategies(botListInput?.map(item => item?.value))
             const { status, message, data: resData } = res.data
 
             const newDataCheckTree = handleDataTree(resData)
@@ -222,6 +224,7 @@ function Strategies() {
                 message: "Get All Strategies Error",
             }))
         }
+        setLoadingDataCheckTree(false)
     }
 
 
@@ -237,6 +240,7 @@ function Strategies() {
                     message: message,
                 }))
 
+                handleGetAllStrategies()
                 setLoadingUploadSymbol(false)
             }
             catch (err) {
@@ -281,7 +285,7 @@ function Strategies() {
 
         if (dataTreeViewIndexTemp <= dataCheckTree.length) {
             const newIndex = dataTreeViewIndex + SCROLL_INDEX
-            if (scrollPercentage >= 80) {
+            if (scrollPercentage >= 70) {
                 setDataTreeViewIndex(newIndex)
             }
 
@@ -467,7 +471,7 @@ function Strategies() {
             </div>
 
             {
-                dataCheckTree.length > 0
+                (dataCheckTree.length > 0 && !loadingDataCheckTree)
                     ?
                     <div className={styles.strategiesData}>
                         <p
@@ -529,13 +533,12 @@ function Strategies() {
                         })}
                     </div>
 
-                    : (
-                        <p style={{
-                            textAlign: "center",
-                            marginTop: "16px",
-                            fontWeight: 500
-                        }}>No data</p>
-                    )
+                    :
+                    <p style={{
+                        textAlign: "center",
+                        margin: "16px 0 6px",
+                        fontWeight: 500
+                    }}>{loadingDataCheckTree ? "Loading..."  : "No data"}</p>
             }
 
             <div className={styles.strategiesBtnAction}>

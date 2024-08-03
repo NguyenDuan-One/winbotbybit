@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const TelegramBot = require('node-telegram-bot-api');
-const { getAllBotActive } = require('./controllers/bot');
+const { getAllBotActiveBE } = require('./controllers/bot');
 const { getFutureSpotBE, balanceWalletBE } = require('./controllers/dataCoinByBit');
 
 var botListTelegram = {}
@@ -61,7 +61,7 @@ const sendMessageWithRetryByBot = async ({
 const handleWalletBalance = async () => {
 
 
-    const botListDataActiveRes = await getAllBotActive()
+    const botListDataActiveRes = await getAllBotActiveBE()
     if (botListDataActiveRes.length > 0) {
         const botListDataActiveObject = await Promise.allSettled(botListDataActiveRes.map(async item => {
             const botID = item._id
