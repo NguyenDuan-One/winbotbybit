@@ -57,7 +57,7 @@ function Heading({
                 <div className={styles.avatar} onClick={(e) => {
                     setAvatarDetailState(e.currentTarget)
                 }}>
-                    <Avatar src={userData?.roleName !== "SuperAdmin" ? avatar : avatarAdmin} />
+                    <Avatar src={userData?.roleName !== "SuperAdmin" ? avatar : avatarAdmin} style = {{width:"36px"}}/>
                     <div className={styles.name}>
                         <span>{userData?.userName || "User"}</span>
                         <ArrowDropDownIcon />

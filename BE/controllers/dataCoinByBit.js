@@ -63,6 +63,12 @@ const dataCoinByBitController = {
         // socketServer.to("room2").emit(type, data)
     },
     // GET
+    closeAllBotForUpCode: async (req,res) => {
+        dataCoinByBitController.sendDataRealtime({
+            type:"close-upcode"
+        })
+            res.customResponse(200, "Send Successful", "");
+    },
     getSymbolFromCloud: async (userID) => {
         try {
 
@@ -809,7 +815,7 @@ const dataCoinByBitController = {
 
                     const newSymbolResult = await StrategiesModel.find({
                         value: { $in: newSymbolNameList }
-                    })
+                    }).select("value")
 
                     dataCoinByBitController.sendDataRealtime({
                         type: "sync-symbol",
@@ -1202,7 +1208,7 @@ const dataCoinByBitController = {
     },
     getAllSymbolBE: async (req, res) => {
         try {
-            const result = await StrategiesModel.find();
+            const result = await StrategiesModel.find().select("value");
             return result || []
 
         } catch (err) {

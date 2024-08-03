@@ -1,6 +1,9 @@
 import api from "../utils/api"
 
 // GET
+export const closeAllBotForUpCode = async () => {
+    return await api.get("/dataCoinByBit/closeAllBotForUpCode")
+}
 export const getAllStrategies = async (botListInput) => {
     return await api.post("/dataCoinByBit/getAllStrategies",{botListInput})
 }

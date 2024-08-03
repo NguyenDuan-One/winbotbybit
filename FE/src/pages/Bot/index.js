@@ -207,7 +207,6 @@ function Bot() {
         },
     })
 
-    const [botTypeChoose, setBotTypeChoose] = useState(botTypeList[0].value);
     // const [statusChoose, setStatusChoose] = useState(statusList[0].value);
     const [botList, setBotList] = useState([]);
     const [openAddBot, setOpenAddBot] = useState({
@@ -217,25 +216,24 @@ function Bot() {
     const [dataTableChange, setDataTableChange] = useState([]);
     const [openEditMultiple, setOpenEditMultiple] = useState(false);
     const [confirmActiveBot, setConfirmActiveBot] = useState(false);
-    const [statusBotSelected, setStatusBotSelected] = useState('All');
     const [totalFutureSpot, setTotalFutureSpot] = useState(0);
 
-    const botListDefaultRef = useRef()
+    const checkMyBotRef = useRef(false)
+    const checkBotTypeRef = useRef("All")
+    const checkBotStatusRef = useRef("All")
+    const botListDefaultRef = useRef([])
 
     const dispatch = useDispatch()
 
-    const handleChangeBotType = (e) => {
-        setBotTypeChoose(e.target.value)
-    }
-
-    const handleChangeStatus = (value) => {
-        setStatusBotSelected(value)
-        if (value !== "All") {
-            setBotList(botListDefaultRef.current.filter(bot => bot.Status === value))
-        }
-        else {
-            setBotList(botListDefaultRef.current)
-        }
+    const handleFilterAll = () => {
+        checkMyBotRef.current = false
+        const newBotList = botListDefaultRef.current.filter(item => {
+            console.log(item);
+            const checkBotType = checkBotTypeRef.current !== "All" ? checkBotTypeRef.current === item.botType : true
+            const checkBotStatus = checkBotStatusRef.current !== "All" ? checkBotStatusRef.current === item.Status : true
+            return checkBotType && checkBotStatus
+        })
+        setBotList(newBotList)
     }
 
     const handleUpdateBot = async ({ botID, data }) => {
@@ -364,7 +362,9 @@ function Bot() {
         const newData = openAddBot.dataChange
         if (newData) {
             handleGetAllBot()
-            setStatusBotSelected("All")
+            checkBotStatusRef.current = "All"
+            checkBotTypeRef.current = "All"
+
             setOpenAddBot({
                 dataChange: "",
                 isOpen: false
@@ -381,8 +381,11 @@ function Bot() {
                     <Select
                         size="small"
                         className={styles.select}
-                        value={botTypeChoose}
-                        onChange={handleChangeBotType}
+                        value={checkBotTypeRef.current}
+                        onChange={e => {
+                            checkBotTypeRef.current = e.target.value
+                            handleFilterAll()
+                        }}
                     >
                         {
                             botTypeList.map(item => (
@@ -397,8 +400,11 @@ function Bot() {
                     <Select
                         size="small"
                         className={styles.select}
-                        value={statusBotSelected}
-                        onChange={e => { handleChangeStatus(e.target.value) }}
+                        value={checkBotStatusRef.current}
+                        onChange={e => {
+                            checkBotStatusRef.current = e.target.value
+                            handleFilterAll()
+                        }}
                     >
                         {
                             statusList.map(item => (
@@ -412,10 +418,14 @@ function Bot() {
 
                     <p className={styles.label}>My Bot</p>
                     <Switch
-
+                        checked={checkMyBotRef.current}
                         title="My Bot"
                         onChange={e => {
-                            if (e.target.checked) {
+                            const check = e.target.checked
+                            checkMyBotRef.current = check
+                            checkBotStatusRef.current = "All"
+                            checkBotTypeRef.current = "All"
+                            if (check) {
                                 setBotList(botListDefaultRef.current.filter(bot => bot.userID._id == userData._id))
                             }
                             else {

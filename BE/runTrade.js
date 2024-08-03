@@ -1,3 +1,4 @@
+const { exec } = require('child_process');
 require('dotenv').config();
 const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
@@ -29,14 +30,12 @@ var listKline = []
 var allSymbol = []
 
 var allStrategiesByCandleAndSymbol = {}
-var listPricePre = {}
 var listPricePreOne = {}
 var trichMauOCListObject = {}
 var trichMauTPListObject = {}
 
 var allStrategiesByBotIDAndOrderID = {}
 var allStrategiesByBotIDAndStrategiesID = {}
-var allSymbolDataObject = {}
 var botApiList = {}
 var digitAllCoinObject = {}
 var botAmountListObject = {}
@@ -1001,7 +1000,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
-                                                const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⛔ [_MISS_]`
+                                                const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⛔ MISS`
                                                 console.log(changeColorConsole.redBright(`\n${teleText}\n`));
 
                                                 // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
@@ -1066,7 +1065,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         }
                                     }
                                     else {
-                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⛔ [_MISS_]`
+                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⛔ MISS`
                                         console.log(changeColorConsole.redBright(`\n${teleText}\n`));
                                         updatePositionBE({
                                             newDataUpdate: {
@@ -1115,105 +1114,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
     }
 }
 
+const handleSocketListKline = async (listKlineInput) => {
 
-// ----------------------------------------------------------------------------------
-async function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-const checkConditionBot = (botData) => {
-    return botData.botID?.Status === "Running" && botData.botID?.ApiKey && botData.botID?.SecretKey
-}
-
-// ----------------------------------------------------------------------------------
-
-
-const Main = async () => {
-
-
-    let allStrategiesActiveBE = getAllStrategiesActive()
-    let allSymbolBE = getAllSymbolBE()
-
-    const result = await Promise.all([allStrategiesActiveBE, allSymbolBE])
-
-    const allStrategiesActiveObject = result[0]
-    allSymbol = result[1]
-
-    allStrategiesActiveObject.forEach(strategyItem => {
-        if (checkConditionBot(strategyItem)) {
-
-            const strategyID = strategyItem.value
-            const botID = strategyItem.botID._id
-            const botName = strategyItem.botID.botName
-            const symbol = strategyItem.symbol
-            const Candlestick = strategyItem.Candlestick.split("")[0]
-
-
-            if (!botApiList[botID]) {
-                botApiList[botID] = {
-                    id: botID,
-                    botName,
-                    ApiKey: strategyItem.botID.ApiKey,
-                    SecretKey: strategyItem.botID.SecretKey,
-                    telegramID: strategyItem.botID.telegramID,
-                    telegramToken: strategyItem.botID.telegramToken,
-                }
-            }
-
-
-            !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
-            !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
-            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategyItem
-
-            cancelAll({ strategyID, botID })
-
-        }
-    })
-
-    await Promise.all(allSymbol.map(async symbol => {
-        let result = await Digit(symbol.value)
-        digitAllCoinObject[symbol.value] = result[0]
-    }))
-
-    listKline = allSymbol.flatMap(symbolItem => ([
-        `kline.1.${symbolItem.value}`,
-        `kline.3.${symbolItem.value}`,
-        `kline.5.${symbolItem.value}`,
-        `kline.15.${symbolItem.value}`,
-    ]))
-
-    allSymbol.forEach(item => {
-        const symbol = item.value
-        const listKlineNumber = [1, 3, 5, 15]
-        listKlineNumber.forEach(candle => {
-            const symbolCandleID = `${symbol}-${candle}`
-
-
-            listPricePreOne[symbolCandleID] = {
-                open: 0,
-                close: 0,
-                high: 0,
-                low: 0,
-            }
-            trichMauOCListObject[symbolCandleID] = {
-                maxPrice: 0,
-                minPrice: [],
-                prePrice: 0,
-                coinColor: []
-            }
-            trichMauTPListObject[symbolCandleID] = {
-                maxPrice: 0,
-                minPrice: [],
-                prePrice: 0,
-            }
-        })
-    })
-
-    // ORDER
-    await handleSocketBotApiList(botApiList)
-
-    // KLINE
-    await wsSymbol.subscribeV5(listKline, 'linear').then(() => {
+    wsSymbol.subscribeV5(listKlineInput, 'linear').then(() => {
 
         console.log("[V] Subscribe kline successful\n");
 
@@ -1251,8 +1154,8 @@ const Main = async () => {
 
                     const symbolCandleID = `${symbol}-${candle}`
 
-                    if (dataMain.confirm == false) {
-                        if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
+                    if (dataMain.confirm == false && strategy.IsActive) {
+                        if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
 
                             const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
@@ -1753,6 +1656,108 @@ const Main = async () => {
     }).catch(err => {
         console.log(changeColorConsole.redBright("[!] Subscribe kline error:", err));
     })
+
+}
+
+
+// ----------------------------------------------------------------------------------
+async function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const checkConditionBot = (botData) => {
+    return botData.botID?.Status === "Running" && botData.botID?.ApiKey && botData.botID?.SecretKey
+}
+
+// ----------------------------------------------------------------------------------
+
+
+const Main = async () => {
+
+
+    let allStrategiesActiveBE = getAllStrategiesActive()
+    let allSymbolBE = getAllSymbolBE()
+
+    const result = await Promise.all([allStrategiesActiveBE, allSymbolBE])
+
+    const allStrategiesActiveObject = result[0]
+    allSymbol = result[1]
+
+    allStrategiesActiveObject.forEach(strategyItem => {
+        if (checkConditionBot(strategyItem)) {
+
+            const strategyID = strategyItem.value
+            const botID = strategyItem.botID._id
+            const botName = strategyItem.botID.botName
+            const symbol = strategyItem.symbol
+            const Candlestick = strategyItem.Candlestick.split("")[0]
+
+
+            if (!botApiList[botID]) {
+                botApiList[botID] = {
+                    id: botID,
+                    botName,
+                    ApiKey: strategyItem.botID.ApiKey,
+                    SecretKey: strategyItem.botID.SecretKey,
+                    telegramID: strategyItem.botID.telegramID,
+                    telegramToken: strategyItem.botID.telegramToken,
+                }
+            }
+
+
+            !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
+            !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
+            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategyItem
+
+            cancelAll({ strategyID, botID })
+
+        }
+    })
+
+    await Promise.all(allSymbol.map(async symbol => {
+        let result = await Digit(symbol.value)
+        digitAllCoinObject[symbol.value] = result[0]
+    }))
+
+    listKline = allSymbol.flatMap(symbolItem => ([
+        `kline.1.${symbolItem.value}`,
+        `kline.3.${symbolItem.value}`,
+        `kline.5.${symbolItem.value}`,
+        `kline.15.${symbolItem.value}`,
+    ]))
+
+    allSymbol.forEach(item => {
+        const symbol = item.value
+        const listKlineNumber = [1, 3, 5, 15]
+        listKlineNumber.forEach(candle => {
+            const symbolCandleID = `${symbol}-${candle}`
+
+
+            listPricePreOne[symbolCandleID] = {
+                open: 0,
+                close: 0,
+                high: 0,
+                low: 0,
+            }
+            trichMauOCListObject[symbolCandleID] = {
+                maxPrice: 0,
+                minPrice: [],
+                prePrice: 0,
+                coinColor: []
+            }
+            trichMauTPListObject[symbolCandleID] = {
+                maxPrice: 0,
+                minPrice: [],
+                prePrice: 0,
+            }
+        })
+    })
+
+    // ORDER
+    await handleSocketBotApiList(botApiList)
+
+    // KLINE
+    handleSocketListKline(listKline)
 
 }
 
@@ -2337,6 +2342,8 @@ socketRealtime.on('bot-telegram', async (data) => {
 socketRealtime.on('sync-symbol', async (newData) => {
     console.log("[...] Sync Symbol");
 
+    allSymbol = allSymbol.concat(newData)
+
     const newListKline = newData.flatMap(symbolData => ([
         `kline.1.${symbolData.value}`,
         `kline.3.${symbolData.value}`,
@@ -2348,7 +2355,6 @@ socketRealtime.on('sync-symbol', async (newData) => {
     await Promise.all(newData.map(async symbol => {
         let result = await Digit(symbol.value)
         digitAllCoinObject[symbol.value] = result[0]
-        allSymbolDataObject[symbol.value] = symbol._id
     }))
 
     newData.forEach(item => {
@@ -2356,7 +2362,6 @@ socketRealtime.on('sync-symbol', async (newData) => {
         const listKline = [1, 3, 5, 15]
         listKline.forEach(candle => {
             const symbolCandleID = `${symbol}-${candle}`
-            listPricePre[symbolCandleID] = []
             listPricePreOne[symbolCandleID] = {
                 open: 0,
                 close: 0,
@@ -2366,23 +2371,21 @@ socketRealtime.on('sync-symbol', async (newData) => {
             trichMauOCListObject[symbolCandleID] = {
                 maxPrice: 0,
                 minPrice: [],
-                prePrice: 0
+                prePrice: 0,
+                coinColor: []
             }
             trichMauTPListObject[symbolCandleID] = {
                 maxPrice: 0,
                 minPrice: [],
                 prePrice: 0,
             }
+
         })
 
     })
 
+    handleSocketListKline(newListKline)
 
-    wsSymbol.subscribeV5(newListKline, 'linear').then(() => {
-        console.log("[V] Subscribe New Kline Successful\n");
-    }).catch(err => {
-        console.log(changeColorConsole.redBright("[!] Subscribe  New Kline Error:", err));
-    })
 });
 
 socketRealtime.on("close-limit", async (data) => {
@@ -2421,6 +2424,47 @@ socketRealtime.on("close-limit", async (data) => {
     missTPDataBySymbol[botSymbolMissID].size = Math.abs(positionData.Quantity)
 
 })
+
+socketRealtime.on('close-upcode', async () => {
+
+    console.log(`[...] Close All Bot For Upcode`);
+
+    await Promise.allSettled(
+        allSymbol.map(async symbolItem => {
+            const symbol = symbolItem.value
+            return Promise.allSettled([1, 3, 5, 15].map(candle => {
+                const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
+                if (listDataObject && Object.values(listDataObject)?.length > 0) {
+                    return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                        const strategyID = strategy.value
+                        allStrategiesByCandleAndSymbol[symbol][candle][strategyID] = {
+                            ...allStrategiesByCandleAndSymbol[symbol][candle][strategyID],
+                            IsActive: false
+                        }
+                        const botID = strategy.botID._id
+                        const botName = strategy.botID.botName
+                        const ApiKey = strategy.botID.ApiKey
+                        const SecretKey = strategy.botID.SecretKey
+                        allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && handleCancelOrderOC(
+                            {
+                                strategyID,
+                                symbol,
+                                ApiKey,
+                                SecretKey,
+                                botName,
+                                botID
+                            }
+                        )
+                    }))
+                }
+            }))
+        }
+        ))
+  
+    console.log("PM2 Kill Successful");
+    exec("pm2 kill")
+
+});
 
 socketRealtime.on('disconnect', () => {
     console.log('[V] Disconnected from socket realtime');
