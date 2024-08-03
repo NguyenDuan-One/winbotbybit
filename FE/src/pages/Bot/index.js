@@ -218,7 +218,7 @@ function Bot() {
     const [confirmActiveBot, setConfirmActiveBot] = useState(false);
     const [totalFutureSpot, setTotalFutureSpot] = useState(0);
 
-    const checkMyBotRef = useRef(false)
+    const checkMyBotRef = useRef(true)
     const checkBotTypeRef = useRef("All")
     const checkBotStatusRef = useRef("All")
     const botListDefaultRef = useRef([])
@@ -295,7 +295,7 @@ function Bot() {
                     }
                 ))
                 botListDefaultRef.current = newData
-                setBotList(newData)
+                setBotList(newData.filter(bot => bot.userID._id == userData._id))
             }
             else {
                 dispatch(addMessageToast({
