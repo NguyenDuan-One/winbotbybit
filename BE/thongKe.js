@@ -20,11 +20,6 @@ const CHANNEL_ID = process.env.CHANNEL_ID_THONG_KE
 // Bắt đầu bot
 // bot.launch();
 
-
-
-let ListCoin1m = []
-let ListCoin3m = []
-let ListCoin5m = []
 let listKline = []
 let digit = []
 let OpenTimem1 = []
@@ -82,20 +77,10 @@ async function ListCoinFT() {
                     data.push(e.symbol)
                 }
             })
-            //console.log(data)
         })
         .catch((error) => {
             console.error(error);
         });
-    // ListCoin1m = data.flatMap((coin) => {
-    //     return `kline.1.${coin}`
-    // });
-    // ListCoin3m = data.flatMap((coin) => {
-    //     return `kline.3.${coin}`
-    // });
-    // ListCoin5m = data.flatMap((coin) => {
-    //     return `kline.5.${coin}`
-    // });
     listKline = data.flatMap(symbol => ([
         `kline.1.${symbol}`,
         `kline.3.${symbol}`,
@@ -489,7 +474,7 @@ let Main = async () => {
 
     CoinFT = await ListCoinFT()
 
-    wsSymbol.subscribeV5(listKline, 'linear').catch((err) => { console.log(err) });
+    // wsSymbol.subscribeV5(listKline, 'linear').catch((err) => { console.log(err) });
 
     let statistic1 = false
 
