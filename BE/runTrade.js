@@ -942,8 +942,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 // if (size > 0 && strategy.Candlestick === missTPDataBySymbol[botSymbolMissID].Candlestick) {
                                 !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
-                                console.log("SIZE:", size, botSymbolMissID);
-
                                 if (size > 0) {
                                     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
                                     missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
@@ -1582,7 +1580,9 @@ const handleSocketListKline = async (listKlineInput) => {
                             maxPrice: 0,
                             minPrice: [],
                             prePrice: 0,
-                            coinColor: []
+                            coinColor: [],
+                            curTime:0,
+                            preTime:0,
                         }
 
                     }
@@ -1754,7 +1754,9 @@ const Main = async () => {
                 maxPrice: 0,
                 minPrice: [],
                 prePrice: 0,
-                coinColor: []
+                coinColor: [],
+                curTime:0,
+                preTime:0,
             }
             trichMauTPListObject[symbolCandleID] = {
                 maxPrice: 0,
@@ -2381,7 +2383,9 @@ socketRealtime.on('sync-symbol', async (newData) => {
                 maxPrice: 0,
                 minPrice: [],
                 prePrice: 0,
-                coinColor: []
+                coinColor: [],
+                curTime:0,
+                preTime:0,
             }
             trichMauTPListObject[symbolCandleID] = {
                 maxPrice: 0,
