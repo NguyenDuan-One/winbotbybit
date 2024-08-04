@@ -19,6 +19,7 @@ import { handleCheckAllCheckBox } from '../../functions';
 import clsx from 'clsx';
 import { getAllBotActiveByUserID } from '../../services/botService';
 import { setTotalFuture } from '../../store/slices/TotalFuture';
+import useDebounce from '../../hooks/useDebounce';
 
 function Strategies() {
 
@@ -108,10 +109,10 @@ function Strategies() {
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
     const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX_FIRST);
 
+    const [searchKey, setSearchKey] = useState("");
     // Filter
 
     const filterQuantityRef = useRef([])
-    const searchRef = useRef("")
     const botTypeSelectedRef = useRef("All")
     const botSelectedRef = useRef("All")
     const positionSideSelectedRef = useRef("All")
@@ -136,7 +137,6 @@ function Strategies() {
     }, [dataCheckTree])
 
     const handleGetAllBotByUserID = () => {
-        setLoadingDataCheckTree(true)
 
         getAllBotActiveByUserID(userData._id)
             .then(res => {
@@ -256,25 +256,28 @@ function Strategies() {
 
     const handleFilterAll = () => {
         filterQuantityRef.current = []
-        setTimeout(() => {
+        const listData =  dataCheckTreeDefaultRef.current.reduce((acc, data) => {
+            
+            const filteredChildren = data?.children?.filter(item => {
+                const checkBotType = botTypeSelectedRef.current === "All" || botTypeSelectedRef.current === item.botID.botType;
+                const checkBot = botSelectedRef.current === "All" || botSelectedRef.current === item.botID._id;
+                const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
+                const checkCandle = candlestickSelectedRef.current === "All" || candlestickSelectedRef.current === item.Candlestick;
+                const checkSearch = searchDebounce === "" || data.label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
+        
+                return checkBotType && checkBot && checkPosition && checkCandle && checkSearch;
+            });
+        
+            if (filteredChildren.length > 0) {
+                acc.push({ ...data, children: filteredChildren });
+            }
+        
+            return acc;
+        }, []);
+        
 
-            const listData = dataCheckTreeDefaultRef.current.map(data => {
-                return {
-                    ...data,
-                    children: data?.children?.filter(item => {
-                        const checkBotType = botTypeSelectedRef.current !== "All" ? botTypeSelectedRef.current === item.botID.botType : true
-                        const checkBot = botSelectedRef.current !== "All" ? botSelectedRef.current === item.botID._id : true
-                        const checkPosition = positionSideSelectedRef.current !== "All" ? positionSideSelectedRef.current === item.PositionSide : true
-                        const checkCandle = candlestickSelectedRef.current !== "All" ? candlestickSelectedRef.current === item.Candlestick : true
-                        const checkSearch = searchRef.current !== "" ? data.label.toUpperCase().includes(searchRef.current.toUpperCase()?.trim()) : true
-                        return checkBotType && checkBot && checkPosition && checkCandle && checkSearch
-                    })
-                }
-            }).filter(data => data?.children?.length > 0)
-
-            handleCheckAllCheckBox(false)
-            setDataCheckTree(listData)
-        }, 200)
+        setDataCheckTree(listData)
+        handleCheckAllCheckBox(false)
 
     }
 
@@ -307,13 +310,18 @@ function Strategies() {
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
         candlestickSelectedRef.current = "All"
-        searchRef.current = ""
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
         handleCheckAllCheckBox(false)
+        setSearchKey("")
         setDataTreeViewIndex(SCROLL_INDEX_FIRST)
     }
 
+    const searchDebounce = useDebounce(searchKey)
+
+    useEffect(() => {
+        handleFilterAll()
+    }, [searchDebounce]);
 
     useEffect(() => {
         if (userData.userName) {
@@ -371,13 +379,11 @@ function Strategies() {
 
                 <div className={styles.strategiesFilter}>
                     <TextField
-                        value={searchRef.current}
+                        value={searchKey}
                         size="small"
                         placeholder="Search"
                         onChange={(e) => {
-                            const key = e.target.value
-                            searchRef.current = key
-                            handleFilterAll()
+                            setSearchKey(e.target.value)
                         }}
                         className={styles.strategiesFilterInput}
                     />
