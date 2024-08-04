@@ -24,6 +24,8 @@ let listKline = []
 let digit = []
 let OpenTimem1 = []
 let CoinFT = []
+let messageList = []
+let delayTimeOut = ""
 
 let botListTelegram = {}
 
@@ -51,6 +53,7 @@ async function sendMessageWithRetry(messageText, retries = 5) {
             messageText && await bot.sendMessage(CHANNEL_ID, messageText, {
                 parse_mode: "HTML",
             });
+            console.log('[->] Message sent to telegram successfully');
             return;
         } catch (error) {
             if (error.code === 429) {
@@ -140,7 +143,24 @@ const formatNumberString = number => {
     }
 }
 
-function tinhOC(symbol, data, messageList) {
+const handleIconCandle = (candle) => {
+    switch (candle) {
+        case "1": {
+            return "🟠"
+        }
+        case "3": {
+            return "🟡"
+        }
+        case "5": {
+            return "🟢"
+        }
+        case "15": {
+            return "🟣"
+        }
+    }
+}
+
+function tinhOC(symbol, data) {
 
     const interval = data.interval
     const Close = data.close
@@ -186,12 +206,12 @@ function tinhOC(symbol, data, messageList) {
     const OCLongRound = roundNumber(OCLong)
 
     if (OCRound > 1) {
-        const ht = (`<b>${symbol.replace("USDT", "")}</b> - (${interval} min) - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
+        const ht = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> | ${interval} min \nOC: ${OCRound}% | TP: ${roundNumber(TP)}% -\nVOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
     if (OCLongRound > 1) {
-        const htLong = (`<b>${symbol.replace("USDT", "")}</b> - (${interval} min) - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
+        const htLong = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> | ${interval} min \nOC: ${OCRound}% | TP: ${roundNumber(TP)}% -\nVOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
 }
@@ -456,25 +476,12 @@ const handleStatistic = async (statisticLabel) => {
 }
 
 
-const handleTinhOC = ({
-    dataCoin,
-    symbol
-}) => {
-    const messageList = []
-    dataCoin.data.forEach((e) => {
-        tinhOC(symbol, e, messageList)
-    })
-    if (messageList.length) {
-        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
-        sendMessageWithRetry(messageList.join("\n"))
-    }
-}
 
 let Main = async () => {
 
     CoinFT = await ListCoinFT()
 
-    // wsSymbol.subscribeV5(listKline, 'linear').catch((err) => { console.log(err) });
+    wsSymbol.subscribeV5(listKline, 'linear').catch((err) => { console.log(err) });
 
     let statistic1 = false
 
@@ -530,8 +537,19 @@ let Main = async () => {
         if (dataCoin.wsKey === "v5LinearPublic") {
 
             if (dataCoin.data[0].confirm === true) {
+                
                 const symbol = dataCoin.topic.split(".").slice(-1)[0]
-                handleTinhOC({ dataCoin, symbol })
+                tinhOC(symbol, dataCoin.data[0])
+
+                delayTimeOut && clearTimeout(delayTimeOut)
+
+                delayTimeOut = setTimeout(()=>{
+                    if (messageList.length) {
+                        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
+                        sendMessageWithRetry(messageList.join("\n\n"))
+                        messageList = []
+                    }
+                },2000)
             }
 
             // if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {

@@ -256,22 +256,25 @@ function Strategies() {
 
     const handleFilterAll = () => {
         filterQuantityRef.current = []
-        const listData = dataCheckTreeDefaultRef.current.map(data => {
-            return {
-                ...data,
-                children: data?.children?.filter(item => {
-                    const checkBotType = botTypeSelectedRef.current !== "All" ? botTypeSelectedRef.current === item.botID.botType : true
-                    const checkBot = botSelectedRef.current !== "All" ? botSelectedRef.current === item.botID._id : true
-                    const checkPosition = positionSideSelectedRef.current !== "All" ? positionSideSelectedRef.current === item.PositionSide : true
-                    const checkCandle = candlestickSelectedRef.current !== "All" ? candlestickSelectedRef.current === item.Candlestick : true
-                    const checkSearch = searchRef.current !== "" ? data.label.toUpperCase().includes(searchRef.current.toUpperCase()?.trim()) : true
-                    return checkBotType && checkBot && checkPosition && checkCandle && checkSearch
-                })
-            }
-        }).filter(data => data?.children?.length > 0)
+        setTimeout(() => {
 
-        setDataCheckTree(listData)
-        handleCheckAllCheckBox(false)
+            const listData = dataCheckTreeDefaultRef.current.map(data => {
+                return {
+                    ...data,
+                    children: data?.children?.filter(item => {
+                        const checkBotType = botTypeSelectedRef.current !== "All" ? botTypeSelectedRef.current === item.botID.botType : true
+                        const checkBot = botSelectedRef.current !== "All" ? botSelectedRef.current === item.botID._id : true
+                        const checkPosition = positionSideSelectedRef.current !== "All" ? positionSideSelectedRef.current === item.PositionSide : true
+                        const checkCandle = candlestickSelectedRef.current !== "All" ? candlestickSelectedRef.current === item.Candlestick : true
+                        const checkSearch = searchRef.current !== "" ? data.label.toUpperCase().includes(searchRef.current.toUpperCase()?.trim()) : true
+                        return checkBotType && checkBot && checkPosition && checkCandle && checkSearch
+                    })
+                }
+            }).filter(data => data?.children?.length > 0)
+
+            handleCheckAllCheckBox(false)
+            setDataCheckTree(listData)
+        }, 200)
 
     }
 
