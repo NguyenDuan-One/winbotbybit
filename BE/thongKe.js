@@ -25,8 +25,10 @@ const CHANNEL_ID = process.env.CHANNEL_ID_THONG_KE
 let ListCoin1m = []
 let ListCoin3m = []
 let ListCoin5m = []
+let listKline = []
 let digit = []
 let OpenTimem1 = []
+let CoinFT = []
 
 let botListTelegram = {}
 
@@ -85,15 +87,21 @@ async function ListCoinFT() {
         .catch((error) => {
             console.error(error);
         });
-    ListCoin1m = data.flatMap((coin) => {
-        return `kline.1.${coin}`
-    });
-    ListCoin3m = data.flatMap((coin) => {
-        return `kline.3.${coin}`
-    });
-    ListCoin5m = data.flatMap((coin) => {
-        return `kline.5.${coin}`
-    });
+    // ListCoin1m = data.flatMap((coin) => {
+    //     return `kline.1.${coin}`
+    // });
+    // ListCoin3m = data.flatMap((coin) => {
+    //     return `kline.3.${coin}`
+    // });
+    // ListCoin5m = data.flatMap((coin) => {
+    //     return `kline.5.${coin}`
+    // });
+    listKline = data.flatMap(symbol => ([
+        `kline.1.${symbol}`,
+        `kline.3.${symbol}`,
+        `kline.5.${symbol}`,
+        `kline.15.${symbol}`,
+    ]))
 
     return data
 }
@@ -481,9 +489,7 @@ let Main = async () => {
 
     CoinFT = await ListCoinFT()
 
-    wsSymbol.subscribeV5(ListCoin1m, 'linear').catch((err) => { console.log(err) });
-    wsSymbol.subscribeV5(ListCoin3m, 'linear').catch((err) => { console.log(err) });
-    wsSymbol.subscribeV5(ListCoin5m, 'linear').catch((err) => { console.log(err) });
+    wsSymbol.subscribeV5(listKline, 'linear').catch((err) => { console.log(err) });
 
     let statistic1 = false
 
@@ -533,7 +539,6 @@ let Main = async () => {
             minute: 10
         },
     ]
-
 
 
     wsSymbol.on('update', async (dataCoin) => {

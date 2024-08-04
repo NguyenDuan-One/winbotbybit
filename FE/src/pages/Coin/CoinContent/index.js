@@ -45,6 +45,7 @@ function CoinContent() {
                 {
                     id: item._id,
                     Coin: item.symbol.split("USDT")[0],
+                    Symbol: item.symbol,
                     Amount24: item.volume24h,
                     // Amount24: formatNumberString(item.volume24h),
                 }))
@@ -69,12 +70,12 @@ function CoinContent() {
             <TextField
                 placeholder='Coin Name...'
                 size='small'
-                style={{ width: "30%", marginBottom: "24px" }}
+                className={styles.coinInput}
                 onChange={(e) => {
                     setTableRows(() => {
                         const key = e.target.value
                         if (key) {
-                            const newList = tableRowsDefault.current.filter(item => item.Coin.toUpperCase().includes(key.toUpperCase()?.trim()))
+                            const newList = tableRowsDefault.current.filter(item => item.Symbol.toUpperCase().includes(key.toUpperCase()?.trim()))
                             return newList.length > 0 ? newList : []
                         }
                         return tableRowsDefault.current
