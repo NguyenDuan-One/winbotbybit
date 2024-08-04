@@ -20,6 +20,8 @@ function DialogCustom({
     position = "top",
     backdrop = false,
     loading = false,
+    addMore = false,
+    addMoreFuntion,
     children
 }, ref) {
 
@@ -71,6 +73,14 @@ function DialogCustom({
                         }}
                         onClick={onClose}
                     >Close</Button>}
+                    {addMore && <Button
+                        variant="contained"
+                        color="info"
+                        style={{
+                            marginRight: "12px"
+                        }}
+                        onClick={addMoreFuntion}
+                    >Add More</Button>}
                     {
                         !loading ?
                             <Button variant="contained" color={submitBtnColor} onClick={() => {

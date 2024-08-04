@@ -1000,7 +1000,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
-                                                const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⚠️ [ MISS ]`
+                                                const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQty: ${missSize} \n\n⚠️ [ MISS ]`
                                                 console.log(changeColorConsole.redBright(`\n${teleText}\n`));
 
                                                 // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
@@ -1065,7 +1065,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         }
                                     }
                                     else {
-                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQTY: ${missSize} \n\n⚠️ [ MISS ]`
+                                        const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQty: ${missSize} \n\n⚠️ [ MISS ]`
                                         console.log(changeColorConsole.redBright(`\n${teleText}\n`));
                                         updatePositionBE({
                                             newDataUpdate: {

@@ -74,6 +74,8 @@ function CreateStrategy({
     const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput ? [symbolValueInput] : [])
     const [botList, setBotList] = useState([])
 
+    const dataChangeRef = useRef(false)
+
     const [symbolGroupDataList, setSymbolGroupDataList] = useState({
         label: "Symbol",
         list: []
@@ -115,7 +117,7 @@ function CreateStrategy({
     }
 
     const handleSubmitCreate = async data => {
-        let dataChange = false
+        
         if (symbolGroupData.length > 0 && botList.length > 0) {
             try {
                 const res = await createStrategies({
@@ -132,7 +134,7 @@ function CreateStrategy({
                 
                 if (status === 200) {
                     reset()
-                    dataChange = true
+                    dataChangeRef.current = true
                 }
             }
             catch (err) {
@@ -141,14 +143,44 @@ function CreateStrategy({
                     message: "Add New Error",
                 }))
             }
-            closeDialog(dataChange)
+            closeDialog()
         }
     }
 
-    const closeDialog = (dataChange = false) => {
+    const handleSubmitCreateWithAddMore = async data => {
+        
+        if (symbolGroupData.length > 0 && botList.length > 0) {
+            try {
+                const res = await createStrategies({
+                    data: data,
+                    botListId: botList.map(item => item.value),
+                    [symbolGroupDataList.label]: symbolGroupData.map(item => item.value)
+                })
+                const { status, message, data: symbolListDataRes } = res.data
+
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message
+                }))
+                
+                if (status === 200) {
+                    reset()
+                    dataChangeRef.current = true
+                }
+            }
+            catch (err) {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Add New Error",
+                }))
+            }
+        }
+    }
+
+    const closeDialog = () => {
         onClose({
             isOpen: false,
-            dataChange
+            dataChange:dataChangeRef.current
         })
         reset()
     }
@@ -165,6 +197,8 @@ function CreateStrategy({
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitCreate)}
             maxWidth="sm"
+            addMore
+            addMoreFuntion={handleSubmit(handleSubmitCreateWithAddMore)}
         >
 
             <form className={styles.dialogForm}>
