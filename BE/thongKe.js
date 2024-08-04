@@ -206,12 +206,12 @@ function tinhOC(symbol, data) {
     const OCLongRound = roundNumber(OCLong)
 
     if (OCRound > 1) {
-        const ht = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> | ${interval} min \nOC: ${OCRound}% | TP: ${roundNumber(TP)}% -\nVOL: ${formatNumberString(vol)}`)
+        const ht = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> | ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
-
+        
     }
     if (OCLongRound > 1) {
-        const htLong = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> | ${interval} min \nOC: ${OCRound}% | TP: ${roundNumber(TP)}% -\nVOL: ${formatNumberString(vol)}`)
+        const htLong = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> | ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
 }
