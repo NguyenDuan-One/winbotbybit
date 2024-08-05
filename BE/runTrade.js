@@ -31,8 +31,10 @@ var allSymbol = []
 // ------- BTC ------------
 
 var BTCCheckMain = false
-var BTCPricePercent = 0
+var nangOCValue = 0
 var checkOrderOCAll = true
+
+var checkBTC07Price = 0
 var checkBTC07 = false
 
 // -------  ------------
@@ -1154,10 +1156,23 @@ const handleSocketListKline = async (listKlineInput) => {
             const coinOpen = +dataMain.open
             const coinCurrent = +dataMain.close
 
-            if (symbol === "BTCUSDT" && !BTCCheckMain) {
-                BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open)
-                checkOrderOCAll = BTCPricePercent > 1 ? false : true
-                checkBTC07 = BTCPricePercent > .7 ? true : false
+            if (symbol === "BTCUSDT") {
+                const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open)
+
+                if (BTCPricePercent > .7) {
+                    const newCheckBTC07Price = Math.round(BTCPricePercent)
+                    if (newCheckBTC07Price !== checkBTC07Price) {
+                        checkBTC07Price = newCheckBTC07Price
+                        sendAllBotTelegram()
+                    }
+                }
+                if (BTCPricePercent > 1) {
+                    const newNangOCValue = Math.round(BTCPricePercent) * 5
+                    if (newNangOCValue !== nangOCValue) {
+                        nangOCValue = newNangOCValue
+                        checkOrderOCAll = false
+                    }
+                }
 
                 console.log("BTCPricePercent", BTCPricePercent);
             }
@@ -1191,62 +1206,62 @@ const handleSocketListKline = async (listKlineInput) => {
 
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
 
-                                trichMauOCListObject[symbolCandleID].curTime = new Date()
+                                // trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                                if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 250) {
+                                // if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 250) {
 
-                                    trichMauOCListObject[symbolCandleID].preTime = new Date()
+                                // trichMauOCListObject[symbolCandleID].preTime = new Date()
 
-                                    const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+                                const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
-                                    // X-D-D || D-D-D
+                                // X-D-D || D-D-D
 
 
-                                    const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
+                                const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
 
-                                    let checkColorListTrue = false
+                                let checkColorListTrue = false
 
-                                    const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
+                                const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
 
-                                    if (coinColorPre.length > 0) {
-                                        checkColorListTrue = coinColor === "Red"
-                                    }
-                                    else {
-                                        checkColorListTrue = true
-                                    }
-
-                                    if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
-                                        trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
-                                        trichMauOCListObject[symbolCandleID].minPrice = []
-                                        trichMauOCListObject[symbolCandleID].coinColor = []
-                                    }
-                                    else {
-                                        if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
-                                            if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                                                trichMauOCListObject[symbolCandleID].minPrice.shift()
-                                            }
-                                            trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
-                                        }
-                                    }
-                                    if (checkColorListTrue) {
-                                        if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                            trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                        }
-                                        trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                    }
-
-                                    if (!checkColorListTrue) {
-                                        trichMauOCListObject[symbolCandleID].coinColor = []
-                                    }
-                                    else {
-                                        if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                            trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                        }
-                                        trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                    }
-
-                                    trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                                if (coinColorPre.length > 0) {
+                                    checkColorListTrue = coinColor === "Red"
                                 }
+                                else {
+                                    checkColorListTrue = true
+                                }
+
+                                if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
+                                    trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
+                                    trichMauOCListObject[symbolCandleID].minPrice = []
+                                    trichMauOCListObject[symbolCandleID].coinColor = []
+                                }
+                                else {
+                                    if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
+                                        if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                            trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                        }
+                                        trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
+                                    }
+                                }
+                                if (checkColorListTrue) {
+                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                        trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                    }
+                                    trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                }
+
+                                if (!checkColorListTrue) {
+                                    trichMauOCListObject[symbolCandleID].coinColor = []
+                                }
+                                else {
+                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                        trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                    }
+                                    trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                }
+
+                                trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                                // }
 
                                 // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
@@ -1550,49 +1565,42 @@ const handleSocketListKline = async (listKlineInput) => {
                         }
 
                         else {
-                            if (!BTCCheckMain) {
+                            await Promise.allSettled(
+                                allSymbol.map(async symbolItem => {
+                                    const symbol = symbolItem.value
+                                    return Promise.allSettled([1, 3, 5, 15].map(candle => {
+                                        const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
+                                        if (listDataObject && Object.values(listDataObject)?.length > 0) {
+                                            return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                                                const strategyID = strategy.value
 
+                                                const botID = strategy.botID._id
+                                                const botName = strategy.botID.botName
+                                                const ApiKey = strategy.botID.ApiKey
+                                                const SecretKey = strategy.botID.SecretKey
 
-                                await Promise.allSettled(
-                                    allSymbol.map(async symbolItem => {
-                                        const symbol = symbolItem.value
-                                        return Promise.allSettled([1, 3, 5, 15].map(candle => {
-                                            const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
-                                            if (listDataObject && Object.values(listDataObject)?.length > 0) {
-                                                return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
-                                                    const strategyID = strategy.value
+                                                allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange
+                                                allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange += nangOCValue
 
-                                                    const botID = strategy.botID._id
-                                                    const botName = strategy.botID.botName
-                                                    const ApiKey = strategy.botID.ApiKey
-                                                    const SecretKey = strategy.botID.SecretKey
-
-                                                    allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange
-                                                    allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange += 10
-
-                                                    allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && handleCancelOrderOC(
-                                                        {
-                                                            strategyID,
-                                                            symbol,
-                                                            ApiKey,
-                                                            SecretKey,
-                                                            botName,
-                                                            botID
-                                                        }
-                                                    )
-                                                }))
-                                            }
-                                        }))
-                                    }
-                                    ))
-
-                                if (checkBTC07) {
-                                    sendAllBotTelegram()
+                                                allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && handleCancelOrderOC(
+                                                    {
+                                                        strategyID,
+                                                        symbol,
+                                                        ApiKey,
+                                                        SecretKey,
+                                                        botName,
+                                                        botID
+                                                    }
+                                                )
+                                            }))
+                                        }
+                                    }))
                                 }
-                                BTCCheckMain = true
-                                checkOrderOCAll = true
+                                ))
 
-                            }
+                            BTCCheckMain = true
+                            checkOrderOCAll = true
+
                         }
 
                     }

@@ -164,7 +164,6 @@ function CreateStrategy({
                 }))
                 
                 if (status === 200) {
-                    reset()
                     dataChangeRef.current = true
                 }
             }
