@@ -54,7 +54,7 @@ async function Digit(symbol) {// proScale
             //console.log(PScale)
         })
         .catch((error) => {
-            console.error(changeColorConsole.redBright(error));
+            console.error(error)
         });
     return PScale
 }
@@ -122,7 +122,7 @@ const handleSubmitOrder = async ({
 
         })
         .catch((error) => {
-            console.log(changeColorConsole.redBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+            console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
         });
 }
 
@@ -215,15 +215,15 @@ const handleSubmitOrderTP = async ({
                     }).then(message => {
                         console.log(message);
                     }).catch(err => {
-                        console.log(changeColorConsole.redBright(err));
+                        console.log(err)
                     })
                 }
             }
         })
         .catch((error) => {
-            console.log(changeColorConsole.redBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+            console.log(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
             if (missState) {
-                console.log(changeColorConsole.redBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`))
+                console.log(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} - ${candle} )`)
                 updatePositionBE({
                     newDataUpdate: {
                         Miss: true,
@@ -233,7 +233,7 @@ const handleSubmitOrderTP = async ({
                 }).then(message => {
                     console.log(message);
                 }).catch(err => {
-                    console.log(changeColorConsole.redBright(err));
+                    console.log(err)
                 })
             }
         });
@@ -278,7 +278,7 @@ const moveOrderTP = async ({
             }
         })
         .catch((error) => {
-            console.log(changeColorConsole.redBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+            console.log(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
         });
 
@@ -366,7 +366,7 @@ const handleCancelOrderOC = async ({
             }
         })
         .catch((error) => {
-            console.log(changeColorConsole.redBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) error `, error))
+            console.log(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) error `, error)
             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
         });
 
@@ -414,7 +414,7 @@ const handleCancelOrderTP = async ({
                     }).then(message => {
                         console.log(message);
                     }).catch(err => {
-                        console.log(changeColorConsole.redBright(err));
+                        console.log(err)
                     })
                     resetMissData({
                         botID,
@@ -428,7 +428,7 @@ const handleCancelOrderTP = async ({
             cancelAll({ strategyID, botID })
         })
         .catch((error) => {
-            console.log(changeColorConsole.redBright(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+            console.log(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
             cancelAll({ strategyID, botID })
         });
 
@@ -550,7 +550,7 @@ const sendMessageWithRetry = async ({
 
         throw new Error('[!] Failed to send message after multiple retries');
     } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Bot Telegram Error", error))
+        console.log("[!] Bot Telegram Error", error)
     }
 };
 
@@ -562,7 +562,7 @@ const getMoneyFuture = async (botApiListInput) => {
 
         if (resultGetFuture.length > 0) {
             resultGetFuture.forEach(data => {
-                botAmountListObject[data.botID] = +data.totalWalletBalance
+                botAmountListObject[data.botID] = +data.totalWalletBalance || 0
             })
         }
     }
@@ -701,12 +701,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                             console.log(data.message);
                                                             missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                         }).catch(error => {
-                                                            console.log(changeColorConsole.redBright(error));
+                                                            console.log(error)
                                                         })
                                                     }
 
                                                 }).catch(err => {
-                                                    console.log(changeColorConsole.redBright(err));
+                                                    console.log(err)
                                                 })
                                             }
 
@@ -821,7 +821,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                         console.log(`[...] Delete Position ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                                         console.log(message);
                                                     }).catch(err => {
-                                                        console.log(changeColorConsole.redBright(err));
+                                                        console.log(err)
                                                     })
                                                 }
 
@@ -869,7 +869,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }).then(message => {
                                                     console.log(message);
                                                 }).catch(err => {
-                                                    console.log(changeColorConsole.redBright(err));
+                                                    console.log(err)
                                                 })
                                                 resetMissData({
                                                     botID,
@@ -930,7 +930,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                     }).then(message => {
                                         console.log(message);
                                     }).catch(err => {
-                                        console.log(changeColorConsole.redBright(err));
+                                        console.log(err)
                                     })
                                 }
                             }
@@ -988,12 +988,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                         console.log(data.message);
                                                         missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                     }).catch(error => {
-                                                        console.log(changeColorConsole.redBright(error));
+                                                        console.log(error)
                                                     })
                                                 }
 
                                             }).catch(err => {
-                                                console.log(changeColorConsole.redBright(err));
+                                                console.log(err)
                                             })
                                         }
 
@@ -1062,7 +1062,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }).then(message => {
                                                     console.log(message);
                                                 }).catch(err => {
-                                                    console.log(changeColorConsole.redBright(err));
+                                                    console.log(err)
                                                 })
                                             }
                                         }
@@ -1078,7 +1078,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             }).then(message => {
                                                 console.log(message);
                                             }).catch(err => {
-                                                console.log(changeColorConsole.redBright(err));
+                                                console.log(err)
                                             })
                                         }
 
@@ -1106,7 +1106,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                         console.error(err);
                     });
                 }).catch(err => {
-                    console.log(changeColorConsole.redBright(`[V] Subscribe order ${botID} error:`, err))
+                    console.log(`[V] Subscribe order ${botID} error:`, err)
                 })
 
 
@@ -1114,7 +1114,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
             }))
         }
     } catch (error) {
-        console.log(changeColorConsole.red("[!] Error BotApi Socket:", e));
+        console.log("[!] Error BotApi Socket:", e)
     }
 }
 
@@ -1358,7 +1358,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                         }
                                     })
                                     .catch((error) => {
-                                        console.log(changeColorConsole.redBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                        console.log(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
                                         allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
                                     });
 
@@ -1459,7 +1459,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                         }
                                     })
                                     .catch((error) => {
-                                        console.log(changeColorConsole.redBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+                                        console.log(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
                                         allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
                                     });
 
@@ -1667,7 +1667,7 @@ const handleSocketListKline = async (listKlineInput) => {
             console.error(err);
         });
     }).catch(err => {
-        console.log(changeColorConsole.redBright("[!] Subscribe kline error:", err));
+        console.log("[!] Subscribe kline error:", err)
     })
 
 }
@@ -1787,7 +1787,7 @@ try {
 }
 
 catch (e) {
-    console.log(changeColorConsole.red("[!] Error Main:", e));
+    console.log("[!] Error Main:", e)
 }
 
 
@@ -2214,7 +2214,7 @@ socketRealtime.on('bot-api', async (data) => {
         await wsOrderNew.subscribeV5(LIST_ORDER, 'linear')
 
     } catch (error) {
-        console.log(changeColorConsole.redBright("[!] Error subscribeV5", error));
+        console.log("[!] Error subscribeV5", error)
     }
 
 });

@@ -63,11 +63,11 @@ const dataCoinByBitController = {
         // socketServer.to("room2").emit(type, data)
     },
     // GET
-    closeAllBotForUpCode: async (req,res) => {
+    closeAllBotForUpCode: async (req, res) => {
         dataCoinByBitController.sendDataRealtime({
-            type:"close-upcode"
+            type: "close-upcode"
         })
-            res.customResponse(200, "Send Successful", "");
+        res.customResponse(200, "Send Successful", "");
     },
     getSymbolFromCloud: async (userID) => {
         try {
@@ -1088,12 +1088,17 @@ const dataCoinByBitController = {
                         botID
                     }
                 }
-                return 0
+                return {
+                    totalWalletBalance: 0,
+                    botID
+                }
 
             }
         } catch (error) {
-            return 0
-
+            return {
+                totalWalletBalance: 0,
+                botID
+            }
         }
     },
     balanceWalletBE: async ({ amount, futureLarger, API_KEY, SECRET_KEY }) => {

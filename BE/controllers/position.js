@@ -125,9 +125,7 @@ const PositionController = {
                         }
                     }).catch(error => {
                         console.log("Error", error);
-                        // Handle error as per your application's error handling strategy
-                        // Return an appropriate value or handle the error here
-                        return []; // For example, return an empty array if you want to continue
+                        return []; 
                     });
                 }));
 
