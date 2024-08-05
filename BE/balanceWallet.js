@@ -92,6 +92,10 @@ const handleWalletBalance = async () => {
             const newSpotAvailable = botData.spotTotal - botData.spotSavings
             const average = (newSpotAvailable + botData.future) / 2
 
+            const balancePrice = botData.spotTotal + botData.future
+
+            const botID = `${botData.userID}-${botData.botType}`
+
             if (Math.abs(botData.future - newSpotAvailable) >= 1) {
                 await balanceWalletBE({
                     amount: Math.abs(newSpotAvailable - average),
@@ -101,41 +105,35 @@ const handleWalletBalance = async () => {
                 })
 
                 console.log(`\n[V] Saving ( ${botData.botName} ) Successful\n`);
-
-                const balancePrice = botData.spotTotal + botData.future
-
-                const botID = `${botData.userID}-${botData.botType}`
-
-                if (!botBalance[botID]) {
-                    botBalance[botID] = {
-                        botType: "",
-                        totalBalanceAllBot: 0,
-                        telegramInfo: {
-                            telegramID: "",
-                            telegramToken: ""
-                        }
-                    }
-                }
-
-                botBalance[botID] = {
-                    botType: botData.botType,
-                    totalBalanceAllBot: balancePrice + botBalance[botID].totalBalanceAllBot,
-                    telegramInfo: {
-                        telegramID: botData.telegramID,
-                        telegramToken: botData.telegramToken,
-                    }
-                }
-
-                sendMessageWithRetryByBot({
-                    messageText: `<b>Bot:${botData.botName}</b>\n🍉 Balance | ${balancePrice.toFixed(3)}$`,
-                    telegramID: botData.telegramID,
-                    telegramToken: botData.telegramToken,
-                    botName: botData.botName
-                })
             }
             else {
                 console.log(`\n[!] Saving ( ${botData.botName} ) Failed ( < 1 )\n`);
             }
+
+            if (!botBalance[botID]) {
+                botBalance[botID] = {
+                    botType: "",
+                    totalBalanceAllBot: 0,
+                    telegramInfo: {
+                        telegramID: "",
+                        telegramToken: ""
+                    }
+                }
+            }
+            botBalance[botID] = {
+                botType: botData.botType,
+                totalBalanceAllBot: balancePrice + botBalance[botID].totalBalanceAllBot,
+                telegramInfo: {
+                    telegramID: botData.telegramID,
+                    telegramToken: botData.telegramToken,
+                }
+            }
+            sendMessageWithRetryByBot({
+                messageText: `<b>Bot:${botData.botName}</b>\n🍉 Balance | ${balancePrice.toFixed(3)}$`,
+                telegramID: botData.telegramID,
+                telegramToken: botData.telegramToken,
+                botName: botData.botName
+            })
         }))
     }
     // return {
