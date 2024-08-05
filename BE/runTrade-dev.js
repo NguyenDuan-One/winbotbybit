@@ -629,7 +629,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                         if (orderStatus === "Filled") {
                             console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
                         }
-                        
+
                         await delay(200)
 
                         if (ApiKey && SecretKey) {
@@ -1004,7 +1004,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                                 if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
-                                                    const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQty: ${missSize} \n\n⚠️ [ MISS ]`
+                                                    const teleText = `⚠️ [ MISS ] | <b>${symbol.replace("USDT", "")}</b> - Close ${side} - Bot: ${botName} - Qty: ${missSize} \n`
                                                     console.log(changeColorConsole.redBright(`\n${teleText}\n`));
 
                                                     // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
@@ -1069,7 +1069,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             }
                                         }
                                         else {
-                                            const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nQty: ${missSize} \n\n⚠️ [ MISS ]`
+                                            const teleText = `⚠️ [ MISS ] | <b>${symbol.replace("USDT", "")}</b> - Close ${side} - Bot: ${botName} - Qty: ${missSize} \n`
                                             console.log(changeColorConsole.redBright(`\n${teleText}\n`));
                                             updatePositionBE({
                                                 newDataUpdate: {
