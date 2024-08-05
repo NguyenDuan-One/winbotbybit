@@ -204,10 +204,11 @@ function Strategies() {
         return newDataCheckTree
     }
 
-    const handleGetAllStrategies = async (botListInput = botList.slice(1)) => {
+    const handleGetAllStrategies = async (botListInput = botList.slice(1), filterStatus = false) => {
+
         setLoadingDataCheckTree(true)
         filterQuantityRef.current = []
-        resetAfterSuccess()
+        !filterStatus && resetAfterSuccess()
         try {
             window.scrollTo(0, 0)
 
@@ -217,7 +218,8 @@ function Strategies() {
             const newDataCheckTree = handleDataTree(resData)
 
             dataCheckTreeDefaultRef.current = newDataCheckTree
-            setDataCheckTree(newDataCheckTree)
+
+            !filterStatus ? setDataCheckTree(newDataCheckTree) : handleFilterAll()
         }
         catch (err) {
             dispatch(addMessageToast({
@@ -256,25 +258,25 @@ function Strategies() {
 
     const handleFilterAll = () => {
         filterQuantityRef.current = []
-        const listData =  dataCheckTreeDefaultRef.current.reduce((acc, data) => {
-            
+        const listData = dataCheckTreeDefaultRef.current.reduce((acc, data) => {
+
             const filteredChildren = data?.children?.filter(item => {
                 const checkBotType = botTypeSelectedRef.current === "All" || botTypeSelectedRef.current === item.botID.botType;
                 const checkBot = botSelectedRef.current === "All" || botSelectedRef.current === item.botID._id;
                 const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
                 const checkCandle = candlestickSelectedRef.current === "All" || candlestickSelectedRef.current === item.Candlestick;
                 const checkSearch = searchDebounce === "" || data.label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
-        
+
                 return checkBotType && checkBot && checkPosition && checkCandle && checkSearch;
             });
-        
+
             if (filteredChildren.length > 0) {
                 acc.push({ ...data, children: filteredChildren });
             }
-        
+
             return acc;
         }, []);
-        
+
 
         setDataCheckTree(listData)
         handleCheckAllCheckBox(false)
@@ -360,7 +362,7 @@ function Strategies() {
 
     useEffect(() => {
         if (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) {
-            handleGetAllStrategies()
+            handleGetAllStrategies(undefined, true)
         }
     }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
 
