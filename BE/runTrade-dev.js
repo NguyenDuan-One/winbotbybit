@@ -562,7 +562,7 @@ const getMoneyFuture = async (botApiListInput) => {
 
         if (resultGetFuture.length > 0) {
             resultGetFuture.forEach(data => {
-                botAmountListObject[data.botID] = +data.totalWalletBalance
+                botAmountListObject[data.botID] = +data.totalWalletBalance || 0
             })
         }
     }
