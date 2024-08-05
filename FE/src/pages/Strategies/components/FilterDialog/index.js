@@ -12,7 +12,8 @@ function FilterDialog({
     filterQuantityRef,
     dataCheckTreeDefaultRef,
     setDataCheckTree,
-    resetAfterSuccess
+    resetAfterSuccess,
+    botListInput
 }) {
 
     const compareFilterListDefault = [
@@ -167,6 +168,15 @@ function FilterDialog({
             value: "volume24h",
             compareFilterList: compareFilterListDefault,
         },
+        {
+            data: {
+                compare: "=",
+                value: botListInput[0].name
+            },
+            name: "Bot",
+            value: "Bot",
+            compareFilterList: ["="],
+        },
     ]
 
     const [filterDataRowList, setFilterDataRowList] = useState([]);
@@ -206,9 +216,11 @@ function FilterDialog({
 
         if (filterValue !== "PositionSide" &&
             filterValue !== "Candlestick" &&
-            filterValue !== "IsActive") {
-                value1 = +value1
-                value2 = +value2
+            filterValue !== "IsActive" &&
+            filterValue !== "Bot"
+        ) {
+            value1 = +value1
+            value2 = +value2
         }
         // if (checkFloatString(value1)) {
         //     value1 = +value1
@@ -281,6 +293,21 @@ function FilterDialog({
                     checked={item.data.value}
                     onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
                 />
+            case "Bot":
+                return <Select
+                    value={item.data.value}
+                    size="small"
+                    style={{
+                        width: "100%"
+                    }}
+                    onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
+                >
+                    {
+                        botListInput.map(item => (
+                            <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                        ))
+                    }
+                </Select>
             default:
                 // return <TextField
                 //     type='number'
@@ -349,7 +376,14 @@ function FilterDialog({
                 //     return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
                 // }
                 // return true
-                return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value, filterRow.value))
+                return filterDataRowList.every(filterRow => {
+
+                    if (filterRow.value !== "Bot") {
+
+                        return handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value, filterRow.value)
+                    }
+                    return handleCompare(item.botID._id, filterRow.data.compare, filterRow.data.value, filterRow.value)
+                })
             }
             )
         }

@@ -618,6 +618,7 @@ function Strategies() {
                     onClose={() => {
                         setOpenFilterDialog(false)
                     }}
+                    botListInput={botList.slice(1)}
                 />
 
             }

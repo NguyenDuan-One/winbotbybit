@@ -1154,8 +1154,6 @@ const handleSocketListKline = async (listKlineInput) => {
             const coinOpen = +dataMain.open
             const coinCurrent = +dataMain.close
 
-
-
             if (symbol === "BTCUSDT" && !BTCCheckMain) {
                 BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open)
                 checkOrderOCAll = BTCPricePercent > 1 ? false : true
