@@ -295,7 +295,7 @@ function Position() {
     }, [userData.userName]);
 
     useEffect(() => {
-        if (openAddLimit.isOpen || openAddMarket.isOpen || openAddLimit.dataChange || openAddMarket.dataChange) {
+        if (openAddLimit.dataChange || openAddMarket.dataChange) {
             handleRefreshData()
         }
     }, [openAddLimit, openAddMarket]);
