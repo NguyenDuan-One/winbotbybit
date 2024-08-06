@@ -440,8 +440,6 @@ const dataCoinByBitController = {
 
             const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
 
-            console.log(bulkResult);
-            
             if (bulkResult.modifiedCount === dataList.length) {
                 res.customResponse(200, "Update Mul-Strategies Successful", "");
             }

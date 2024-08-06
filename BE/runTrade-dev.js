@@ -652,8 +652,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                         const botSymbolMissID = `${botID}-${symbol}`
 
-                        let truLimitOC = ""
-
                         if (orderStatus === "Filled") {
                             console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
 
@@ -663,9 +661,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                     logError: false
                                 }
                             )
-                            truLimitOC = setTimeout(() => {
-                                allStrategiesByBotIDOrderOC[botID].totalOC -= 1
-                            }, 400)
                         }
 
 
@@ -692,8 +687,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                         if (OCTrue) {
-
-                                            truLimitOC && clearTimeout(truLimitOC)
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilled = true
 
@@ -878,6 +871,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                     symbol,
                                                 })
 
+                                                allStrategiesByBotIDOrderOC[botID].totalOC -= 1
                                             }
                                             else {
                                                 console.log(`\n[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
