@@ -367,7 +367,6 @@ function Position() {
                         checkboxSelection={false}
                         columnVisibilityModel={
                           {
-                            "stt":false,
                             "Price":false,
                             "Quantity":false,
                             "Time":false,
