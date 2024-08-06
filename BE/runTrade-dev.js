@@ -1216,7 +1216,7 @@ const handleSocketListKline = async (listKlineInput) => {
 
             const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
-            if (checkOrderOCAll) {
+            if (checkOrderOCAll && coinCurrent && coinOpen) {
 
                 listDataObject && Object.values(listDataObject)?.length > 0 && Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
@@ -1402,7 +1402,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                 !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare
                             ) {
                                 const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
-                                console.log(changeColorConsole.cyanBright(textQuanSat));
+                                // console.log(changeColorConsole.cyanBright(textQuanSat));
 
                                 let checkMoveMain = false
                                 const percentt = 4 / 100
