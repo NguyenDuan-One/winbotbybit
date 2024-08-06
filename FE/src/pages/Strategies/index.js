@@ -209,6 +209,11 @@ function Strategies() {
         setLoadingDataCheckTree(true)
         filterQuantityRef.current = []
         !filterStatus && resetAfterSuccess()
+        
+        dataCheckTreeSelectedRef.current = []
+        openCreateStrategy.dataChange = false
+        openEditTreeItemMultipleDialog.dataChange = false
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
         try {
             window.scrollTo(0, 0)
 
@@ -308,15 +313,15 @@ function Strategies() {
 
     const resetAfterSuccess = () => {
         dataCheckTreeSelectedRef.current = []
+        openCreateStrategy.dataChange = false
+        openEditTreeItemMultipleDialog.dataChange = false
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
         botTypeSelectedRef.current = "All"
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
         candlestickSelectedRef.current = "All"
-        openCreateStrategy.dataChange = false
-        openEditTreeItemMultipleDialog.dataChange = false
-        handleCheckAllCheckBox(false)
         setSearchKey("")
-        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        handleCheckAllCheckBox(false)
     }
 
     const searchDebounce = useDebounce(searchKey)
@@ -364,7 +369,7 @@ function Strategies() {
         if (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) {
             handleGetAllStrategies(undefined, true)
         }
-    }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
+    }, [openCreateStrategy.dataChange, openEditTreeItemMultipleDialog.dataChange]);
 
     return (
         <div className={styles.strategies}>

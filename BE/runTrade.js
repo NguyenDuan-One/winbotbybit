@@ -28,14 +28,14 @@ let missTPDataBySymbol = {}
 
 var listKline = []
 var allSymbol = []
+
 // ------- BTC ------------
 
-var BTCCheckMain = false
 var nangOCValue = 0
 var checkOrderOCAll = true
 
 var checkBTC07Price = ""
-var checkBTC07 = false
+var haOCFunc = ""
 
 // -------  ------------
 var allStrategiesByCandleAndSymbol = {}
@@ -650,7 +650,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                         await delay(200)
 
                         if (ApiKey && SecretKey) {
-                          
+
                             if (dataCoin.topic === "order") {
                                 const strategyData = allStrategiesByBotIDAndOrderID[botID]?.[orderID]
 
@@ -1165,15 +1165,19 @@ const handleSocketListKline = async (listKlineInput) => {
                         checkBTC07Price = newCheckBTC07Price
                         sendAllBotTelegram()
                     }
-                }
-                if (BTCPricePercent >= 1) {
-                    const newNangOCValue = Math.round(BTCPricePercent) * 5
+                    if (BTCPricePercent >= 1) {
+                        const newNangOCValue = Math.round(BTCPricePercent) * 5
 
-                    if (newNangOCValue !== nangOCValue) {
-                        nangOCValue = newNangOCValue
-                        checkOrderOCAll = false
+                        if (newNangOCValue !== nangOCValue) {
+                            nangOCValue = newNangOCValue
+                            checkOrderOCAll = false
+                        }
                     }
                 }
+                else {
+                    checkOrderOCAll = true
+                }
+
             }
 
             if (checkOrderOCAll) {
@@ -1281,11 +1285,13 @@ const handleSocketListKline = async (listKlineInput) => {
                                     let conditionPre = true
 
                                     const pricePreData = listPricePreOne[symbolCandleID]
-                                    if (pricePreData.close > pricePreData.open) {
-                                        coinPreCoin = "Blue"
-                                    }
-                                    else {
-                                        coinPreCoin = "Red"
+                                    if (pricePreData.close) {
+                                        if (pricePreData.close > pricePreData.open) {
+                                            coinPreCoin = "Blue"
+                                        }
+                                        else {
+                                            coinPreCoin = "Red"
+                                        }
                                     }
 
                                     // BUY
@@ -1665,7 +1671,7 @@ const handleSocketListKline = async (listKlineInput) => {
 
 
                                     allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange
-                                    allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange += nangOCValue
+                                    allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld + nangOCValue
 
                                     // console.log(allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld);
                                     // console.log("nangOC", nangOCValue);
@@ -1688,7 +1694,25 @@ const handleSocketListKline = async (listKlineInput) => {
                     ))
                 console.log("[V] NÂNG OC XONG");
                 checkOrderOCAll = true
+                haOCFunc && clearTimeout(haOCFunc)
+                haOCFunc = setTimeout(() => {
+                    Promise.allSettled(
+                        allSymbol.map(async symbolItem => {
+                            const symbol = symbolItem.value
+                            return Promise.allSettled([1, 3, 5, 15].map(candle => {
+                                const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
+                                if (listDataObject && Object.values(listDataObject)?.length > 0) {
+                                    return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                                        const strategyID = strategy.value
 
+                                        allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld
+
+                                    }))
+                                }
+                            }))
+                        }
+                        ))
+                }, 5 * 60000)
             }
             // Xử lý miss
 
@@ -1983,9 +2007,8 @@ socketRealtime.on('update', async (newData = []) => {
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
 
-            const OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID].OrderChangeOld
             allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategiesData
-            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID].OrderChangeOld = OrderChangeOld
+            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID].OrderChangeOld = strategiesData.OrderChange
 
 
             !allStrategiesByBotIDAndOrderID[botID] && (allStrategiesByBotIDAndOrderID[botID] = {})
