@@ -1139,6 +1139,9 @@ const handleSocketListKline = async (listKlineInput) => {
             const coinOpen = +dataMain.open
             const coinCurrent = +dataMain.close
 
+
+            
+
             const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
             listDataObject && Object.values(listDataObject)?.length > 0 && Promise.allSettled(Object.values(listDataObject).map(async strategy => {
@@ -1287,6 +1290,10 @@ const handleSocketListKline = async (listKlineInput) => {
                                     telegramID,
                                     telegramToken
                                 }
+
+                                console.log("coinOpen",coinOpen);
+                                console.log("coinCurrent",coinCurrent);
+                                console.log("conditionOrder",conditionOrder);
 
                                 if (side === "Buy") {
                                     +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
