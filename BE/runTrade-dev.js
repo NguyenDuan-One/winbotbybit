@@ -16,7 +16,7 @@ const wsConfig = {
 const wsSymbol = new WebsocketClient(wsConfig);
 
 const LIST_ORDER = ["order", "position"]
-const MAX_ORDER_LIMIT = 5
+const MAX_ORDER_LIMIT = 10
 
 const clientDigit = new RestClientV5({
     testnet: false,
