@@ -1247,7 +1247,16 @@ const handleSocketListKline = async (listKlineInput) => {
 
                         if (dataMain.confirm == false && strategy.IsActive) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
+
+                                !allStrategiesByBotIDOrderOC[botID] && (
+                                    allStrategiesByBotIDOrderOC[botID] = {
+                                        totalOC: 0,
+                                        logError: false
+                                    }
+                                )
+
                                 allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
+                                
                                 if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {
 
                                     allStrategiesByBotIDOrderOC[botID].logError = false
