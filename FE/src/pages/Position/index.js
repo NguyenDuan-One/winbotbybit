@@ -35,20 +35,19 @@ function Position() {
             renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
         },
         {
-            field: 'BotName',
-            headerName: 'Bot',
-            minWidth: 150,
-            flex: window.innerWidth <= 740 ? undefined : 1,
-
-        },
-        {
             field: 'Symbol',
             headerName: 'Symbol',
             minWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
 
         },
+        {
+            field: 'BotName',
+            headerName: 'Bot',
+            minWidth: 150,
+            flex: window.innerWidth <= 740 ? undefined : 1,
 
+        },
         {
             field: 'Side',
             headerName: 'Side',
@@ -366,6 +365,15 @@ function Position() {
                         tableRows={positionData}
                         tableColumns={tableColumns}
                         checkboxSelection={false}
+                        columnVisibilityModel={
+                          {
+                            "stt":false,
+                            "Price":false,
+                            "Quantity":false,
+                            "Time":false,
+                            "TimeUpdated":false,
+                          }
+                        }
                     />
                 </div>
             </div>

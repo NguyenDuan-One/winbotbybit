@@ -14,7 +14,8 @@ function DataGridCustom({
     hideFooter = true,
     setDataTableChange,
     disableMultipleRowSelection = false,
-    disabledListRow = []
+    disabledListRow = [],
+    columnVisibilityModel = {}
 }, ref) {
 
 
@@ -29,6 +30,7 @@ function DataGridCustom({
             pageSizeOptions={[10, 25, 50]}
             initialState={{
                 pagination: { paginationModel: { pageSize: 10 } },
+                columns: { columnVisibilityModel }
             }}
             sx={{
                 ".MuiDataGrid-columnHeaderTitle": {
