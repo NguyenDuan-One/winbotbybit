@@ -85,45 +85,47 @@ const handleSubmitOrder = async ({
         enable_time_sync: true
     });
 
-    await client
-        .submitOrder({
-            category: 'linear',
-            symbol,
-            side,
-            positionIdx: 0,
-            orderType: 'Limit',
-            qty,
-            price,
-        })
-        .then((response) => {
-            if (response.retCode == 0) {
-                const newOrderID = response.result.orderId
-                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
-                allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
-                    strategy,
-                    OC: true,
-                }
+    const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
+    console.log(text)
+    // await client
+    //     .submitOrder({
+    //         category: 'linear',
+    //         symbol,
+    //         side,
+    //         positionIdx: 0,
+    //         orderType: 'Limit',
+    //         qty,
+    //         price,
+    //     })
+    //     .then((response) => {
+    //         if (response.retCode == 0) {
+    //             const newOrderID = response.result.orderId
+    //             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
+    //             allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
+    //                 strategy,
+    //                 OC: true,
+    //             }
 
-                const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
+    //             const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
 
-                const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
-                console.log(text)
-                console.log(changeColorConsole.blackBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
+    //             const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
+    //             console.log(text)
+    //             console.log(changeColorConsole.blackBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
 
-                // sendMessageWithRetry({
-                //     messageText: text,
-                //     telegramID,
-                //     telegramToken
-                // })
-            }
-            else {
-                console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
-            }
+    //             // sendMessageWithRetry({
+    //             //     messageText: text,
+    //             //     telegramID,
+    //             //     telegramToken
+    //             // })
+    //         }
+    //         else {
+    //             console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
+    //         }
 
-        })
-        .catch((error) => {
-            console.log(changeColorConsole.redBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-        });
+    //     })
+    //     .catch((error) => {
+    //         console.log(changeColorConsole.redBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
+    //     });
 }
 
 const handleSubmitOrderTP = async ({
@@ -167,7 +169,6 @@ const handleSubmitOrderTP = async ({
                 const newOrderID = response.result.orderId
 
 
-                missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
 
                 missTPDataBySymbol[botSymbolMissID] = {
@@ -577,7 +578,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
         if (objectToArrayLength > 0) {
 
-
             await getMoneyFuture(botApiListInput)
 
             console.log("[...] Subscribe new-bot-list-api successful\n");
@@ -648,6 +648,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
 
                                     if (orderStatus === "Filled") {
+
+                                        missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                         if (OCTrue) {
 

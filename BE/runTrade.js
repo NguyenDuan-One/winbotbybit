@@ -627,8 +627,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
                     wsOrder.on('update', async (dataCoin) => {
 
-                        await delay(250)
-
                         const botID = botApiData.id
 
                         const ApiKey = botApiList[botID].ApiKey
@@ -645,12 +643,14 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                         const botSymbolMissID = `${botID}-${symbol}`
 
+                        if (orderStatus === "Filled") {
+                            console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
+                        }
+
+                        await delay(200)
+
                         if (ApiKey && SecretKey) {
-                            if (orderStatus === "Filled") {
-                                console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
-                            }
-
-
+                          
                             if (dataCoin.topic === "order") {
                                 const strategyData = allStrategiesByBotIDAndOrderID[botID]?.[orderID]
 
