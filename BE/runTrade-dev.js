@@ -123,7 +123,7 @@ const handleSubmitOrder = async ({
         })
         .catch((error) => {
             console.log(changeColorConsole.redBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error))
-            process.exit(0)
+            exec("pm2 kill")
         });
 }
 
