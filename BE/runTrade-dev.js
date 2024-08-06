@@ -635,6 +635,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
                     wsOrder.on('update', async (dataCoin) => {
 
+                        await delay(200)
 
                         const botID = botApiData.id
 
@@ -669,7 +670,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                             if (dataCoin.topic === "order") {
 
-                                await delay(200)
 
                                 const strategyData = allStrategiesByBotIDAndOrderID[botID]?.[orderID]
 
@@ -877,14 +877,14 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 console.log(`\n[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
                                             }
 
-                                            cancelAll({ strategyID, botID })
-
+                                            
                                             sendMessageWithRetry({
                                                 messageText: `${teleText} \n${textWinLose}`,
                                                 telegramID,
                                                 telegramToken,
                                             })
-
+                                            
+                                            cancelAll({ strategyID, botID })
 
                                         }
                                     }
