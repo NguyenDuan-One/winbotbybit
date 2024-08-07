@@ -10,7 +10,7 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
-    recvWindow: 60000
+    recvWindow: 60000,
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
@@ -21,7 +21,6 @@ const MAX_ORDER_LIMIT = 10
 const clientDigit = new RestClientV5({
     testnet: false,
     recv_window: 60000,
-    enable_time_sync: true
 });
 
 // ----------------------------------------------------------------------------------
@@ -96,7 +95,6 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
     });
 
     await client
@@ -171,7 +169,6 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
     });
     await client
         .submitOrder({
@@ -236,7 +233,7 @@ const handleSubmitOrderTP = async ({
                     }).then(message => {
                         console.log(message);
                     }).catch(err => {
-                        console.log(err)
+                        console.log("ERROR Position TP:", err)
                     })
                 }
             }
@@ -254,9 +251,10 @@ const handleSubmitOrderTP = async ({
                 }).then(message => {
                     console.log(message);
                 }).catch(err => {
-                    console.log(err)
+                    console.log("ERROR Position TP:", err)
                 })
             }
+            console.log("ERROR Order TP:", error)
         });
 }
 
@@ -279,7 +277,6 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
     });
     await client
         .amendOrder({
@@ -369,7 +366,6 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
     });
 
     allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
@@ -418,7 +414,6 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
     });
     await client
         .cancelOrder({
@@ -747,12 +742,13 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                             console.log(data.message);
                                                             missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                         }).catch(error => {
-                                                            console.log(error)
+                                                            console.log("ERROR getPositionBySymbol:", error)
+
                                                         })
                                                     }
 
                                                 }).catch(err => {
-                                                    console.log(err)
+                                                    console.log("ERROR createPositionBE:", err)
                                                 })
                                             }
 
@@ -867,7 +863,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                         console.log(`[...] Delete Position ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
                                                         console.log(message);
                                                     }).catch(err => {
-                                                        console.log(err)
+                                                        console.log("ERROR deletePositionBE:", err)
                                                     })
                                                 }
 
@@ -916,7 +912,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }).then(message => {
                                                     console.log(message);
                                                 }).catch(err => {
-                                                    console.log(err)
+                                                    console.log("ERROR updatePositionBE:", err)
                                                 })
                                                 resetMissData({
                                                     botID,
@@ -982,7 +978,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                     }).then(message => {
                                         console.log(message);
                                     }).catch(err => {
-                                        console.log(err)
+                                        console.log("ERROR deletePositionBE:", err)
                                     })
                                 }
                             }
@@ -1040,12 +1036,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                         console.log(data.message);
                                                         missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
                                                     }).catch(error => {
-                                                        console.log(error)
+                                                        console.log("ERROR getPositionBySymbol:", error)
                                                     })
                                                 }
 
                                             }).catch(err => {
-                                                console.log(err)
+                                                console.log("ERROR createPositionBE:", err)
                                             })
                                         }
 
@@ -1094,7 +1090,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                     }).then(message => {
                                                         console.log(message);
                                                     }).catch(err => {
-                                                        console.log(err);
+                                                        console.log("ERROR updatePositionBE:", err)
                                                     })
                                                     sendMessageWithRetry({
                                                         messageText: teleText,
@@ -1114,7 +1110,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }).then(message => {
                                                     console.log(message);
                                                 }).catch(err => {
-                                                    console.log(err)
+                                                    console.log("ERROR updatePositionBE:", err)
                                                 })
                                             }
                                         }
@@ -1130,7 +1126,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             }).then(message => {
                                                 console.log(message);
                                             }).catch(err => {
-                                                console.log(err)
+                                                console.log("ERROR updatePositionBE:", err)
                                             })
                                         }
 
@@ -1250,6 +1246,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                 )
 
                                 allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
+
 
                                 if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {
 
@@ -1389,7 +1386,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                 }
 
                                 else {
-                                    if (!allStrategiesByBotIDOrderOC[botID]?.logError) {
+                                    if (allStrategiesByBotIDOrderOC[botID]?.totalOC && !allStrategiesByBotIDOrderOC[botID]?.logError) {
                                         console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
                                         allStrategiesByBotIDOrderOC[botID].logError = true
                                     }
@@ -1429,7 +1426,6 @@ const handleSocketListKline = async (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         recv_window: 60000,
-                                        enable_time_sync: true
                                     });
                                     const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
@@ -1533,7 +1529,6 @@ const handleSocketListKline = async (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         recv_window: 60000,
-                                        enable_time_sync: true
                                     });
                                     client
                                         .amendOrder({
@@ -1790,7 +1785,6 @@ const handleSocketListKline = async (listKlineInput) => {
             //                 key: missData.ApiKey,
             //                 secret: missData.SecretKey,
             // recv_window:60000,
-            // enable_time_sync:true 
             //             });
             //             client
             //                 .amendOrder({
