@@ -574,12 +574,14 @@ const getMoneyFuture = async (botApiListInput) => {
 }
 
 const sendAllBotTelegram = async () => {
+    const text = "<b>❗ Bão BTC ❗</b>"
+    console.log(text);
     await Promise.allSettled(Object.values(botApiList).map(botApiData => {
 
         const telegramID = botApiData.telegramID
         const telegramToken = botApiData.telegramToken
         sendMessageWithRetry({
-            messageText: "<b>❗ Bão BTC ❗</b>",
+            messageText: text,
             telegramID,
             telegramToken
         })
