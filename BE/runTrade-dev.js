@@ -100,7 +100,7 @@ const handleSubmitOrder = async ({
 
     });
 
-    client
+    await client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -130,6 +130,8 @@ const handleSubmitOrder = async ({
                 //     telegramID,
                 //     telegramToken
                 // })
+                console.log('OK');
+
                 !allStrategiesByBotIDOrderOC[botID] && (
                     allStrategiesByBotIDOrderOC[botID] = {
                         totalOC: 0,
@@ -175,7 +177,7 @@ const handleSubmitOrderTP = async ({
         syncTimeBeforePrivateRequests: true
 
     });
-    client
+    await client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -350,7 +352,7 @@ const handleMoveOrderTP = async ({
             botName,
             botID
         }
-        moveOrderTP(dataInput)
+        await moveOrderTP(dataInput)
 
     }
 }
@@ -379,7 +381,7 @@ const handleCancelOrderOC = async ({
 
     allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
         !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
-        client
+        await client
             .cancelOrder({
                 category: 'linear',
                 symbol,
@@ -426,7 +428,7 @@ const handleCancelOrderTP = async ({
         syncTimeBeforePrivateRequests: true
 
     });
-    client
+    await client
         .cancelOrder({
             category: 'linear',
             symbol,
@@ -933,10 +935,10 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                         }
                                         else if (OCTrue) {
+                                            allStrategiesByBotIDOrderOC[botID].totalOC -= 1
                                             console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
 
-                                            allStrategiesByBotIDOrderOC[botID].totalOC -= 1
                                         }
 
                                     }
@@ -1245,6 +1247,8 @@ const handleSocketListKline = async (listKlineInput) => {
                         const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
                         const symbolCandleID = `${symbol}-${candle}`
+
+                        console.log("allStrategiesByBotIDOrderOC[botID].totalOC", allStrategiesByBotIDOrderOC[botID]?.totalOC);
 
                         if (dataMain.confirm == false && strategy.IsActive) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {

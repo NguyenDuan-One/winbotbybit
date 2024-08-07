@@ -1267,7 +1267,6 @@ const Main = async () => {
 
                             // X-D-D || D-D-D
 
-
                             const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
 
                             let checkColorListTrue = false
