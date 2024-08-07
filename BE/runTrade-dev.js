@@ -100,7 +100,7 @@ const handleSubmitOrder = async ({
 
     });
 
-    await client
+    client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -175,7 +175,7 @@ const handleSubmitOrderTP = async ({
         syncTimeBeforePrivateRequests: true
 
     });
-    await client
+    client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -350,7 +350,7 @@ const handleMoveOrderTP = async ({
             botName,
             botID
         }
-        await moveOrderTP(dataInput)
+        moveOrderTP(dataInput)
 
     }
 }
@@ -379,7 +379,7 @@ const handleCancelOrderOC = async ({
 
     allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
         !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
-        await client
+        client
             .cancelOrder({
                 category: 'linear',
                 symbol,
@@ -426,7 +426,7 @@ const handleCancelOrderTP = async ({
         syncTimeBeforePrivateRequests: true
 
     });
-    await client
+    client
         .cancelOrder({
             category: 'linear',
             symbol,
@@ -656,7 +656,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
                     wsOrder.on('update', async (dataCoin) => {
 
-                        await delay(200)
+                        // await delay(200)
 
                         const botID = botApiData.id
 
@@ -804,7 +804,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.dataSend = dataInput
 
-                                            await handleSubmitOrderTP(dataInput)
+                                            handleSubmitOrderTP(dataInput)
 
                                             sendMessageWithRetry({
                                                 messageText: teleText,
@@ -1388,10 +1388,10 @@ const handleSocketListKline = async (listKlineInput) => {
                                             telegramToken
                                         }
                                         if (side === "Buy") {
-                                            +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && await handleSubmitOrder(dataInput)
+                                            +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
                                         }
                                         else {
-                                            +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && await handleSubmitOrder(dataInput)
+                                            +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
                                         }
                                     }
                                 }
@@ -1661,7 +1661,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = newPriceCompare
 
 
-                                !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID].TP.moveSuccess && await handleMoveOrderTP({
+                                !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID].TP.moveSuccess && handleMoveOrderTP({
                                     ApiKey,
                                     SecretKey,
                                     strategyID,
@@ -1674,7 +1674,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                 })
                             }
 
-                            await handleCancelOrderOC(
+                            handleCancelOrderOC(
                                 {
                                     strategyID,
                                     symbol: strategy.symbol,

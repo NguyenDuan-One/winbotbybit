@@ -19,7 +19,8 @@ const LIST_ORDER = ["order", "position"]
 const clientDigit = new RestClientV5({
     testnet: false,
     recv_window: 60000,
-    enable_time_sync: true
+        syncTimeBeforePrivateRequests: true
+
 });
 
 // ----------------------------------------------------------------------------------
@@ -83,7 +84,8 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
+            syncTimeBeforePrivateRequests: true
+
     });
 
     await client
@@ -151,7 +153,8 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
+            syncTimeBeforePrivateRequests: true
+
     });
     await client
         .submitOrder({
@@ -259,7 +262,8 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
+            syncTimeBeforePrivateRequests: true
+
     });
     await client
         .amendOrder({
@@ -348,7 +352,8 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
+            syncTimeBeforePrivateRequests: true
+
     });
     await client
         .cancelOrder({
@@ -392,7 +397,8 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        enable_time_sync: true
+            syncTimeBeforePrivateRequests: true
+
     });
     await client
         .cancelOrder({
@@ -1410,7 +1416,8 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     recv_window: 60000,
-                                    enable_time_sync: true
+                                        syncTimeBeforePrivateRequests: true
+
                                 });
                                 const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
@@ -1514,7 +1521,8 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     recv_window: 60000,
-                                    enable_time_sync: true
+                                        syncTimeBeforePrivateRequests: true
+
                                 });
                                 client
                                     .amendOrder({
