@@ -1,12 +1,11 @@
 require('dotenv').config();
+const { exec } = require('child_process');
 
 const TelegramBot = require('node-telegram-bot-api');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 var cron = require('node-cron');
 
-const API_KEY = 'foRfrB7L1GgXt1Ly5O';
-const PRIVATE_KEY = 'zxbzLknpNW0k1i2Ze8UFtQq2HEK4tgVqFjgp';
 const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE, {
     polling: false,
     request: {
@@ -17,8 +16,6 @@ const bot = new TelegramBot(process.env.BOT_TOKEN_THONG_KE, {
 });
 const CHANNEL_ID = process.env.CHANNEL_ID_THONG_KE
 
-// Bắt đầu bot
-// bot.launch();
 
 let listKline = []
 let digit = []
@@ -30,15 +27,11 @@ let delayTimeOut = ""
 let botListTelegram = {}
 
 let wsConfig = {
-    // key: API_KEY,
-    // secret: PRIVATE_KEY,
     market: 'v5',
     recvWindow: 60000,
 }
 let wsSymbol = new WebsocketClient(wsConfig);
 let wsInfo = {
-    // key: API_KEY,
-    // secret: PRIVATE_KEY,
     testnet: false,
     recv_window: 60000,
     enable_time_sync: true
@@ -208,7 +201,7 @@ function tinhOC(symbol, data) {
     if (OCRound > 1) {
         const ht = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
-        
+
     }
     if (OCLongRound > 1) {
         const htLong = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
@@ -537,19 +530,19 @@ let Main = async () => {
         if (dataCoin.wsKey === "v5LinearPublic") {
 
             if (dataCoin.data[0].confirm === true) {
-                
+
                 const symbol = dataCoin.topic.split(".").slice(-1)[0]
                 tinhOC(symbol, dataCoin.data[0])
 
                 delayTimeOut && clearTimeout(delayTimeOut)
 
-                delayTimeOut = setTimeout(()=>{
+                delayTimeOut = setTimeout(() => {
                     if (messageList.length) {
                         console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
                         sendMessageWithRetry(messageList.join("\n\n"))
                         messageList = []
                     }
-                },2000)
+                }, 2000)
             }
 
             // if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
@@ -601,6 +594,17 @@ let Main = async () => {
     });
 
 };
-Main()
 
+try {
+    Main()
 
+    setTimeout(() => {
+        cron.schedule('0 */3 * * *', async () => {
+            process.exit(0);
+        });
+    }, 1000)
+}
+
+catch (e) {
+    console.log("Error Main:", e)
+}
