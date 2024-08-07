@@ -1248,8 +1248,6 @@ const handleSocketListKline = async (listKlineInput) => {
 
                         const symbolCandleID = `${symbol}-${candle}`
 
-                        console.log("allStrategiesByBotIDOrderOC[botID].totalOC", allStrategiesByBotIDOrderOC[botID]?.totalOC);
-
                         if (dataMain.confirm == false && strategy.IsActive) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
 
