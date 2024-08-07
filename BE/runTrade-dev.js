@@ -86,7 +86,8 @@ const handleSubmitOrder = async ({
     botName,
     botID,
     telegramID,
-    telegramToken
+    telegramToken,
+    coinOpen
 }) => {
 
     !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
@@ -112,6 +113,9 @@ const handleSubmitOrder = async ({
         })
         .then((response) => {
             if (response.retCode == 0) {
+
+                strategy.coinOpen = coinOpen
+
                 const newOrderID = response.result.orderId
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
                 allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
@@ -119,6 +123,7 @@ const handleSubmitOrder = async ({
                     OC: true,
                 }
 
+                
                 const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
 
                 const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
@@ -1234,7 +1239,7 @@ const handleSocketListKline = async (listKlineInput) => {
                         const strategyID = strategy.value
 
                         strategy.digit = digitAllCoinObject[strategy.symbol]
-                        strategy.coinOpen = coinOpen
+                        
 
                         const botID = strategy.botID._id
                         const botName = strategy.botID.botName
@@ -1387,7 +1392,8 @@ const handleSocketListKline = async (listKlineInput) => {
                                             botName,
                                             botID,
                                             telegramID,
-                                            telegramToken
+                                            telegramToken,
+                                            coinOpen
                                         }
                                         if (side === "Buy") {
                                             +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
