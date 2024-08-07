@@ -528,7 +528,7 @@ const cancelAll = (
             orderFilledButMiss: false,
             moveAfterCompare: false,
             newOC: 0,
-            coinOpen
+            coinOpen:0
         },
         "TP": {
             orderID: "",
