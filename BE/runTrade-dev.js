@@ -21,6 +21,7 @@ const MAX_ORDER_LIMIT = 10
 const clientDigit = new RestClientV5({
     testnet: false,
     recv_window: 60000,
+    enable_time_sync: true
 });
 
 // ----------------------------------------------------------------------------------
