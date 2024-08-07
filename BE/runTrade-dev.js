@@ -118,6 +118,9 @@ const handleSubmitOrder = async ({
 
                 const newOrderID = response.result.orderId
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
+                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
+
+                
                 allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
                     strategy,
                     OC: true,
@@ -524,7 +527,8 @@ const cancelAll = (
             priceOrder: 0,
             orderFilledButMiss: false,
             moveAfterCompare: false,
-            newOC: 0
+            newOC: 0,
+            coinOpen
         },
         "TP": {
             orderID: "",
@@ -1421,6 +1425,8 @@ const handleSocketListKline = async (listKlineInput) => {
                             ) {
                                 const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
                                 // console.log(changeColorConsole.cyanBright(textQuanSat));
+
+                                const coinOpen = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen
 
                                 let checkMoveMain = false
                                 const percentt = 4 / 100
