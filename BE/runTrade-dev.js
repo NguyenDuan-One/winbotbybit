@@ -120,13 +120,13 @@ const handleSubmitOrder = async ({
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
 
-                
+
                 allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
                     strategy,
                     OC: true,
                 }
 
-                
+
                 const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
 
                 const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
@@ -528,7 +528,7 @@ const cancelAll = (
             orderFilledButMiss: false,
             moveAfterCompare: false,
             newOC: 0,
-            coinOpen:0
+            coinOpen: 0
         },
         "TP": {
             orderID: "",
@@ -919,7 +919,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         // Khớp TP
                                         if (TPTrue) {
                                             console.log(`[-] Cancelled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                                            if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID) {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                                            }
                                             const qty = +dataMain.qty
                                             missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
 
@@ -946,8 +948,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         else if (OCTrue) {
                                             allStrategiesByBotIDOrderOC[botID].totalOC -= 1
                                             console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
-
+                                            if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID) {
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
+                                            }
                                         }
 
                                     }
@@ -1243,7 +1246,7 @@ const handleSocketListKline = async (listKlineInput) => {
                         const strategyID = strategy.value
 
                         strategy.digit = digitAllCoinObject[strategy.symbol]
-                        
+
 
                         const botID = strategy.botID._id
                         const botName = strategy.botID.botName
