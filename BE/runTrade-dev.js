@@ -114,7 +114,6 @@ const handleSubmitOrder = async ({
         .then((response) => {
             if (response.retCode == 0) {
 
-                strategy.coinOpen = coinOpen
 
                 const newOrderID = response.result.orderId
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
@@ -127,7 +126,7 @@ const handleSubmitOrder = async ({
                 }
 
 
-                const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
+                const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
 
                 const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
                 console.log(text)
@@ -138,7 +137,6 @@ const handleSubmitOrder = async ({
                 //     telegramID,
                 //     telegramToken
                 // })
-                console.log('OK');
 
                 !allStrategiesByBotIDOrderOC[botID] && (
                     allStrategiesByBotIDOrderOC[botID] = {
@@ -706,7 +704,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 if (strategy) {
 
                                     const strategyID = strategy.value
-
+                                    const coinOpenOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen
 
                                     if (orderStatus === "Filled") {
 
@@ -724,7 +722,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             const qty = dataMain.qty
 
-                                            const newOC = (Math.abs((openTrade - strategy.coinOpen)) / strategy.coinOpen * 100).toFixed(2)
+                                            const newOC = (Math.abs((openTrade - coinOpenOC)) / coinOpenOC * 100).toFixed(2)
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.newOC = newOC
                                             // const newOC = strategy.OrderChange
@@ -779,12 +777,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             let TPNew = 0
 
                                             if (strategy.PositionSide === "Long") {
-                                                TPNew = openTrade + Math.abs((openTrade - strategy.coinOpen)) * (strategy.TakeProfit / 100)
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = openTrade + Math.abs((openTrade - strategy.coinOpen)) * ((strategy.EntryTrailing || 40) / 100)
+                                                TPNew = openTrade + Math.abs((openTrade - coinOpenOC)) * (strategy.TakeProfit / 100)
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = openTrade + Math.abs((openTrade - coinOpenOC)) * ((strategy.EntryTrailing || 40) / 100)
                                             }
                                             else {
-                                                TPNew = openTrade - Math.abs((openTrade - strategy.coinOpen)) * (strategy.TakeProfit / 100)
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = openTrade - Math.abs((openTrade - strategy.coinOpen)) * ((strategy.EntryTrailing || 40) / 100)
+                                                TPNew = openTrade - Math.abs((openTrade - coinOpenOC)) * (strategy.TakeProfit / 100)
+                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = openTrade - Math.abs((openTrade - coinOpenOC)) * ((strategy.EntryTrailing || 40) / 100)
                                             }
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side = strategy.PositionSide === "Long" ? "Sell" : "Buy"
 
