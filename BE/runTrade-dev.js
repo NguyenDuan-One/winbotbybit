@@ -21,7 +21,7 @@ const MAX_ORDER_LIMIT = 10
 const clientDigit = new RestClientV5({
     testnet: false,
     recv_window: 60000,
-    enable_time_sync: true
+    syncTimeBeforePrivateRequests: true
 });
 
 // ----------------------------------------------------------------------------------
@@ -96,6 +96,8 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests: true
+
     });
 
     await client
@@ -170,6 +172,8 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests: true
+
     });
     await client
         .submitOrder({
@@ -278,6 +282,8 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests: true
+
     });
     await client
         .amendOrder({
@@ -367,6 +373,8 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests: true
+
     });
 
     allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
@@ -415,6 +423,8 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests: true
+
     });
     await client
         .cancelOrder({
@@ -1427,6 +1437,8 @@ const handleSocketListKline = async (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         recv_window: 60000,
+                                        syncTimeBeforePrivateRequests: true
+
                                     });
                                     const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
@@ -1530,6 +1542,8 @@ const handleSocketListKline = async (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         recv_window: 60000,
+                                        syncTimeBeforePrivateRequests: true
+
                                     });
                                     client
                                         .amendOrder({
@@ -1990,7 +2004,7 @@ socketRealtime.on('add', async (newData = []) => {
             const ApiKey = newStrategiesData.botID.ApiKey
             const SecretKey = newStrategiesData.botID.SecretKey
 
-            
+
             if (!botApiList[botID]) {
                 newBotApiList[botID] = {
                     id: botID,
@@ -2062,7 +2076,7 @@ socketRealtime.on('update', async (newData = []) => {
             !allStrategiesByBotIDAndOrderID[botID] && (allStrategiesByBotIDAndOrderID[botID] = {})
             !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
 
-            
+
             if (IsActive) {
                 if (!botApiList[botID]) {
 
@@ -2245,7 +2259,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
         !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
 
 
-        
+
         if (IsActive) {
             if (!botApiList[botID]) {
 
