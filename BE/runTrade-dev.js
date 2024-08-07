@@ -16,7 +16,7 @@ const wsConfig = {
 const wsSymbol = new WebsocketClient(wsConfig);
 
 const LIST_ORDER = ["order", "position"]
-const MAX_ORDER_LIMIT = 5
+const MAX_ORDER_LIMIT = 10
 
 const clientDigit = new RestClientV5({
     testnet: false,
@@ -67,7 +67,7 @@ async function Digit(symbol) {// proScale
             //console.log(PScale)
         })
         .catch((error) => {
-            console.log("Error Digit:",error)
+            console.log("Error Digit:", error)
         });
     return PScale
 }
@@ -1241,6 +1241,13 @@ const handleSocketListKline = async (listKlineInput) => {
                         if (dataMain.confirm == false && strategy.IsActive) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
 
+                                !allStrategiesByBotIDOrderOC[botID] && (
+                                    allStrategiesByBotIDOrderOC[botID] = {
+                                        totalOC: 0,
+                                        logError: false
+                                    }
+                                )
+
                                 allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
 
                                 if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {
@@ -1949,7 +1956,7 @@ try {
 }
 
 catch (e) {
-    console.log( "Error Main:", e)
+    console.log("Error Main:", e)
 }
 
 
@@ -2228,7 +2235,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
         !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
         !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
-        const OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID]?.OrderChangeOld 
+        const OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID]?.OrderChangeOld
         allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = strategiesData
         allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID].OrderChangeOld = OrderChangeOld || allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID].OrderChange
 
@@ -2510,7 +2517,7 @@ socketRealtime.on('bot-telegram', async (data) => {
 
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
-            const OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID]?.OrderChangeOld 
+            const OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID]?.OrderChangeOld
             allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesDataUpdate
             allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID].OrderChangeOld = OrderChangeOld || allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID].OrderChange
 
