@@ -1256,7 +1256,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                     allStrategiesByBotIDOrderOC[botID].logError = false
                                     trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                                    if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 100) {
+                                    if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 250) {
 
                                         trichMauOCListObject[symbolCandleID].preTime = new Date()
 
