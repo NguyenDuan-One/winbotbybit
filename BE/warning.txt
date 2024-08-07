@@ -1,4 +1,5 @@
-
+ pm2 start server.js index.js  balanceWallet.js  runTrade-dev.js
+ 
 ------------------------------------------------------------------------------------------------
 
 cp -r /root/CryptoBot/FE/build/* /var/www/html/crypro-bot/

@@ -56,15 +56,16 @@ var botListTelegram = {}
 
 // ----------------------------------------------------------------------------------
 
-async function Digit(symbol) {// proScale
+async function Digit() {// proScale
     let PScale = []
     await clientDigit.getInstrumentsInfo({
         category: 'linear',
-        symbol: symbol,
     })
         .then((response) => {
-            PScale.push(response.result.list[0].priceScale)
-            //console.log(PScale)
+            PScale = PScale.concat(response.result.list.map(item => ({
+                symbol: item.symbol,
+                priceScale: item.priceScale
+            })))
         })
         .catch((error) => {
             console.log("Error Digit:", error)
@@ -943,7 +944,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 console.log("listMiss?.length", listMiss?.length);
 
                                 listMiss?.length > 0 &&
-                                    await Promise.all(listMiss.map(async orderIdTPData => {
+                                    await Promise.allSettled(listMiss.map(async orderIdTPData => {
                                         handleCancelOrderTP({
                                             ApiKey,
                                             SecretKey,
@@ -1895,10 +1896,15 @@ const Main = async () => {
         }
     })
 
-    await Promise.all(allSymbol.map(async symbol => {
-        let result = await Digit(symbol.value)
-        digitAllCoinObject[symbol.value] = result[0]
-    }))
+    const resultDigitAll = await Digit()
+    resultDigitAll?.length > 0 && (
+        resultDigitAll.reduce((pre, cur) => {
+            if (cur.symbol.includes("USDT")) {
+                pre[cur.symbol] = cur.priceScale
+            }
+            return pre
+        }, digitAllCoinObject)
+    )
 
     listKline = allSymbol.flatMap(symbolItem => ([
         `kline.1.${symbolItem.value}`,
@@ -1935,11 +1941,9 @@ const Main = async () => {
         })
     })
 
-    // ORDER
     await handleSocketBotApiList(botApiList)
 
-    // KLINE
-    handleSocketListKline(listKline)
+    await handleSocketListKline(listKline)
 
 }
 
@@ -2550,10 +2554,15 @@ socketRealtime.on('sync-symbol', async (newData) => {
     ]))
 
 
-    await Promise.all(newData.map(async symbol => {
-        let result = await Digit(symbol.value)
-        digitAllCoinObject[symbol.value] = result[0]
-    }))
+    const resultDigitAll = await Digit()
+    resultDigitAll?.length > 0 && (
+        resultDigitAll.reduce((pre, cur) => {
+            if (cur.symbol.includes("USDT")) {
+                pre[cur.symbol] = cur.priceScale
+            }
+            return pre
+        }, digitAllCoinObject)
+    )
 
     newData.forEach(item => {
         const symbol = item.value
@@ -2600,7 +2609,7 @@ socketRealtime.on("close-limit", async (data) => {
 
     const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
 
-    listMiss?.length > 0 && await Promise.all(listMiss.map((orderIdTPData) => {
+    listMiss?.length > 0 && await Promise.allSettled(listMiss.map((orderIdTPData) => {
         handleCancelOrderTP({
             ApiKey: positionData.botData.ApiKey,
             SecretKey: positionData.botData.SecretKey,
