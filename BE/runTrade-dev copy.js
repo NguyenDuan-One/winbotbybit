@@ -2246,9 +2246,11 @@ socketRealtime.on('bot-update', async (data = {}) => {
         !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
 
 
+        console.log("IsActive", IsActive);
 
         if (IsActive) {
             if (!botApiList[botID]) {
+                console.log("ok", ok);
 
                 newBotApiList[botID] = {
                     id: botID,
