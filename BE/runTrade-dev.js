@@ -1999,6 +1999,14 @@ socketRealtime.on('add', async (newData = []) => {
 
 
             if (!botApiList[botID]) {
+                botApiList[botID] = {
+                    id: botID,
+                    botName,
+                    ApiKey,
+                    SecretKey,
+                    telegramID: newStrategiesData.botID.telegramID,
+                    telegramToken: newStrategiesData.botID.telegramToken,
+                }
                 newBotApiList[botID] = {
                     id: botID,
                     botName,
@@ -2013,14 +2021,7 @@ socketRealtime.on('add', async (newData = []) => {
                 }
             }
 
-            botApiList[botID] = {
-                id: botID,
-                botName,
-                ApiKey,
-                SecretKey,
-                telegramID: newStrategiesData.botID.telegramID,
-                telegramToken: newStrategiesData.botID.telegramToken,
-            }
+           
 
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
@@ -2072,7 +2073,15 @@ socketRealtime.on('update', async (newData = []) => {
 
             if (IsActive) {
                 if (!botApiList[botID]) {
-
+                    botApiList[botID] = {
+                        id: botID,
+                        botName,
+                        ApiKey,
+                        SecretKey,
+                        telegramID: strategiesData.botID.telegramID,
+                        telegramToken: strategiesData.botID.telegramToken,
+                    }
+        
                     newBotApiList[botID] = {
                         id: botID,
                         botName,
@@ -2088,15 +2097,7 @@ socketRealtime.on('update', async (newData = []) => {
                 }
             }
 
-            botApiList[botID] = {
-                id: botID,
-                botName,
-                ApiKey,
-                SecretKey,
-                telegramID: strategiesData.botID.telegramID,
-                telegramToken: strategiesData.botID.telegramToken,
-            }
-
+         
             const cancelDataObject = {
                 ApiKey,
                 SecretKey,
@@ -2197,8 +2198,6 @@ socketRealtime.on('delete', async (newData) => {
 socketRealtime.on('bot-update', async (data = {}) => {
     const { newData, botIDMain, botActive } = data;
 
-    console.log("botApiList",botApiList);
-    
     const botNameExist = botApiList[botIDMain]?.botName || botIDMain
     console.log(`[...] Bot-Update ( ${botNameExist} ) Strategies From Realtime`, newData.length);
 
@@ -2256,9 +2255,16 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
 
         if (IsActive) {
-            console.log("botApiList[botID]",botApiList[botID]);
-            
             if (!botApiList[botID]) {
+
+                botApiList[botID] = {
+                    id: botID,
+                    ApiKey,
+                    SecretKey,
+                    botName,
+                    telegramID: strategiesData.botID.telegramID,
+                    telegramToken: strategiesData.botID.telegramToken,
+                }
 
                 newBotApiList[botID] = {
                     id: botID,
@@ -2276,14 +2282,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
             }
         }
 
-        botApiList[botID] = {
-            id: botID,
-            ApiKey,
-            SecretKey,
-            botName,
-            telegramID: strategiesData.botID.telegramID,
-            telegramToken: strategiesData.botID.telegramToken,
-        }
+      
 
         const cancelDataObject = {
             ApiKey,
