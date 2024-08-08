@@ -2193,6 +2193,9 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
     const botApiData = botApiList[botIDMain]
 
+    console.log("botApiData",botApiData);
+    
+
     // if (botApiData) {
 
     //     const ApiKeyBot = botApiData.ApiKey
@@ -2241,9 +2244,11 @@ socketRealtime.on('bot-update', async (data = {}) => {
         !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
 
 
+        console.log("IsActive", IsActive);
 
         if (IsActive) {
             if (!botApiList[botID]) {
+                console.log("ok", ok);
 
                 newBotApiList[botID] = {
                     id: botID,
@@ -2304,6 +2309,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
     }))
 
+console.log("newBotApiList",newBotApiList);
 
     !botApiData && handleSocketBotApiList(newBotApiList)
 
