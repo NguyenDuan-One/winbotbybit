@@ -1243,9 +1243,8 @@ const handleSocketListKline = (listKlineInput) => {
 
                         const symbolCandleID = `${symbol}-${candle}`
 
-                        if (dataMain.confirm == false && strategy.IsActive) {
-                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
-
+                        if (dataMain.confirm == false) {
+                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
                                 !allStrategiesByBotIDOrderOC[botID] && (
                                     allStrategiesByBotIDOrderOC[botID] = {
                                         totalOC: 0,
@@ -1253,20 +1252,9 @@ const handleSocketListKline = (listKlineInput) => {
                                     }
                                 )
 
-                                if (allStrategiesByBotIDOrderOC[botID]?.totalOC < 0) {
-                                    allStrategiesByBotIDOrderOC[botID].totalOC = 0
-                                }
-
-
+                                allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
                                 if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {
-
                                     allStrategiesByBotIDOrderOC[botID].logError = false
-
-                                    // trichMauOCListObject[symbolCandleID].curTime = new Date()
-
-                                    // if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 100) {
-
-                                    // trichMauOCListObject[symbolCandleID].preTime = new Date()
 
                                     const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
@@ -1316,7 +1304,6 @@ const handleSocketListKline = (listKlineInput) => {
                                     }
 
                                     trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
-                                    // }
 
                                     // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
@@ -1327,17 +1314,17 @@ const handleSocketListKline = (listKlineInput) => {
                                         // Check pre coin type 
 
                                         let coinPreCoin = ""
-                                        let conditionPre = false
+                                        let conditionPre = true
 
                                         const pricePreData = listPricePreOne[symbolCandleID]
-                                        // if (pricePreData.close) {
-                                        if (pricePreData.close > pricePreData.open) {
-                                            coinPreCoin = "Blue"
+                                        if (pricePreData.close) {
+                                            if (pricePreData.close > pricePreData.open) {
+                                                coinPreCoin = "Blue"
+                                            }
+                                            else {
+                                                coinPreCoin = "Red"
+                                            }
                                         }
-                                        else {
-                                            coinPreCoin = "Red"
-                                        }
-                                        // }
                                         // BUY
                                         if (side === "Buy") {
 
@@ -1395,9 +1382,7 @@ const handleSocketListKline = (listKlineInput) => {
                                         }
                                     }
                                 }
-
                                 else {
-
                                     if (allStrategiesByBotIDOrderOC[botID]?.totalOC && !allStrategiesByBotIDOrderOC[botID]?.logError) {
                                         console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
                                         allStrategiesByBotIDOrderOC[botID].logError = true
