@@ -10,6 +10,7 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
+    recvWindow: 60000
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
@@ -95,11 +96,11 @@ const handleSubmitOrder = async ({
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true
     });
+
     const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
 
     const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price}`
     console.log(text)
-    // process.exit(0)
 
     // await client
     //     .submitOrder({
@@ -1195,7 +1196,7 @@ const handleSocketListKline = (listKlineInput) => {
             const coinCurrent = +dataMain.close
 
             if (symbol === "BTCUSDT" && candle == 1) {
-                const BTCPricePercent = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
+                const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open) * 100
 
                 if (BTCPricePercent >= 0.7) {
                     const newCheckBTC07Price = Math.round(BTCPricePercent)
@@ -1243,8 +1244,9 @@ const handleSocketListKline = (listKlineInput) => {
 
                         const symbolCandleID = `${symbol}-${candle}`
 
-                        if (dataMain.confirm == false) {
-                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
+                        if (dataMain.confirm == false && strategy.IsActive) {
+                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
+
                                 !allStrategiesByBotIDOrderOC[botID] && (
                                     allStrategiesByBotIDOrderOC[botID] = {
                                         totalOC: 0,
@@ -1253,8 +1255,17 @@ const handleSocketListKline = (listKlineInput) => {
                                 )
 
                                 allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
+
+
                                 if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {
+
                                     allStrategiesByBotIDOrderOC[botID].logError = false
+
+                                    // trichMauOCListObject[symbolCandleID].curTime = new Date()
+
+                                    // if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 100) {
+
+                                    // trichMauOCListObject[symbolCandleID].preTime = new Date()
 
                                     const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
@@ -1304,6 +1315,7 @@ const handleSocketListKline = (listKlineInput) => {
                                     }
 
                                     trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                                    // }
 
                                     // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
@@ -1314,17 +1326,17 @@ const handleSocketListKline = (listKlineInput) => {
                                         // Check pre coin type 
 
                                         let coinPreCoin = ""
-                                        let conditionPre = true
+                                        let conditionPre = false
 
                                         const pricePreData = listPricePreOne[symbolCandleID]
-                                        if (pricePreData.close) {
-                                            if (pricePreData.close > pricePreData.open) {
-                                                coinPreCoin = "Blue"
-                                            }
-                                            else {
-                                                coinPreCoin = "Red"
-                                            }
+                                        // if (pricePreData.close) {
+                                        if (pricePreData.close > pricePreData.open) {
+                                            coinPreCoin = "Blue"
                                         }
+                                        else {
+                                            coinPreCoin = "Red"
+                                        }
+                                        // }
                                         // BUY
                                         if (side === "Buy") {
 
@@ -1373,7 +1385,6 @@ const handleSocketListKline = (listKlineInput) => {
                                             telegramToken,
                                             coinOpen
                                         }
-
                                         if (side === "Buy") {
                                             +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
                                         }
@@ -1382,6 +1393,7 @@ const handleSocketListKline = (listKlineInput) => {
                                         }
                                     }
                                 }
+
                                 else {
                                     if (allStrategiesByBotIDOrderOC[botID]?.totalOC && !allStrategiesByBotIDOrderOC[botID]?.logError) {
                                         console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
@@ -1993,6 +2005,14 @@ socketRealtime.on('add', async (newData = []) => {
 
 
             if (!botApiList[botID]) {
+                botApiList[botID] = {
+                    id: botID,
+                    botName,
+                    ApiKey,
+                    SecretKey,
+                    telegramID: newStrategiesData.botID.telegramID,
+                    telegramToken: newStrategiesData.botID.telegramToken,
+                }
                 newBotApiList[botID] = {
                     id: botID,
                     botName,
@@ -2007,14 +2027,7 @@ socketRealtime.on('add', async (newData = []) => {
                 }
             }
 
-            botApiList[botID] = {
-                id: botID,
-                botName,
-                ApiKey,
-                SecretKey,
-                telegramID: newStrategiesData.botID.telegramID,
-                telegramToken: newStrategiesData.botID.telegramToken,
-            }
+           
 
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
@@ -2066,7 +2079,15 @@ socketRealtime.on('update', async (newData = []) => {
 
             if (IsActive) {
                 if (!botApiList[botID]) {
-
+                    botApiList[botID] = {
+                        id: botID,
+                        botName,
+                        ApiKey,
+                        SecretKey,
+                        telegramID: strategiesData.botID.telegramID,
+                        telegramToken: strategiesData.botID.telegramToken,
+                    }
+        
                     newBotApiList[botID] = {
                         id: botID,
                         botName,
@@ -2082,15 +2103,7 @@ socketRealtime.on('update', async (newData = []) => {
                 }
             }
 
-            botApiList[botID] = {
-                id: botID,
-                botName,
-                ApiKey,
-                SecretKey,
-                telegramID: strategiesData.botID.telegramID,
-                telegramToken: strategiesData.botID.telegramToken,
-            }
-
+         
             const cancelDataObject = {
                 ApiKey,
                 SecretKey,
@@ -2246,11 +2259,18 @@ socketRealtime.on('bot-update', async (data = {}) => {
         !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
 
 
-        console.log("IsActive", IsActive);
 
         if (IsActive) {
             if (!botApiList[botID]) {
-                console.log("ok", ok);
+
+                botApiList[botID] = {
+                    id: botID,
+                    ApiKey,
+                    SecretKey,
+                    botName,
+                    telegramID: strategiesData.botID.telegramID,
+                    telegramToken: strategiesData.botID.telegramToken,
+                }
 
                 newBotApiList[botID] = {
                     id: botID,
@@ -2268,14 +2288,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
             }
         }
 
-        botApiList[botID] = {
-            id: botID,
-            ApiKey,
-            SecretKey,
-            botName,
-            telegramID: strategiesData.botID.telegramID,
-            telegramToken: strategiesData.botID.telegramToken,
-        }
+      
 
         const cancelDataObject = {
             ApiKey,

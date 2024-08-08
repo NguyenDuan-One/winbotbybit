@@ -10,6 +10,7 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
+    recvWindow: 60000
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);

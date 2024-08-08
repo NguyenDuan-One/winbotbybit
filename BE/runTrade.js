@@ -18,8 +18,6 @@ const LIST_ORDER = ["order", "position"]
 
 const clientDigit = new RestClientV5({
     testnet: false,
-    recv_window: 60000,
-    syncTimeBeforePrivateRequests: true
 });
 
 // ----------------------------------------------------------------------------------
@@ -83,7 +81,6 @@ const handleSubmitOrder = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        recv_window: 60000,
         syncTimeBeforePrivateRequests: true
 
     });
@@ -92,6 +89,7 @@ const handleSubmitOrder = async ({
 
     const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
     console.log(text)
+  
     // await client
     //     .submitOrder({
     //         category: 'linear',
@@ -156,7 +154,6 @@ const handleSubmitOrderTP = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        recv_window: 60000,
         syncTimeBeforePrivateRequests: true
 
     });
@@ -265,7 +262,6 @@ const moveOrderTP = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        recv_window: 60000,
         syncTimeBeforePrivateRequests: true
 
     });
@@ -355,7 +351,6 @@ const handleCancelOrderOC = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        recv_window: 60000,
         syncTimeBeforePrivateRequests: true
 
     });
@@ -400,7 +395,6 @@ const handleCancelOrderTP = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        recv_window: 60000,
         syncTimeBeforePrivateRequests: true
 
     });
@@ -1425,7 +1419,6 @@ const Main = async () => {
                                     testnet: false,
                                     key: ApiKey,
                                     secret: SecretKey,
-                                    recv_window: 60000,
                                     syncTimeBeforePrivateRequests: true
 
                                 });
@@ -1530,7 +1523,6 @@ const Main = async () => {
                                     testnet: false,
                                     key: ApiKey,
                                     secret: SecretKey,
-                                    recv_window: 60000,
                                     syncTimeBeforePrivateRequests: true
 
                                 });
