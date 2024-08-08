@@ -1172,9 +1172,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
     }
 }
 
-const handleSocketListKline = async (listKlineInput) => {
+const handleSocketListKline = (listKlineInput) => {
 
-   await wsSymbol.subscribeV5(listKlineInput, 'linear').then(() => {
+    wsSymbol.subscribeV5(listKlineInput, 'linear').then(() => {
 
         console.log("[V] Subscribe kline successful\n");
 
@@ -1238,8 +1238,9 @@ const handleSocketListKline = async (listKlineInput) => {
 
                         const symbolCandleID = `${symbol}-${candle}`
 
-                        if (dataMain.confirm == false) {
-                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
+                        if (dataMain.confirm == false && strategy.IsActive) {
+                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
+
                                 !allStrategiesByBotIDOrderOC[botID] && (
                                     allStrategiesByBotIDOrderOC[botID] = {
                                         totalOC: 0,
@@ -1248,8 +1249,17 @@ const handleSocketListKline = async (listKlineInput) => {
                                 )
 
                                 allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
+
+
                                 if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {
+
                                     allStrategiesByBotIDOrderOC[botID].logError = false
+
+                                    // trichMauOCListObject[symbolCandleID].curTime = new Date()
+
+                                    // if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 100) {
+
+                                    // trichMauOCListObject[symbolCandleID].preTime = new Date()
 
                                     const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
@@ -1299,6 +1309,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                     }
 
                                     trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                                    // }
 
                                     // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
@@ -1309,17 +1320,17 @@ const handleSocketListKline = async (listKlineInput) => {
                                         // Check pre coin type 
 
                                         let coinPreCoin = ""
-                                        let conditionPre = true
+                                        let conditionPre = false
 
                                         const pricePreData = listPricePreOne[symbolCandleID]
-                                        if (pricePreData.close) {
-                                            if (pricePreData.close > pricePreData.open) {
-                                                coinPreCoin = "Blue"
-                                            }
-                                            else {
-                                                coinPreCoin = "Red"
-                                            }
+                                        // if (pricePreData.close) {
+                                        if (pricePreData.close > pricePreData.open) {
+                                            coinPreCoin = "Blue"
                                         }
+                                        else {
+                                            coinPreCoin = "Red"
+                                        }
+                                        // }
                                         // BUY
                                         if (side === "Buy") {
 
@@ -1368,7 +1379,6 @@ const handleSocketListKline = async (listKlineInput) => {
                                             telegramToken,
                                             coinOpen
                                         }
-
                                         if (side === "Buy") {
                                             +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
                                         }
@@ -1377,6 +1387,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                         }
                                     }
                                 }
+
                                 else {
                                     if (allStrategiesByBotIDOrderOC[botID]?.totalOC && !allStrategiesByBotIDOrderOC[botID]?.logError) {
                                         console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
@@ -1934,7 +1945,7 @@ const Main = async () => {
 
     await handleSocketBotApiList(botApiList)
 
-    await handleSocketListKline(listKline)
+    handleSocketListKline(listKline)
 
 }
 
@@ -2021,7 +2032,7 @@ socketRealtime.on('add', async (newData = []) => {
 
     }))
 
-   await handleSocketBotApiList(newBotApiList)
+    handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -2121,7 +2132,7 @@ socketRealtime.on('update', async (newData = []) => {
 
     }))
 
-    await handleSocketBotApiList(newBotApiList)
+    handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -2240,6 +2251,8 @@ socketRealtime.on('bot-update', async (data = {}) => {
         !allStrategiesByBotIDAndOrderID[botID] && (allStrategiesByBotIDAndOrderID[botID] = {})
         !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
 
+
+
         if (IsActive) {
             if (!botApiList[botID]) {
 
@@ -2303,7 +2316,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
     }))
 
 
-    !botApiData && await handleSocketBotApiList(newBotApiList)
+    !botApiData && handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -2587,7 +2600,7 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
     })
 
-    await handleSocketListKline(newListKline)
+    handleSocketListKline(newListKline)
 
 });
 
