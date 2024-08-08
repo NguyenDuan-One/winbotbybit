@@ -1172,9 +1172,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
     }
 }
 
-const handleSocketListKline =  (listKlineInput) => {
+const handleSocketListKline = async (listKlineInput) => {
 
-    wsSymbol.subscribeV5(listKlineInput, 'linear').then(() => {
+   await wsSymbol.subscribeV5(listKlineInput, 'linear').then(() => {
 
         console.log("[V] Subscribe kline successful\n");
 
@@ -1217,7 +1217,7 @@ const handleSocketListKline =  (listKlineInput) => {
 
             if (checkOrderOCAll) {
 
-                 listDataObject && Object.values(listDataObject)?.length > 0 && Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                listDataObject && Object.values(listDataObject)?.length > 0 && Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
                     if (checkConditionBot(strategy)) {
 
@@ -1934,7 +1934,7 @@ const Main = async () => {
 
     await handleSocketBotApiList(botApiList)
 
-     handleSocketListKline(listKline)
+    await handleSocketListKline(listKline)
 
 }
 
@@ -2021,7 +2021,7 @@ socketRealtime.on('add', async (newData = []) => {
 
     }))
 
-    handleSocketBotApiList(newBotApiList)
+   await handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -2121,7 +2121,7 @@ socketRealtime.on('update', async (newData = []) => {
 
     }))
 
-    handleSocketBotApiList(newBotApiList)
+    await handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -2303,7 +2303,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
     }))
 
 
-    !botApiData && handleSocketBotApiList(newBotApiList)
+    !botApiData && await handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -2587,7 +2587,7 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
     })
 
-    handleSocketListKline(newListKline)
+    await handleSocketListKline(newListKline)
 
 });
 
