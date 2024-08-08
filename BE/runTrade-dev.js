@@ -2197,6 +2197,8 @@ socketRealtime.on('delete', async (newData) => {
 socketRealtime.on('bot-update', async (data = {}) => {
     const { newData, botIDMain, botActive } = data;
 
+    console.log("botApiList",botApiList);
+    
     const botNameExist = botApiList[botIDMain]?.botName || botIDMain
     console.log(`[...] Bot-Update ( ${botNameExist} ) Strategies From Realtime`, newData.length);
 
@@ -2254,6 +2256,8 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
 
         if (IsActive) {
+            console.log("botApiList[botID]",botApiList[botID]);
+            
             if (!botApiList[botID]) {
 
                 newBotApiList[botID] = {
