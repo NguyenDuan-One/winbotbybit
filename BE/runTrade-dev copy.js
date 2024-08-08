@@ -1253,7 +1253,9 @@ const handleSocketListKline = (listKlineInput) => {
                                     }
                                 )
 
-                                allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
+                                if (allStrategiesByBotIDOrderOC[botID]?.totalOC < 0) {
+                                    allStrategiesByBotIDOrderOC[botID].totalOC = 0
+                                }
 
 
                                 if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {

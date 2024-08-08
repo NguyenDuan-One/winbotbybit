@@ -87,11 +87,11 @@ const handleSubmitOrder = async ({
         syncTimeBeforePrivateRequests: true
 
     });
+
     const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
 
     const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
     console.log(text)
-    // process.exit(0)
     // await client
     //     .submitOrder({
     //         category: 'linear',
