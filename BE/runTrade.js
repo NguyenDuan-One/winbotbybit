@@ -1761,7 +1761,7 @@ try {
         cron.schedule(`*/3 * * * * *`, () => {
             getMoneyFuture(botApiList)
         });
-    }, 100000)
+    }, 1000)
 
 
 }
