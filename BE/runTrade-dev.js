@@ -1477,106 +1477,106 @@ const handleSocketListKline = (listKlineInput) => {
                             // }
 
                             // if have TP
-                            if (
-                                allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&
-                                !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilled &&
-                                !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare &&
-                                !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss
-                            ) {
-                                let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
+                            // if (
+                            //     allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&
+                            //     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilled &&
+                            //     !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.moveAfterCompare &&
+                            //     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilledButMiss
+                            // ) {
+                            //     let checkMoveMain = false || allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess
 
-                                if (!checkMoveMain) {
-                                    const PercentCheck = 2 / 100
-                                    const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
+                            //     if (!checkMoveMain) {
+                            //         const PercentCheck = 2 / 100
+                            //         const sideCheck = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side
 
-                                    const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
+                            //         const openTrade = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose || allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade
 
-                                    !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
+                            //         !allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice && (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent)
 
-                                    // console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
-                                    let textQuanSat = ``
-                                    if (sideCheck === "Buy") {
-                                        if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                            console.log(changeColorConsole.cyanBright(textQuanSat));
-                                            // sendMessageWithRetry({
-                                            //     messageText: textQuanSat,
-                                            //     telegramID,
-                                            //     telegramToken
-                                            // })
-                                            if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+                            //         // console.log(changeColorConsole.cyanBright(`priceCompare ( ${botName} - ${side} - ${symbol} - ${candle} ) `, allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare));
+                            //         let textQuanSat = ``
+                            //         if (sideCheck === "Buy") {
+                            //             if ((coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                            //                 textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                            //                 console.log(changeColorConsole.cyanBright(textQuanSat));
+                            //                 // sendMessageWithRetry({
+                            //                 //     messageText: textQuanSat,
+                            //                 //     telegramID,
+                            //                 //     telegramToken
+                            //                 // })
+                            //                 if (coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice + Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
 
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
-                                                checkMoveMain = true
-                                            }
-                                        }
-                                    }
-                                    else {
-                                        if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
-                                            textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                            console.log(changeColorConsole.cyanBright(textQuanSat));
-                                            // sendMessageWithRetry({
-                                            //     messageText: textQuanSat,
-                                            //     telegramID,
-                                            //     telegramToken
-                                            // })
-                                            if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
+                            //                     checkMoveMain = true
+                            //                 }
+                            //             }
+                            //         }
+                            //         else {
+                            //             if ((coinCurrent > allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare)) {
+                            //                 textQuanSat = `🙈 Vào khoảng theo dõi ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                            //                 console.log(changeColorConsole.cyanBright(textQuanSat));
+                            //                 // sendMessageWithRetry({
+                            //                 //     messageText: textQuanSat,
+                            //                 //     telegramID,
+                            //                 //     telegramToken
+                            //                 // })
+                            //                 if (coinCurrent < allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice - Math.abs(openTrade - allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice) * PercentCheck) {
 
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
-                                                checkMoveMain = true
-                                            }
-                                        }
-                                    }
-                                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = true
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveSuccess = true
+                            //                     checkMoveMain = true
+                            //                 }
+                            //             }
+                            //         }
+                            //         allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.minMaxTempPrice = coinCurrent
 
-                                }
-                                if (checkMoveMain && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilled) {
+                            //     }
+                            //     if (checkMoveMain && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderFilled) {
 
-                                    // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
-                                    const client = new RestClientV5({
-                                        testnet: false,
-                                        key: ApiKey,
-                                        secret: SecretKey,
-                                        syncTimeBeforePrivateRequests: true,
+                            //         // console.log(changeColorConsole.cyanBright(`Price Move TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ):`, coinCurrent));
+                            //         const client = new RestClientV5({
+                            //             testnet: false,
+                            //             key: ApiKey,
+                            //             secret: SecretKey,
+                            //             syncTimeBeforePrivateRequests: true,
 
-                                    });
-                                    client
-                                        .amendOrder({
-                                            category: 'linear',
-                                            symbol,
-                                            price: coinCurrent.toFixed(strategy.digit),
-                                            orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID
-                                        })
-                                        .then(async (response) => {
-                                            if (response.retCode == 0) {
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = coinCurrent
-                                                console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
-                                                const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
-                                                console.log(changeColorConsole.greenBright(textQuayDau));
-                                                // sendMessageWithRetry({
-                                                //     messageText: textQuayDau,
-                                                //     telegramID,
-                                                //     telegramToken
-                                                // })
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
-                                            }
-                                            else {
-                                                console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.log(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
-                                        });
+                            //         });
+                            //         client
+                            //             .amendOrder({
+                            //                 category: 'linear',
+                            //                 symbol,
+                            //                 price: coinCurrent.toFixed(strategy.digit),
+                            //                 orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID
+                            //             })
+                            //             .then(async (response) => {
+                            //                 if (response.retCode == 0) {
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = coinCurrent
+                            //                     console.log(changeColorConsole.blueBright(`[->] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
+                            //                     const textQuayDau = `\n😎 Quay đầu ( ${botName} - ${side} - ${symbol} - ${candle} )\n`
+                            //                     console.log(changeColorConsole.greenBright(textQuayDau));
+                            //                     // sendMessageWithRetry({
+                            //                     //     messageText: textQuayDau,
+                            //                     //     telegramID,
+                            //                     //     telegramToken
+                            //                     // })
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.moveAfterCompare = false
+                            //                 }
+                            //                 else {
+                            //                     console.log(changeColorConsole.yellowBright(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
+                            //                 }
+                            //             })
+                            //             .catch((error) => {
+                            //                 console.log(`[!] Move Order TP Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
+                            //                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderFilledButMiss = true
+                            //             });
 
 
-                                }
+                            //     }
 
-                            }
+                            // }
 
 
 
