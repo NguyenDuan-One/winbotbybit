@@ -82,7 +82,7 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        syncTimeBeforePrivateRequests:true
+        syncTimeBeforePrivateRequests: true
     });
 
     await client
@@ -150,7 +150,7 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        syncTimeBeforePrivateRequests:true
+        syncTimeBeforePrivateRequests: true
     });
     await client
         .submitOrder({
@@ -258,7 +258,7 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        syncTimeBeforePrivateRequests:true
+        syncTimeBeforePrivateRequests: true
     });
     await client
         .amendOrder({
@@ -347,7 +347,7 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        syncTimeBeforePrivateRequests:true
+        syncTimeBeforePrivateRequests: true
     });
     await client
         .cancelOrder({
@@ -391,7 +391,7 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
-        syncTimeBeforePrivateRequests:true
+        syncTimeBeforePrivateRequests: true
     });
     await client
         .cancelOrder({
@@ -1251,56 +1251,61 @@ const Main = async () => {
                     if (dataMain.confirm == false) {
                         if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && strategy.IsActive) {
 
-                            const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+                            trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                            // X-D-D || D-D-D
+                            if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 200) {
+
+                                trichMauOCListObject[symbolCandleID].preTime = new Date()
+                                const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+
+                                // X-D-D || D-D-D
 
 
-                            const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
+                                const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
 
-                            let checkColorListTrue = false
+                                let checkColorListTrue = false
 
-                            const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
+                                const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
 
-                            if (coinColorPre.length > 0) {
-                                checkColorListTrue = coinColor === "Red"
-                            }
-                            else {
-                                checkColorListTrue = true
-                            }
+                                if (coinColorPre.length > 0) {
+                                    checkColorListTrue = coinColor === "Red"
+                                }
+                                else {
+                                    checkColorListTrue = true
+                                }
 
-                            if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
-                                trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
-                                trichMauOCListObject[symbolCandleID].minPrice = []
-                                trichMauOCListObject[symbolCandleID].coinColor = []
-                            }
-                            else {
-                                if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
-                                    if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                                        trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
+                                    trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
+                                    trichMauOCListObject[symbolCandleID].minPrice = []
+                                    trichMauOCListObject[symbolCandleID].coinColor = []
+                                }
+                                else {
+                                    if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
+                                        if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                            trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                        }
+                                        trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
                                     }
-                                    trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
                                 }
-                            }
-                            // if (checkColorListTrue) {
-                            //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                            //         trichMauOCListObject[symbolCandleID].coinColor.shift()
-                            //     }
-                            //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                            // }
+                                // if (checkColorListTrue) {
+                                //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                //         trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                //     }
+                                //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                // }
 
-                            if (!checkColorListTrue) {
-                                trichMauOCListObject[symbolCandleID].coinColor = []
-                            }
-                            else {
-                                if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                    trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                if (!checkColorListTrue) {
+                                    trichMauOCListObject[symbolCandleID].coinColor = []
                                 }
-                                trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                else {
+                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                        trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                    }
+                                    trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                }
+
+                                trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
                             }
-
-                            trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
-
                             // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
                             // if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
@@ -1410,7 +1415,7 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     recv_window: 60000,
-                                    syncTimeBeforePrivateRequests:true
+                                    syncTimeBeforePrivateRequests: true
                                 });
                                 const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
@@ -1514,7 +1519,7 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     recv_window: 60000,
-                                    syncTimeBeforePrivateRequests:true
+                                    syncTimeBeforePrivateRequests: true
                                 });
                                 client
                                     .amendOrder({

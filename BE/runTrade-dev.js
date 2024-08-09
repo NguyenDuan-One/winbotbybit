@@ -1263,61 +1263,61 @@ const handleSocketListKline = (listKlineInput) => {
 
                                     allStrategiesByBotIDOrderOC[botID].logError = false
 
-                                    // trichMauOCListObject[symbolCandleID].curTime = new Date()
+                                    trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                                    // if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 100) {
+                                    if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 200) {
 
-                                    // trichMauOCListObject[symbolCandleID].preTime = new Date()
+                                        trichMauOCListObject[symbolCandleID].preTime = new Date()
 
-                                    const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+                                        const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
-                                    // X-D-D || D-D-D
+                                        // X-D-D || D-D-D
 
-                                    const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
+                                        const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
 
-                                    let checkColorListTrue = false
+                                        let checkColorListTrue = false
 
-                                    const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
+                                        const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
 
-                                    if (coinColorPre.length > 0) {
-                                        checkColorListTrue = coinColor === "Red"
-                                    }
-                                    else {
-                                        checkColorListTrue = true
-                                    }
+                                        if (coinColorPre.length > 0) {
+                                            checkColorListTrue = coinColor === "Red"
+                                        }
+                                        else {
+                                            checkColorListTrue = true
+                                        }
 
-                                    if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
-                                        trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
-                                        trichMauOCListObject[symbolCandleID].minPrice = []
-                                        trichMauOCListObject[symbolCandleID].coinColor = []
-                                    }
-                                    else {
-                                        if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
-                                            if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                                                trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                        if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
+                                            trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
+                                            trichMauOCListObject[symbolCandleID].minPrice = []
+                                            trichMauOCListObject[symbolCandleID].coinColor = []
+                                        }
+                                        else {
+                                            if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
+                                                if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                                    trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                                }
+                                                trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
                                             }
-                                            trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
                                         }
-                                    }
-                                    // if (checkColorListTrue) {
-                                    //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                    //         trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                    //     }
-                                    //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                    // }
+                                        // if (checkColorListTrue) {
+                                        //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                        //         trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                        //     }
+                                        //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                        // }
 
-                                    if (!checkColorListTrue) {
-                                        trichMauOCListObject[symbolCandleID].coinColor = []
-                                    }
-                                    else {
-                                        if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                            trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                        if (!checkColorListTrue) {
+                                            trichMauOCListObject[symbolCandleID].coinColor = []
                                         }
-                                        trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                    }
+                                        else {
+                                            if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                                trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                            }
+                                            trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                        }
 
-                                    trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
-                                    // }
+                                        trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                                    }
 
                                     // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
