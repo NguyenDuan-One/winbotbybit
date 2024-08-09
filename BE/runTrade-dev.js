@@ -1325,7 +1325,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                     // Check pre coin type 
 
                                     let coinPreCoin = ""
-                                    let conditionPre = false
+                                    let conditionPre = true
 
                                     const pricePreData = listPricePreOne[symbolCandleID]
                                     // if (pricePreData.close) {
