@@ -1346,9 +1346,9 @@ const handleSocketListKline = (listKlineInput) => {
                                         }
                                         conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
-                                        if (coinCurrent <= priceOrder) {
-                                            priceOrder = coinCurrent
-                                        }
+                                        // if (coinCurrent <= priceOrder) {
+                                        //     priceOrder = coinCurrent
+                                        // }
                                     }
                                     else {
                                         // SELL
@@ -1359,9 +1359,9 @@ const handleSocketListKline = (listKlineInput) => {
                                         }
                                         conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
                                         priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-                                        if (coinCurrent >= priceOrder) {
-                                            priceOrder = coinCurrent
-                                        }
+                                        // if (coinCurrent >= priceOrder) {
+                                        //     priceOrder = coinCurrent
+                                        // }
                                     }
 
                                     const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
