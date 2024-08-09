@@ -10,7 +10,7 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
-    recvWindow: 60000
+    recvWindow: 300000
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
@@ -20,7 +20,6 @@ const MAX_ORDER_LIMIT = 5
 
 const clientDigit = new RestClientV5({
     testnet: false,
-    recv_window: 60000,
 });
 
 // ----------------------------------------------------------------------------------
@@ -96,63 +95,66 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
     });
 
-    !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && await client
-        .submitOrder({
-            category: 'linear',
-            symbol,
-            side,
-            positionIdx: 0,
-            orderType: 'Limit',
-            qty,
-            price,
-        })
-        .then((response) => {
-            if (response.retCode == 0) {
+    const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
+
+    const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price}`
+    console.log(text)
+    // !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && await client
+    //     .submitOrder({
+    //         category: 'linear',
+    //         symbol,
+    //         side,
+    //         positionIdx: 0,
+    //         orderType: 'Limit',
+    //         qty,
+    //         price,
+    //     })
+    //     .then((response) => {
+    //         if (response.retCode == 0) {
 
 
-                const newOrderID = response.result.orderId
-                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
-                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
+    //             const newOrderID = response.result.orderId
+    //             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
+    //             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
 
-                allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
-                    strategy,
-                    coinOpen,
-                    OC: true,
-                }
+    //             allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
+    //                 strategy,
+    //                 coinOpen,
+    //                 OC: true,
+    //             }
 
 
-                const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
+    //             const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
 
-                const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price}`
-                console.log(text)
-                console.log(changeColorConsole.greenBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
+    //             const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price}`
+    //             console.log(text)
+    //             console.log(changeColorConsole.greenBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ):`, newOrderID));
 
-                // sendMessageWithRetry({
-                //     messageText: text,
-                //     telegramID,
-                //     telegramToken
-                // })
+    //             // sendMessageWithRetry({
+    //             //     messageText: text,
+    //             //     telegramID,
+    //             //     telegramToken
+    //             // })
 
-                !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
-                !allStrategiesByBotIDOrderOC[botID][symbol] && (
-                    allStrategiesByBotIDOrderOC[botID][symbol] = {
-                        totalOC: 0,
-                        logError: false
-                    }
-                )
-                allStrategiesByBotIDOrderOC[botID][symbol].totalOC += 1
-            }
-            else {
-                console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
-            }
+    //             !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
+    //             !allStrategiesByBotIDOrderOC[botID][symbol] && (
+    //                 allStrategiesByBotIDOrderOC[botID][symbol] = {
+    //                     totalOC: 0,
+    //                     logError: false
+    //                 }
+    //             )
+    //             allStrategiesByBotIDOrderOC[botID][symbol].totalOC += 1
+    //         }
+    //         else {
+    //             console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
+    //         }
 
-        })
-        .catch((error) => {
-            console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
-        });
+    //     })
+    //     .catch((error) => {
+    //         console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
+    //     });
 }
 
 const handleSubmitOrderTP = async ({
@@ -179,7 +181,6 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
     await client
@@ -289,7 +290,6 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
     await client
@@ -380,7 +380,6 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
 
@@ -430,7 +429,6 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
     await client
@@ -657,7 +655,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                     key: ApiKey,
                     secret: SecretKey,
                     market: 'v5',
-                    recvWindow: 60000
+                    recvWindow: 300000
                 }
 
                 const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -1224,9 +1222,9 @@ const handleSocketListKline = (listKlineInput) => {
 
             const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
-            if (checkOrderOCAll && listDataObject && Object.values(listDataObject)?.length > 0) {
+            if (checkOrderOCAll) {
 
-                await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
                     if (checkConditionBot(strategy)) {
 
@@ -1442,7 +1440,6 @@ const handleSocketListKline = (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         syncTimeBeforePrivateRequests: true,
-                                        recv_window: 60000,
 
                                     });
                                     const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
@@ -1547,7 +1544,6 @@ const handleSocketListKline = (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         syncTimeBeforePrivateRequests: true,
-                                        recv_window: 60000,
 
                                     });
                                     client
@@ -2236,7 +2232,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
     //         key: ApiKeyBot,
     //         secret: SecretKeyBot,
     //         market: 'v5',
-    //         recvWindow: 60000
+    //         recvWindow: 300000
     //     }
 
     //     const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2413,7 +2409,7 @@ socketRealtime.on('bot-api', async (data) => {
             key: ApiKeyBot,
             secret: SecretKeyBot,
             market: 'v5',
-            recvWindow: 60000
+            recvWindow: 300000
         }
 
         const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2430,7 +2426,7 @@ socketRealtime.on('bot-api', async (data) => {
             key: newApiData.ApiKey,
             secret: newApiData.SecretKey,
             market: 'v5',
-            recvWindow: 60000
+            recvWindow: 300000
         }
 
         const wsOrderNew = new WebsocketClient(wsConfigOrderNew);
@@ -2513,7 +2509,7 @@ socketRealtime.on('bot-delete', async (data) => {
         key: ApiKeyBot,
         secret: SecretKeyBot,
         market: 'v5',
-        recvWindow: 60000
+        recvWindow: 300000
     }
 
     const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2706,7 +2702,7 @@ socketRealtime.on('close-upcode', async () => {
         ))
 
     console.log("PM2 Kill Successful");
-    exec("pm2 stop runTrade-dev-2")
+    exec("pm2 stop runTrade-dev")
 
 });
 
