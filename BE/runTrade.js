@@ -82,6 +82,7 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests:true
     });
 
     await client
@@ -149,6 +150,7 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests:true
     });
     await client
         .submitOrder({
@@ -256,6 +258,7 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests:true
     });
     await client
         .amendOrder({
@@ -344,6 +347,7 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests:true
     });
     await client
         .cancelOrder({
@@ -387,6 +391,7 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         recv_window: 60000,
+        syncTimeBeforePrivateRequests:true
     });
     await client
         .cancelOrder({
@@ -1405,6 +1410,7 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     recv_window: 60000,
+                                    syncTimeBeforePrivateRequests:true
                                 });
                                 const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
@@ -1508,6 +1514,7 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     recv_window: 60000,
+                                    syncTimeBeforePrivateRequests:true
                                 });
                                 client
                                     .amendOrder({
