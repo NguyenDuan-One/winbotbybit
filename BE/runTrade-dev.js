@@ -99,7 +99,7 @@ const handleSubmitOrder = async ({
         recv_window: 60000,
     });
 
-    await client
+    !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && await client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -1192,10 +1192,7 @@ const handleSocketListKline = (listKlineInput) => {
 
         wsSymbol.on('update', async (dataCoin) => {
 
-            const topic = dataCoin.topic
-            const topicSplit = topic.split(".")
-            const candle = topicSplit[1]
-            const symbol = topicSplit[2]
+            const [_, candle, symbol] = dataCoin.topic.split(".");
 
             const dataMain = dataCoin.data[0]
             const coinOpen = +dataMain.open
@@ -1229,7 +1226,7 @@ const handleSocketListKline = (listKlineInput) => {
 
             if (checkOrderOCAll) {
 
-                listDataObject && Object.values(listDataObject)?.length > 0 && Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
                     if (checkConditionBot(strategy)) {
 
