@@ -1277,12 +1277,12 @@ const Main = async () => {
                                     trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
                                 }
                             }
-                            if (checkColorListTrue) {
-                                if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                    trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                }
-                                trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                            }
+                            // if (checkColorListTrue) {
+                            //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                            //         trichMauOCListObject[symbolCandleID].coinColor.shift()
+                            //     }
+                            //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                            // }
 
                             if (!checkColorListTrue) {
                                 trichMauOCListObject[symbolCandleID].coinColor = []

@@ -94,7 +94,8 @@ const handleSubmitOrder = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        syncTimeBeforePrivateRequests: true
+        syncTimeBeforePrivateRequests: true,
+        recv_window: 60000,
     });
 
     await client
@@ -175,7 +176,8 @@ const handleSubmitOrderTP = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        syncTimeBeforePrivateRequests: true
+        syncTimeBeforePrivateRequests: true,
+        recv_window: 60000,
 
     });
     await client
@@ -284,7 +286,8 @@ const moveOrderTP = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        syncTimeBeforePrivateRequests: true
+        syncTimeBeforePrivateRequests: true,
+        recv_window: 60000,
 
     });
     await client
@@ -374,7 +377,8 @@ const handleCancelOrderOC = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        syncTimeBeforePrivateRequests: true
+        syncTimeBeforePrivateRequests: true,
+        recv_window: 60000,
 
     });
 
@@ -423,7 +427,8 @@ const handleCancelOrderTP = async ({
         testnet: false,
         key: ApiKey,
         secret: SecretKey,
-        syncTimeBeforePrivateRequests: true
+        syncTimeBeforePrivateRequests: true,
+        recv_window: 60000,
 
     });
     await client
@@ -1293,12 +1298,12 @@ const handleSocketListKline = (listKlineInput) => {
                                             trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
                                         }
                                     }
-                                    if (checkColorListTrue) {
-                                        if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                            trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                        }
-                                        trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                    }
+                                    // if (checkColorListTrue) {
+                                    //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                    //         trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                    //     }
+                                    //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                                    // }
 
                                     if (!checkColorListTrue) {
                                         trichMauOCListObject[symbolCandleID].coinColor = []
@@ -1433,7 +1438,8 @@ const handleSocketListKline = (listKlineInput) => {
                                         testnet: false,
                                         key: ApiKey,
                                         secret: SecretKey,
-                                        syncTimeBeforePrivateRequests: true
+                                        syncTimeBeforePrivateRequests: true,
+                                        recv_window: 60000,
 
                                     });
                                     const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
@@ -1537,7 +1543,8 @@ const handleSocketListKline = (listKlineInput) => {
                                         testnet: false,
                                         key: ApiKey,
                                         secret: SecretKey,
-                                        syncTimeBeforePrivateRequests: true
+                                        syncTimeBeforePrivateRequests: true,
+                                        recv_window: 60000,
 
                                     });
                                     client
