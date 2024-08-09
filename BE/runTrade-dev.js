@@ -1192,35 +1192,35 @@ const handleSocketListKline = async (listKlineInput) => {
             const coinOpen = +dataMain.open
             const coinCurrent = +dataMain.close
 
-            // if (symbol === "BTCUSDT" && candle == 1) {
-            //     const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open) * 100
+            if (symbol === "BTCUSDT" && candle == 1) {
+                const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open) * 100
 
-            //     if (BTCPricePercent >= 0.7) {
-            //         const newCheckBTC07Price = Math.round(BTCPricePercent)
-            //         if (newCheckBTC07Price !== checkBTC07Price) {
-            //             checkBTC07Price = newCheckBTC07Price
-            //             sendAllBotTelegram()
-            //         }
-            //         if (BTCPricePercent >= 1) {
-            //             const newNangOCValue = Math.ceil(BTCPricePercent) * 5
+                if (BTCPricePercent >= 0.7) {
+                    const newCheckBTC07Price = Math.round(BTCPricePercent)
+                    if (newCheckBTC07Price !== checkBTC07Price) {
+                        checkBTC07Price = newCheckBTC07Price
+                        sendAllBotTelegram()
+                    }
+                    if (BTCPricePercent >= 1) {
+                        const newNangOCValue = Math.ceil(BTCPricePercent) * 5
 
-            //             if (newNangOCValue !== nangOCValue) {
-            //                 nangOCValue = newNangOCValue
-            //                 checkOrderOCAll = false
-            //             }
-            //         }
-            //     }
-            //     else {
-            //         checkOrderOCAll = true
-            //     }
+                        if (newNangOCValue !== nangOCValue) {
+                            nangOCValue = newNangOCValue
+                            checkOrderOCAll = false
+                        }
+                    }
+                }
+                else {
+                    checkOrderOCAll = true
+                }
 
-            // }
+            }
 
             const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
             if (checkOrderOCAll) {
 
-                listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                listDataObject && Object.values(listDataObject)?.length > 0 &&  Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
                     if (checkConditionBot(strategy)) {
 
@@ -1700,70 +1700,70 @@ const handleSocketListKline = async (listKlineInput) => {
 
                 }))
             }
-            // else {
-            //     console.log(changeColorConsole.greenBright("[...] START NÂNG OC"));
+            else {
+                console.log(changeColorConsole.greenBright("[...] START NÂNG OC"));
 
-            //     await Promise.allSettled(
-            //         allSymbol.map(async symbolItem => {
-            //             const symbol = symbolItem.value
-            //             return Promise.allSettled([1, 3, 5, 15].map(candle => {
-            //                 const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
-            //                 if (listDataObject && Object.values(listDataObject)?.length > 0) {
-            //                     return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
-            //                         const strategyID = strategy.value
+                await Promise.allSettled(
+                    allSymbol.map(async symbolItem => {
+                        const symbol = symbolItem.value
+                        return Promise.allSettled([1, 3, 5, 15].map(candle => {
+                            const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
+                            if (listDataObject && Object.values(listDataObject)?.length > 0) {
+                                return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                                    const strategyID = strategy.value
 
-            //                         const botID = strategy.botID._id
-            //                         const botName = strategy.botID.botName
-            //                         const ApiKey = strategy.botID.ApiKey
-            //                         const SecretKey = strategy.botID.SecretKey
+                                    const botID = strategy.botID._id
+                                    const botName = strategy.botID.botName
+                                    const ApiKey = strategy.botID.ApiKey
+                                    const SecretKey = strategy.botID.SecretKey
 
 
-            //                         allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange
-            //                         allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld + nangOCValue
+                                    allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange
+                                    allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld + nangOCValue
 
-            //                         // console.log(allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld);
-            //                         // console.log("nangOC", nangOCValue);
-            //                         // console.log("strategy.OrderChange", strategy.OrderChange);
+                                    // console.log(allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld);
+                                    // console.log("nangOC", nangOCValue);
+                                    // console.log("strategy.OrderChange", strategy.OrderChange);
 
-            //                         handleCancelOrderOC(
-            //                             {
-            //                                 strategyID,
-            //                                 symbol,
-            //                                 ApiKey,
-            //                                 SecretKey,
-            //                                 botName,
-            //                                 botID
-            //                             }
-            //                         )
-            //                     }))
-            //                 }
-            //             }))
-            //         }
-            //         ))
-            //     console.log(changeColorConsole.greenBright("[V] NÂNG OC XONG"));
-            //     checkOrderOCAll = true
-            //     haOCFunc && clearTimeout(haOCFunc)
-            //     haOCFunc = setTimeout(async () => {
-            //         await Promise.allSettled(
-            //             allSymbol.map(async symbolItem => {
-            //                 const symbol = symbolItem.value
-            //                 return Promise.allSettled([1, 3, 5, 15].map(candle => {
-            //                     const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
-            //                     if (listDataObject && Object.values(listDataObject)?.length > 0) {
-            //                         return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
-            //                             const strategyID = strategy.value
+                                    handleCancelOrderOC(
+                                        {
+                                            strategyID,
+                                            symbol,
+                                            ApiKey,
+                                            SecretKey,
+                                            botName,
+                                            botID
+                                        }
+                                    )
+                                }))
+                            }
+                        }))
+                    }
+                    ))
+                console.log(changeColorConsole.greenBright("[V] NÂNG OC XONG"));
+                checkOrderOCAll = true
+                haOCFunc && clearTimeout(haOCFunc)
+                haOCFunc = setTimeout(async () => {
+                    await Promise.allSettled(
+                        allSymbol.map(async symbolItem => {
+                            const symbol = symbolItem.value
+                            return Promise.allSettled([1, 3, 5, 15].map(candle => {
+                                const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
+                                if (listDataObject && Object.values(listDataObject)?.length > 0) {
+                                    return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                                        const strategyID = strategy.value
 
-            //                             allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld
+                                        allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChange = allStrategiesByCandleAndSymbol[symbol][candle][strategyID].OrderChangeOld
 
-            //                         }))
-            //                     }
-            //                 }))
-            //             }
-            //             ))
-            //         console.log(changeColorConsole.greenBright("[V] HẠ OC XONG"));
+                                    }))
+                                }
+                            }))
+                        }
+                        ))
+                    console.log(changeColorConsole.greenBright("[V] HẠ OC XONG"));
 
-            //     }, 5 * 60000)
-            // }
+                }, 5 * 60000)
+            }
 
             // Xử lý miss
 
