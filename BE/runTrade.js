@@ -42,19 +42,18 @@ var botListTelegram = {}
 
 // ----------------------------------------------------------------------------------
 
-async function Digit() {// proScale
+async function Digit(symbol) {// proScale
     let PScale = []
     await clientDigit.getInstrumentsInfo({
         category: 'linear',
+        symbol: symbol,
     })
         .then((response) => {
-            PScale = PScale.concat(response.result.list.map(item => ({
-                symbol: item.symbol,
-                priceScale: item.priceScale
-            })))
+            PScale.push(response.result.list[0].priceScale)
+            //console.log(PScale)
         })
         .catch((error) => {
-            console.log("Error Digit:", error)
+            console.error(changeColorConsole.redBright(error));
         });
     return PScale
 }
@@ -82,14 +81,11 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true
-
     });
-
     const newOC = Math.abs((price - strategy.coinOpen)) / strategy.coinOpen * 100
 
     const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
     console.log(text)
-  
     // await client
     //     .submitOrder({
     //         category: 'linear',
@@ -155,7 +151,6 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true
-
     });
     await client
         .submitOrder({
@@ -263,7 +258,6 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true
-
     });
     await client
         .amendOrder({
@@ -352,7 +346,6 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true
-
     });
     await client
         .cancelOrder({
@@ -396,7 +389,6 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true
-
     });
     await client
         .cancelOrder({
@@ -1172,15 +1164,10 @@ const Main = async () => {
         }
     })
 
-    const resultDigitAll = await Digit()
-    resultDigitAll?.length > 0 && (
-        resultDigitAll.reduce((pre, cur) => {
-            if (cur.symbol.includes("USDT")) {
-                pre[cur.symbol] = cur.priceScale
-            }
-            return pre
-        }, digitAllCoinObject)
-    )
+    await Promise.all(allSymbol.map(async symbol => {
+        let result = await Digit(symbol.value)
+        digitAllCoinObject[symbol.value] = result[0]
+    }))
 
     listKline = allSymbol.flatMap(symbolItem => ([
         `kline.1.${symbolItem.value}`,
@@ -1265,6 +1252,7 @@ const Main = async () => {
 
                             // X-D-D || D-D-D
 
+
                             const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
 
                             let checkColorListTrue = false
@@ -1322,13 +1310,11 @@ const Main = async () => {
                                 let conditionPre = true
 
                                 const pricePreData = listPricePreOne[symbolCandleID]
-                                if (pricePreData.close) {
-                                    if (pricePreData.close > pricePreData.open) {
-                                        coinPreCoin = "Blue"
-                                    }
-                                    else {
-                                        coinPreCoin = "Red"
-                                    }
+                                if (pricePreData.close > pricePreData.open) {
+                                    coinPreCoin = "Blue"
+                                }
+                                else {
+                                    coinPreCoin = "Red"
                                 }
                                 // BUY
                                 if (side === "Buy") {
@@ -1420,7 +1406,6 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     syncTimeBeforePrivateRequests: true
-
                                 });
                                 const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
@@ -1524,7 +1509,6 @@ const Main = async () => {
                                     key: ApiKey,
                                     secret: SecretKey,
                                     syncTimeBeforePrivateRequests: true
-
                                 });
                                 client
                                     .amendOrder({
@@ -1715,8 +1699,6 @@ const Main = async () => {
             //                 testnet: false,
             //                 key: missData.ApiKey,
             //                 secret: missData.SecretKey,
-            // recv_window:60000,
-            // enable_time_sync:true 
             //             });
             //             client
             //                 .amendOrder({
@@ -2353,15 +2335,11 @@ socketRealtime.on('sync-symbol', async (newData) => {
     ]))
 
 
-    const resultDigitAll = await Digit()
-    resultDigitAll?.length > 0 && (
-        resultDigitAll.reduce((pre, cur) => {
-            if (cur.symbol.includes("USDT")) {
-                pre[cur.symbol] = cur.priceScale
-            }
-            return pre
-        }, digitAllCoinObject)
-    )
+    await Promise.all(newData.map(async symbol => {
+        let result = await Digit(symbol.value)
+        digitAllCoinObject[symbol.value] = result[0]
+        allSymbolDataObject[symbol.value] = symbol._id
+    }))
 
     newData.forEach(item => {
         const symbol = item.value

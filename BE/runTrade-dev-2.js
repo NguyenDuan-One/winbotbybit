@@ -97,6 +97,7 @@ const handleSubmitOrder = async ({
         syncTimeBeforePrivateRequests: true
     });
 
+    
     const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
 
     const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price}`
@@ -119,7 +120,7 @@ const handleSubmitOrder = async ({
     //             const newOrderID = response.result.orderId
     //             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
     //             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
-
+    //             strategy.coinOpen = coinOpen
 
     //             allStrategiesByBotIDAndOrderID[botID][newOrderID] = {
     //                 strategy,
@@ -697,7 +698,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 if (strategy) {
 
                                     const strategyID = strategy.value
-                                    const coinOpenOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen
+                                    // const coinOpenOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen || strategy.coinOpen
+                                    const coinOpenOC = strategy.coinOpen
 
                                     if (orderStatus === "Filled") {
 
@@ -903,7 +905,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         // console.log("[X] Cancelled");
                                         // Khớp TP
                                         if (TPTrue) {
-                                            console.log(`[-] Cancelled TP ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
+                                            console.log(`[-] Cancelled TP ( ${botName} - ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
                                             if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID) {
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
                                             }
@@ -932,7 +934,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         }
                                         else if (OCTrue) {
                                             allStrategiesByBotIDOrderOC[botID].totalOC -= 1
-                                            console.log(`[-] Cancelled OC ( ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
+                                            console.log(`[-] Cancelled OC ( ${botName} - ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
                                             if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID) {
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
                                             }
@@ -2027,7 +2029,7 @@ socketRealtime.on('add', async (newData = []) => {
                 }
             }
 
-           
+
 
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {})
             !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {})
@@ -2087,7 +2089,7 @@ socketRealtime.on('update', async (newData = []) => {
                         telegramID: strategiesData.botID.telegramID,
                         telegramToken: strategiesData.botID.telegramToken,
                     }
-        
+
                     newBotApiList[botID] = {
                         id: botID,
                         botName,
@@ -2103,7 +2105,7 @@ socketRealtime.on('update', async (newData = []) => {
                 }
             }
 
-         
+
             const cancelDataObject = {
                 ApiKey,
                 SecretKey,
@@ -2288,7 +2290,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
             }
         }
 
-      
+
 
         const cancelDataObject = {
             ApiKey,
@@ -2687,7 +2689,7 @@ socketRealtime.on('close-upcode', async () => {
         ))
 
     console.log("PM2 Kill Successful");
-    exec("pm2 kill")
+    exec("pm2 stop runTrade-dev-2")
 
 });
 
