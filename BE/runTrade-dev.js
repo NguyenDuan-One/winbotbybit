@@ -1402,79 +1402,79 @@ const handleSocketListKline = (listKlineInput) => {
                             }
 
                             // Xem xét dịch OC
-                            if (
-                                allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
-                                !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
-                                !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilledButMiss &&
-                                !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare
-                            ) {
-                                const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
-                                // console.log(changeColorConsole.cyanBright(textQuanSat));
+                            // if (
+                            //     allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
+                            //     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
+                            //     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilledButMiss &&
+                            //     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.moveAfterCompare
+                            // ) {
+                            //     const textQuanSat = `🙄 Xem xét OC ( ${botName} - ${side} - ${symbol} - ${candle} )`
+                            //     // console.log(changeColorConsole.cyanBright(textQuanSat));
 
-                                const coinOpen = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen
+                            //     const coinOpen = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen
 
-                                let checkMoveMain = false
-                                const percentt = 4 / 100
-                                const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
+                            //     let checkMoveMain = false
+                            //     const percentt = 4 / 100
+                            //     const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
 
-                                if (side === "Buy") {
-                                    if (coinCurrent <= (priceOrderOC + Math.abs(priceOrderOC - coinOpen) * percentt)) {
-                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
-                                        checkMoveMain = true
-                                    }
-                                }
-                                else {
-                                    if (coinCurrent >= (priceOrderOC - Math.abs(priceOrderOC - coinOpen) * percentt)) {
+                            //     if (side === "Buy") {
+                            //         if (coinCurrent <= (priceOrderOC + Math.abs(priceOrderOC - coinOpen) * percentt)) {
+                            //             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                            //             checkMoveMain = true
+                            //         }
+                            //     }
+                            //     else {
+                            //         if (coinCurrent >= (priceOrderOC - Math.abs(priceOrderOC - coinOpen) * percentt)) {
 
-                                        allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
-                                        checkMoveMain = true
-                                    }
-                                }
-                                if (checkMoveMain && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled) {
-                                    const client = new RestClientV5({
-                                        testnet: false,
-                                        key: ApiKey,
-                                        secret: SecretKey,
-                                        syncTimeBeforePrivateRequests: true,
+                            //             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = true
+                            //             checkMoveMain = true
+                            //         }
+                            //     }
+                            //     if (checkMoveMain && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled) {
+                            //         const client = new RestClientV5({
+                            //             testnet: false,
+                            //             key: ApiKey,
+                            //             secret: SecretKey,
+                            //             syncTimeBeforePrivateRequests: true,
 
-                                    });
-                                    const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
+                            //         });
+                            //         const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
 
-                                    client
-                                        .amendOrder({
-                                            category: 'linear',
-                                            symbol,
-                                            price: coinCurrent.toFixed(strategy.digit),
-                                            orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
-                                        })
-                                        .then(async (response) => {
-                                            if (response.retCode == 0) {
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
-                                                console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
-                                                console.log(changeColorConsole.blackBright(`[_OC orderID Move_] ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
+                            //         client
+                            //             .amendOrder({
+                            //                 category: 'linear',
+                            //                 symbol,
+                            //                 price: coinCurrent.toFixed(strategy.digit),
+                            //                 orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
+                            //             })
+                            //             .then(async (response) => {
+                            //                 if (response.retCode == 0) {
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = response.result.orderId
+                            //                     console.log(changeColorConsole.blueBright(`[->] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:`, coinCurrent.toFixed(strategy.digit)))
+                            //                     console.log(changeColorConsole.blackBright(`[_OC orderID Move_] ( ${botName} - ${side} - ${symbol} - ${candle} ) :`, response.result.orderId));
 
-                                                const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
-                                                console.log(changeColorConsole.yellowBright(textQuayDau));
-                                                // sendMessageWithRetry({
-                                                //     messageText: textQuayDau,
-                                                //     telegramID,
-                                                //     telegramToken
-                                                // })
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
-                                            }
-                                            else {
-                                                console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
-                                            }
-                                        })
-                                        .catch((error) => {
-                                            console.log(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
-                                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
-                                        });
+                            //                     const textQuayDau = `😃 Dịch OC ( ${strategy.OrderChange}% -> ${newOCTemp.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) `
+                            //                     console.log(changeColorConsole.yellowBright(textQuayDau));
+                            //                     // sendMessageWithRetry({
+                            //                     //     messageText: textQuayDau,
+                            //                     //     telegramID,
+                            //                     //     telegramToken
+                            //                     // })
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.moveAfterCompare = false
+                            //                 }
+                            //                 else {
+                            //                     console.log(changeColorConsole.yellowBright(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
+                            //                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                            //                 }
+                            //             })
+                            //             .catch((error) => {
+                            //                 console.log(`[!] Move Order OC Compare ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
+                            //                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilledButMiss = true
+                            //             });
 
 
-                                }
-                            }
+                            //     }
+                            // }
 
                             // if have TP
                             if (
