@@ -688,16 +688,16 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 const strategy = strategyData?.strategy
                                 const OCTrue = strategyData?.OC
                                 const TPTrue = strategyData?.TP
-                                
+
                                 if (strategy) {
-                                    
+
                                     const strategyID = strategy.value
                                     // const coinOpenOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen || strategy.coinOpen
-                                    
+
                                     if (orderStatus === "Filled") {
-                                        
+
                                         if (OCTrue) {
-                                            
+
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilled = true
                                             const coinOpenOC = strategyData.coinOpen
 
@@ -1267,7 +1267,7 @@ const handleSocketListKline = (listKlineInput) => {
 
                                     // X-D-D || D-D-D
 
-                                    const coinColor = coinCurrent - trichMauOCListObject[symbolCandleID].prePrice > 0 ? "Blue" : "Red"
+                                    const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
 
                                     let checkColorListTrue = false
 
@@ -1315,7 +1315,8 @@ const handleSocketListKline = (listKlineInput) => {
 
                                     // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
-                                    if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                    // if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
                                         let conditionOrder = 0
                                         let priceOrder = 0
 
