@@ -16,7 +16,7 @@ const wsConfig = {
 const wsSymbol = new WebsocketClient(wsConfig);
 
 const LIST_ORDER = ["order", "position"]
-const MAX_ORDER_LIMIT = 10
+const MAX_ORDER_LIMIT = 5
 
 const clientDigit = new RestClientV5({
     testnet: false,
@@ -136,13 +136,14 @@ const handleSubmitOrder = async ({
                 //     telegramToken
                 // })
 
-                !allStrategiesByBotIDOrderOC[botID] && (
-                    allStrategiesByBotIDOrderOC[botID] = {
+                !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
+                !allStrategiesByBotIDOrderOC[botID][symbol] && (
+                    allStrategiesByBotIDOrderOC[botID][symbol] = {
                         totalOC: 0,
                         logError: false
                     }
                 )
-                allStrategiesByBotIDOrderOC[botID].totalOC += 1
+                allStrategiesByBotIDOrderOC[botID][symbol].totalOC += 1
             }
             else {
                 console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
@@ -396,7 +397,7 @@ const handleCancelOrderOC = async ({
                     console.log(`[V] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) successful `);
                     cancelAll({ strategyID, botID })
 
-                    allStrategiesByBotIDOrderOC[botID].totalOC -= 1
+                    allStrategiesByBotIDOrderOC[botID][symbol].totalOC -= 1
                 }
                 else {
                     console.log(changeColorConsole.yellowBright(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) failed `, response.retMsg))
@@ -465,6 +466,8 @@ const handleCancelOrderTP = async ({
                 console.log(changeColorConsole.yellowBright(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
             }
             cancelAll({ strategyID, botID })
+            allStrategiesByBotIDOrderOC[botID][symbol].totalOC -= 1
+
         })
         .catch((error) => {
             console.log(`[!] Cancel TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
@@ -883,12 +886,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                     symbol,
                                                 })
 
-                                                allStrategiesByBotIDOrderOC[botID].totalOC -= 1
                                             }
                                             else {
                                                 console.log(`\n[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
                                             }
-
+                                            
+                                            allStrategiesByBotIDOrderOC[botID][symbol].totalOC -= 1
 
                                             sendMessageWithRetry({
                                                 messageText: `${teleText} \n${textWinLose}`,
@@ -906,6 +909,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         // Khớp TP
                                         if (TPTrue) {
                                             console.log(`[-] Cancelled TP ( ${botName} - ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick} ) - Chốt lời `);
+                                            allStrategiesByBotIDOrderOC[botID][symbol].totalOC -= 1
+                                           
                                             if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID) {
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
                                             }
@@ -933,7 +938,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                         }
                                         else if (OCTrue) {
-                                            allStrategiesByBotIDOrderOC[botID].totalOC -= 1
+                                            allStrategiesByBotIDOrderOC[botID][symbol].totalOC -= 1
                                             console.log(`[-] Cancelled OC ( ${botName} - ${strategy.PositionSide === "Long" ? "Sell" : "Buy"} - ${symbol} - ${strategy.Candlestick}) `);
                                             if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID) {
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
@@ -962,7 +967,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             botID,
                                             botName
                                         })
-                                        allStrategiesByBotIDOrderOC[botID].totalOC -= 1
                                     }))
 
 
@@ -1249,23 +1253,24 @@ const handleSocketListKline = (listKlineInput) => {
                         if (dataMain.confirm == false && strategy.IsActive) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
 
-                                !allStrategiesByBotIDOrderOC[botID] && (
-                                    allStrategiesByBotIDOrderOC[botID] = {
+                                !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
+                                !allStrategiesByBotIDOrderOC[botID][symbol] && (
+                                    allStrategiesByBotIDOrderOC[botID][symbol] = {
                                         totalOC: 0,
                                         logError: false
                                     }
                                 )
 
-                                allStrategiesByBotIDOrderOC[botID]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID].totalOC = 0)
+                                allStrategiesByBotIDOrderOC[botID][symbol]?.totalOC < 0 && (allStrategiesByBotIDOrderOC[botID][symbol].totalOC = 0)
 
 
-                                if (allStrategiesByBotIDOrderOC[botID]?.totalOC < MAX_ORDER_LIMIT) {
+                                if (allStrategiesByBotIDOrderOC[botID][symbol]?.totalOC < MAX_ORDER_LIMIT) {
 
-                                    allStrategiesByBotIDOrderOC[botID].logError = false
+                                    allStrategiesByBotIDOrderOC[botID][symbol].logError = false
 
                                     trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                                    if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 200) {
+                                    if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 250) {
 
                                         trichMauOCListObject[symbolCandleID].preTime = new Date()
 
@@ -1398,9 +1403,9 @@ const handleSocketListKline = (listKlineInput) => {
                                 }
 
                                 else {
-                                    if (allStrategiesByBotIDOrderOC[botID]?.totalOC && !allStrategiesByBotIDOrderOC[botID]?.logError) {
+                                    if (allStrategiesByBotIDOrderOC[botID][symbol]?.totalOC && !allStrategiesByBotIDOrderOC[botID][symbol]?.logError) {
                                         console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
-                                        allStrategiesByBotIDOrderOC[botID].logError = true
+                                        allStrategiesByBotIDOrderOC[botID][symbol].logError = true
                                     }
                                 }
                             }
@@ -1900,10 +1905,13 @@ const Main = async () => {
 
             cancelAll({ strategyID, botID })
 
-            allStrategiesByBotIDOrderOC[botID] = {
-                totalOC: 0,
-                logError: false
-            }
+            !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
+            !allStrategiesByBotIDOrderOC[botID][symbol] && (
+                allStrategiesByBotIDOrderOC[botID][symbol] = {
+                    totalOC: 0,
+                    logError: false
+                }
+            )
 
 
         }
@@ -2026,10 +2034,13 @@ socketRealtime.on('add', async (newData = []) => {
                     telegramID: newStrategiesData.botID.telegramID,
                     telegramToken: newStrategiesData.botID.telegramToken,
                 }
-                allStrategiesByBotIDOrderOC[botID] = {
-                    totalOC: 0,
-                    logError: false
-                }
+                !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
+                !allStrategiesByBotIDOrderOC[botID][symbol] && (
+                    allStrategiesByBotIDOrderOC[botID][symbol] = {
+                        totalOC: 0,
+                        logError: false
+                    }
+                )
             }
 
 
@@ -2101,10 +2112,13 @@ socketRealtime.on('update', async (newData = []) => {
                         telegramID: strategiesData.botID.telegramID,
                         telegramToken: strategiesData.botID.telegramToken,
                     }
-                    allStrategiesByBotIDOrderOC[botID] = {
-                        totalOC: 0,
-                        logError: false
-                    }
+                    !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
+                    !allStrategiesByBotIDOrderOC[botID][symbol] && (
+                        allStrategiesByBotIDOrderOC[botID][symbol] = {
+                            totalOC: 0,
+                            logError: false
+                        }
+                    )
                 }
             }
 
@@ -2286,10 +2300,13 @@ socketRealtime.on('bot-update', async (data = {}) => {
                     telegramToken: strategiesData.botID.telegramToken,
                 }
 
-                allStrategiesByBotIDOrderOC[botID] = {
-                    totalOC: 0,
-                    logError: false
-                }
+                !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
+                !allStrategiesByBotIDOrderOC[botID][symbol] && (
+                    allStrategiesByBotIDOrderOC[botID][symbol] = {
+                        totalOC: 0,
+                        logError: false
+                    }
+                )
             }
         }
 

@@ -1253,7 +1253,7 @@ const Main = async () => {
 
                             trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                            if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 200) {
+                            if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 250) {
 
                                 trichMauOCListObject[symbolCandleID].preTime = new Date()
                                 const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
