@@ -1196,7 +1196,9 @@ const Main = async () => {
                 maxPrice: 0,
                 minPrice: [],
                 prePrice: 0,
-                coinColor: []
+                coinColor: [],
+                curTime: 0,
+                preTime: 0,
             }
             trichMauTPListObject[symbolCandleID] = {
                 maxPrice: 0,
@@ -1253,133 +1255,133 @@ const Main = async () => {
 
                             trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                            if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 250) {
+                            // if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime > 250) {
 
-                                trichMauOCListObject[symbolCandleID].preTime = new Date()
-                                const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
+                            trichMauOCListObject[symbolCandleID].preTime = new Date()
+                            const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
-                                // X-D-D || D-D-D
+                            // X-D-D || D-D-D
 
 
-                                const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
+                            const coinColor = (coinCurrent - trichMauOCListObject[symbolCandleID].prePrice) > 0 ? "Blue" : "Red"
 
-                                let checkColorListTrue = false
+                            let checkColorListTrue = false
 
-                                const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
+                            const coinColorPre = trichMauOCListObject[symbolCandleID].coinColor
 
-                                if (coinColorPre.length > 0) {
-                                    checkColorListTrue = coinColor === "Red"
-                                }
-                                else {
-                                    checkColorListTrue = true
-                                }
-
-                                if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
-                                    trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
-                                    trichMauOCListObject[symbolCandleID].minPrice = []
-                                    trichMauOCListObject[symbolCandleID].coinColor = []
-                                }
-                                else {
-                                    if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
-                                        if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
-                                            trichMauOCListObject[symbolCandleID].minPrice.shift()
-                                        }
-                                        trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
-                                    }
-                                }
-                                // if (checkColorListTrue) {
-                                //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                //         trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                //     }
-                                //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                // }
-
-                                if (!checkColorListTrue) {
-                                    trichMauOCListObject[symbolCandleID].coinColor = []
-                                }
-                                else {
-                                    if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                        trichMauOCListObject[symbolCandleID].coinColor.shift()
-                                    }
-                                    trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
-                                }
-
-                                trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                            if (coinColorPre.length > 0) {
+                                checkColorListTrue = coinColor === "Red"
                             }
+                            else {
+                                checkColorListTrue = true
+                            }
+
+                            if (khoangGia > trichMauOCListObject[symbolCandleID].maxPrice) {
+                                trichMauOCListObject[symbolCandleID].maxPrice = khoangGia
+                                trichMauOCListObject[symbolCandleID].minPrice = []
+                                trichMauOCListObject[symbolCandleID].coinColor = []
+                            }
+                            else {
+                                if (khoangGia <= trichMauOCListObject[symbolCandleID].maxPrice / 4) {
+                                    if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+                                        trichMauOCListObject[symbolCandleID].minPrice.shift()
+                                    }
+                                    trichMauOCListObject[symbolCandleID].minPrice.push(coinColor)
+                                }
+                            }
+                            // if (checkColorListTrue) {
+                            //     if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                            //         trichMauOCListObject[symbolCandleID].coinColor.shift()
+                            //     }
+                            //     trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                            // }
+
+                            if (!checkColorListTrue) {
+                                trichMauOCListObject[symbolCandleID].coinColor = []
+                            }
+                            else {
+                                if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                                    trichMauOCListObject[symbolCandleID].coinColor.shift()
+                                }
+                                trichMauOCListObject[symbolCandleID].coinColor.push(coinColor)
+                            }
+
+                            trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+                            // }
                             // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
                             // if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                            if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
-                                let conditionOrder = 0
-                                let priceOrder = 0
+                            // if (trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
+                            let conditionOrder = 0
+                            let priceOrder = 0
 
-                                // Check pre coin type 
+                            // Check pre coin type 
 
-                                let coinPreCoin = ""
-                                let conditionPre = true
+                            let coinPreCoin = ""
+                            let conditionPre = true
 
-                                const pricePreData = listPricePreOne[symbolCandleID]
-                                if (pricePreData.close > pricePreData.open) {
-                                    coinPreCoin = "Blue"
+                            const pricePreData = listPricePreOne[symbolCandleID]
+                            if (pricePreData.close > pricePreData.open) {
+                                coinPreCoin = "Blue"
+                            }
+                            else {
+                                coinPreCoin = "Red"
+                            }
+                            // BUY
+                            if (side === "Buy") {
+
+                                if (coinPreCoin === "Blue") {
+                                    const preValue = pricePreData.high - pricePreData.open
+                                    const currentValue = coinOpen - coinCurrent
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
                                 }
-                                else {
-                                    coinPreCoin = "Red"
-                                }
-                                // BUY
-                                if (side === "Buy") {
-
-                                    if (coinPreCoin === "Blue") {
-                                        const preValue = pricePreData.high - pricePreData.open
-                                        const currentValue = coinOpen - coinCurrent
-                                        conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
-                                    }
-                                    conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                    priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
-                                    if (coinCurrent <= priceOrder) {
-                                        priceOrder = coinCurrent
-                                    }
-                                }
-                                else {
-                                    // SELL
-                                    if (coinPreCoin === "Red") {
-                                        const preValue = pricePreData.open - pricePreData.low
-                                        const currentValue = coinCurrent - coinOpen
-                                        conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
-                                    }
-                                    conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
-                                    priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
-                                    if (coinCurrent >= priceOrder) {
-                                        priceOrder = coinCurrent
-                                    }
-                                }
-
-                                const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
-
-                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder = +priceOrder
-
-                                const dataInput = {
-                                    strategy,
-                                    strategyID,
-                                    ApiKey,
-                                    SecretKey,
-                                    symbol,
-                                    qty,
-                                    side,
-                                    price: priceOrder.toFixed(strategy.digit),
-                                    candle: strategy.Candlestick,
-                                    botName,
-                                    botID,
-                                    telegramID,
-                                    telegramToken
-                                }
-
-                                if (side === "Buy") {
-                                    +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
-                                }
-                                else {
-                                    +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
+                                conditionOrder = (coinOpen - coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                priceOrder = (coinOpen - coinOpen * strategy.OrderChange / 100)
+                                if (coinCurrent <= priceOrder) {
+                                    priceOrder = coinCurrent
                                 }
                             }
+                            else {
+                                // SELL
+                                if (coinPreCoin === "Red") {
+                                    const preValue = pricePreData.open - pricePreData.low
+                                    const currentValue = coinCurrent - coinOpen
+                                    conditionPre = currentValue >= (strategy.Ignore / 100) * preValue
+                                }
+                                conditionOrder = (coinOpen + coinOpen * (strategy.OrderChange / 100) * (strategy.ExtendedOCPercent / 100)).toFixed(strategy.digit)
+                                priceOrder = (coinOpen + coinOpen * strategy.OrderChange / 100)
+                                if (coinCurrent >= priceOrder) {
+                                    priceOrder = coinCurrent
+                                }
+                            }
+
+                            const qty = (botAmountListObject[botID] * strategy.Amount / 100 / +priceOrder).toFixed(0)
+
+                            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder = +priceOrder
+
+                            const dataInput = {
+                                strategy,
+                                strategyID,
+                                ApiKey,
+                                SecretKey,
+                                symbol,
+                                qty,
+                                side,
+                                price: priceOrder.toFixed(strategy.digit),
+                                candle: strategy.Candlestick,
+                                botName,
+                                botID,
+                                telegramID,
+                                telegramToken
+                            }
+
+                            if (side === "Buy") {
+                                +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                            else {
+                                +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
+                            }
+                            // }
                         }
 
                         // Xem xét dịch OC
@@ -1669,7 +1671,9 @@ const Main = async () => {
                             maxPrice: 0,
                             minPrice: [],
                             prePrice: 0,
-                            coinColor: []
+                            coinColor: [],
+                            curTime: 0,
+                            preTime: 0,
                         }
 
                     }
@@ -2368,7 +2372,9 @@ socketRealtime.on('sync-symbol', async (newData) => {
             trichMauOCListObject[symbolCandleID] = {
                 maxPrice: 0,
                 minPrice: [],
-                prePrice: 0
+                prePrice: 0,
+                curTime: 0,
+                preTime: 0,
             }
             trichMauTPListObject[symbolCandleID] = {
                 maxPrice: 0,
