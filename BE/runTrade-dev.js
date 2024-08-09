@@ -10,7 +10,7 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
-    recvWindow: 60000
+    recvWindow: 200000
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
@@ -20,7 +20,6 @@ const MAX_ORDER_LIMIT = 5
 
 const clientDigit = new RestClientV5({
     testnet: false,
-    recv_window: 60000,
 });
 
 // ----------------------------------------------------------------------------------
@@ -96,7 +95,6 @@ const handleSubmitOrder = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
     });
 
     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && await client
@@ -179,7 +177,6 @@ const handleSubmitOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
     await client
@@ -289,7 +286,6 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
     await client
@@ -380,7 +376,6 @@ const handleCancelOrderOC = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
 
@@ -430,7 +425,6 @@ const handleCancelOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-        recv_window: 60000,
 
     });
     await client
@@ -657,7 +651,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                     key: ApiKey,
                     secret: SecretKey,
                     market: 'v5',
-                    recvWindow: 60000
+                    recvWindow: 200000
                 }
 
                 const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -1442,7 +1436,6 @@ const handleSocketListKline = (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         syncTimeBeforePrivateRequests: true,
-                                        recv_window: 60000,
 
                                     });
                                     const newOCTemp = Math.abs((coinCurrent - coinOpen)) / coinOpen * 100
@@ -1547,7 +1540,6 @@ const handleSocketListKline = (listKlineInput) => {
                                         key: ApiKey,
                                         secret: SecretKey,
                                         syncTimeBeforePrivateRequests: true,
-                                        recv_window: 60000,
 
                                     });
                                     client
@@ -2236,7 +2228,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
     //         key: ApiKeyBot,
     //         secret: SecretKeyBot,
     //         market: 'v5',
-    //         recvWindow: 60000
+    //         recvWindow: 200000
     //     }
 
     //     const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2413,7 +2405,7 @@ socketRealtime.on('bot-api', async (data) => {
             key: ApiKeyBot,
             secret: SecretKeyBot,
             market: 'v5',
-            recvWindow: 60000
+            recvWindow: 200000
         }
 
         const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2430,7 +2422,7 @@ socketRealtime.on('bot-api', async (data) => {
             key: newApiData.ApiKey,
             secret: newApiData.SecretKey,
             market: 'v5',
-            recvWindow: 60000
+            recvWindow: 200000
         }
 
         const wsOrderNew = new WebsocketClient(wsConfigOrderNew);
@@ -2513,7 +2505,7 @@ socketRealtime.on('bot-delete', async (data) => {
         key: ApiKeyBot,
         secret: SecretKeyBot,
         market: 'v5',
-        recvWindow: 60000
+        recvWindow: 200000
     }
 
     const wsOrder = new WebsocketClient(wsConfigOrder);

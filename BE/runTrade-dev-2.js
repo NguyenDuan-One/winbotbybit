@@ -27,11 +27,6 @@ const clientDigit = new RestClientV5({
 let missTPDataBySymbol = {}
 
 var listKline = []
-var listKline1 = []
-var listKline3 = []
-var listKline5 = []
-var listKline15 = []
-
 var allSymbol = []
 
 
@@ -1229,9 +1224,9 @@ const handleSocketListKline = (listKlineInput) => {
 
             const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
-            if (checkOrderOCAll) {
+            if (checkOrderOCAll && listDataObject && Object.values(listDataObject)?.length > 0) {
 
-                listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+                await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
                     if (checkConditionBot(strategy)) {
 
@@ -1929,13 +1924,12 @@ const Main = async () => {
         }, digitAllCoinObject)
     )
 
-    allSymbol.forEach((symbolItem) => {
-        listKline1.push(`kline.1.${symbolItem.value}`)
-        listKline3.push(`kline.3.${symbolItem.value}`)
-        listKline5.push(`kline.5.${symbolItem.value}`)
-        listKline15.push(`kline.15.${symbolItem.value}`)
-    })
-    listKline = listKline.concat(listKline1, listKline3, listKline5, listKline15)
+    listKline = allSymbol.flatMap(symbolItem => ([
+        `kline.1.${symbolItem.value}`,
+        `kline.3.${symbolItem.value}`,
+        `kline.5.${symbolItem.value}`,
+        `kline.15.${symbolItem.value}`,
+    ]))
 
     allSymbol.forEach(item => {
         const symbol = item.value
@@ -1967,12 +1961,8 @@ const Main = async () => {
 
     await handleSocketBotApiList(botApiList)
 
-    const listKline1Socket = handleSocketListKline(listKline1)
-    const listKline3Socket = handleSocketListKline(listKline3)
-    const listKline5Socket = handleSocketListKline(listKline5)
-    const listKline15Socket = handleSocketListKline(listKline15)
+    handleSocketListKline(listKline)
 
-    Promise.allSettled([listKline1Socket, listKline3Socket, listKline5Socket, listKline15Socket])
 }
 
 try {
@@ -2591,20 +2581,12 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
     allSymbol = allSymbol.concat(newData)
 
-    const listKline1New = []
-    const listKline3New = []
-    const listKline5New = []
-    const listKline15New = []
-
-    newData.forEach((symbolItem) => {
-        listKline1New.push(`kline.1.${symbolItem.value}`)
-        listKline3New.push(`kline.3.${symbolItem.value}`)
-        listKline5New.push(`kline.5.${symbolItem.value}`)
-        listKline15New.push(`kline.15.${symbolItem.value}`)
-    })
-
-    listKline = listKline.concat(listKline1New, listKline3New, listKline5New, listKline15New)
-
+    const newListKline = newData.flatMap(symbolData => ([
+        `kline.1.${symbolData.value}`,
+        `kline.3.${symbolData.value}`,
+        `kline.5.${symbolData.value}`,
+        `kline.15.${symbolData.value}`,
+    ]))
 
 
     const resultDigitAll = await Digit()
@@ -2646,12 +2628,7 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
     })
 
-    const listKline1Socket = handleSocketListKline(listKline1)
-    const listKline3Socket = handleSocketListKline(listKline3)
-    const listKline5Socket = handleSocketListKline(listKline5)
-    const listKline15Socket = handleSocketListKline(listKline15)
-
-    Promise.allSettled([listKline1Socket, listKline3Socket, listKline5Socket, listKline15Socket])
+    handleSocketListKline(newListKline)
 
 });
 
