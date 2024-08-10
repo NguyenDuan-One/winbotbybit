@@ -214,6 +214,8 @@ function Strategies() {
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
         setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        handleCheckAllCheckBox(false)
+
         try {
             window.scrollTo(0, 0)
 
@@ -316,12 +318,12 @@ function Strategies() {
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
         setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        handleCheckAllCheckBox(false)
         botTypeSelectedRef.current = "All"
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
         candlestickSelectedRef.current = "All"
         setSearchKey("")
-        handleCheckAllCheckBox(false)
     }
 
     const searchDebounce = useDebounce(searchKey)

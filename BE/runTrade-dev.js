@@ -660,6 +660,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
                     wsOrder.on('update', async (dataCoin) => {
 
+                        // await delay(200)
+
                         const botID = botApiData.id
 
                         const ApiKey = botApiList[botID].ApiKey
