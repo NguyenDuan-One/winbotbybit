@@ -89,6 +89,8 @@ const handleSubmitOrder = async ({
 }) => {
 
     !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID })
+    
+    allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = true
 
     const client = new RestClientV5({
         testnet: false,
@@ -97,7 +99,7 @@ const handleSubmitOrder = async ({
         syncTimeBeforePrivateRequests: true,
     });
 
-    !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && await client
+    await client
         .submitOrder({
             category: 'linear',
             symbol,
@@ -146,9 +148,10 @@ const handleSubmitOrder = async ({
             else {
                 console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
             }
-
+            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = false
         })
         .catch((error) => {
+            allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = false
             console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
         });
 }
@@ -521,7 +524,8 @@ const cancelAll = (
             orderFilledButMiss: false,
             moveAfterCompare: false,
             newOC: 0,
-            coinOpen: 0
+            coinOpen: 0,
+            ordering: false
         },
         "TP": {
             orderID: "",
@@ -1244,7 +1248,7 @@ const handleSocketListKline = async (listKlineInput) => {
                         const symbolCandleID = `${symbol}-${candle}`
 
                         if (dataMain.confirm == false && strategy.IsActive) {
-                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
+                            if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
 
                                 !allStrategiesByBotIDOrderOC[botID] && (allStrategiesByBotIDOrderOC[botID] = {})
                                 !allStrategiesByBotIDOrderOC[botID][symbol] && (
