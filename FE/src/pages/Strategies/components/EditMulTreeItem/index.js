@@ -157,9 +157,9 @@ function EditMulTreeItem({
         try {
             const res = await getAllBotActive()
             const { data: resUserData } = res.data
-            setBotListInputVIP(resUserData.map(item=>({
-                name:item.botName,
-                value:item._id
+            setBotListInputVIP(resUserData.map(item => ({
+                name: item.botName,
+                value: item._id
             })))
 
         } catch (error) {
@@ -540,7 +540,9 @@ function EditMulTreeItem({
             const { status, message, data: symbolListDataRes } = res.data
 
             if (status === 200) {
-                const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
+                // const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
+                const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
+
                 setSymbolListData(newSymbolList)
             }
             else {
@@ -558,7 +560,7 @@ function EditMulTreeItem({
         }
     }
 
-  
+
 
     const handleRenderContentRadio = () => {
         switch (copyType) {

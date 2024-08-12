@@ -192,7 +192,7 @@ const dataCoinByBitController = {
     },
     getAllSymbol: async (req, res) => {
         try {
-            const result = await StrategiesModel.find();
+            const result = await StrategiesModel.find().sort({ "label": 1 });
 
             res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => item.value));
 
@@ -482,8 +482,11 @@ const dataCoinByBitController = {
                 data: newDataSocketWithBotData
             })
 
-            const result = await StrategiesModel.deleteOne(
+            const result = await StrategiesModel.updateOne(
                 { _id: strategiesID },
+                {
+                    "children": []
+                }
             );
 
 
@@ -667,27 +670,21 @@ const dataCoinByBitController = {
             //     });
             // });
 
-            const bulkOperations = symbolList.map(symbol => {
-                return {
-                    updateOne: {
-                        filter: { "value": symbol },
-                        update: {
-                            $push: {
-                                "children": {
-                                    $each: symbolListData.map(data => {
-                                        const newObj = { ...data, TimeTemp };
-                                        delete newObj?._id
-                                        delete newObj?.value
-                                        return newObj
-                                    })
-                                }
+            const bulkOperations = symbolList.map(symbol => ({
+                updateOne: {
+                    filter: { "value": symbol },
+                    update: {
+                        $push: {
+                            "children": {
+                                $each: symbolListData.map(({ _id, value, ...rest }) => ({ ...rest, TimeTemp }))
                             }
                         }
                     }
                 }
-            });
+            }));
 
             const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+
 
             if (bulkResult.modifiedCount === symbolList.length) {
 
@@ -718,29 +715,25 @@ const dataCoinByBitController = {
 
             const TimeTemp = new Date().toString();
 
-            const bulkOperations = symbolListData.map(data => ({
+            const bulkOperations = symbolListData.map(({ _id, value, parentID, ...restData }) => ({
                 updateOne: {
-                    filter: { _id: data.parentID },
+                    filter: { _id: parentID },
                     update: {
                         $push: {
                             children: {
-                                $each: symbolList.map(item => {
-                                    const newObj = { ...data };
-                                    delete newObj?._id;
-                                    delete newObj?.value;
-                                    return ({
-                                        ...newObj,
-                                        botID: item,
-                                        TimeTemp
-                                    })
-                                })
+                                $each: symbolList.map(symbol => ({
+                                    ...restData,
+                                    botID: symbol,
+                                    TimeTemp
+                                }))
                             }
                         }
                     }
                 }
-            }))
+            }));
 
             const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+
 
             if (bulkResult.modifiedCount === symbolListData.length) {
                 res.customResponse(200, "Copy Strategies To Bot Successful", "");
