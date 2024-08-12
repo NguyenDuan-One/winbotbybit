@@ -635,13 +635,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
             await getMoneyFuture(botApiListInput)
 
-            console.log("[...] Subscribe new-bot-list-api successful\n");
-
             await Promise.allSettled(objectToArray.map(botApiData => {
 
                 const ApiKey = botApiData.ApiKey
                 const SecretKey = botApiData.SecretKey
                 const botID = botApiData.id
+                const botName = botApiList[botID].botName
 
 
                 // allSymbol.forEach(symbol => {
@@ -662,6 +661,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
 
                 wsOrder.subscribeV5(LIST_ORDER, 'linear').then(() => {
+
+                    console.log(`[V] Subscribe order ( ${botName} ) successful\n`);
+
                     wsOrder.on('update', async (dataCoin) => {
 
                         await delay(200)
