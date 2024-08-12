@@ -10,7 +10,7 @@ const { createPositionBE, updatePositionBE, deletePositionBE, getPositionBySymbo
 
 const wsConfig = {
     market: 'v5',
-    recvWindow: 10000
+    recvWindow: 100000
 }
 
 const wsSymbol = new WebsocketClient(wsConfig);
@@ -655,7 +655,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                     key: ApiKey,
                     secret: SecretKey,
                     market: 'v5',
-                    recvWindow: 10000
+                    recvWindow: 100000
                 }
 
                 const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2228,7 +2228,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
     //         key: ApiKeyBot,
     //         secret: SecretKeyBot,
     //         market: 'v5',
-    //         recvWindow: 10000
+    //         recvWindow: 100000
     //     }
 
     //     const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2405,7 +2405,7 @@ socketRealtime.on('bot-api', async (data) => {
             key: ApiKeyBot,
             secret: SecretKeyBot,
             market: 'v5',
-            recvWindow: 10000
+            recvWindow: 100000
         }
 
         const wsOrder = new WebsocketClient(wsConfigOrder);
@@ -2422,7 +2422,7 @@ socketRealtime.on('bot-api', async (data) => {
             key: newApiData.ApiKey,
             secret: newApiData.SecretKey,
             market: 'v5',
-            recvWindow: 10000
+            recvWindow: 100000
         }
 
         const wsOrderNew = new WebsocketClient(wsConfigOrderNew);
@@ -2505,7 +2505,7 @@ socketRealtime.on('bot-delete', async (data) => {
         key: ApiKeyBot,
         secret: SecretKeyBot,
         market: 'v5',
-        recvWindow: 10000
+        recvWindow: 100000
     }
 
     const wsOrder = new WebsocketClient(wsConfigOrder);
