@@ -510,15 +510,15 @@ const dataCoinByBitController = {
             )
 
             if (result.acknowledged && result.matchedCount !== 0) {
-                res.customResponse(200, "Add Bookmark Successful", "");
+                res.customResponse(200, "Remove Bookmark Successful", "");
             }
             else {
-                res.customResponse(400, "Add Bookmark Failed", "");
+                res.customResponse(400, "Remove Bookmark Failed", "");
             }
 
         } catch (error) {
             // Xử lý lỗi nếu có
-            res.status(500).json({ message: "Add Bookmark Error" });
+            res.status(500).json({ message: "Remove Bookmark Error" });
         }
     },
 

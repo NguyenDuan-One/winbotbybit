@@ -209,7 +209,7 @@ function TreeParent({
         catch (err) {
             dispatch(addMessageToast({
                 status: 500,
-                message: "Add Bookmark Error",
+                message: "Remove Bookmark Error",
             }))
         }
         closeDeleteDialog()
