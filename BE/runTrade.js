@@ -2253,7 +2253,7 @@ socketRealtime.on('update', async (newData = []) => {
 
             if (!strategiesData.IsActive) {
 
-                listOrderTP.push({
+                allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && listOrderTP.push({
                     ...cancelDataObject,
                     orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                     gongLai: true
@@ -2317,7 +2317,7 @@ socketRealtime.on('delete', async (newData) => {
 
             allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && listOrderOC.push(cancelDataObject)
 
-            listOrderTP.push({
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && listOrderTP.push({
                 ...cancelDataObject,
                 orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                 gongLai: true
@@ -2457,7 +2457,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
         if (!strategiesData.IsActive) {
 
-            listOrderTP.push({
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&  listOrderTP.push({
                 ...cancelDataObject,
                 orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                 gongLai: true
@@ -2523,7 +2523,7 @@ socketRealtime.on('bot-api', async (data) => {
 
             allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && listOrderOC.push(cancelDataObject)
 
-            listOrderTP.push({
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&  listOrderTP.push({
                 ...cancelDataObject,
                 orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                 gongLai: true
@@ -2626,7 +2626,7 @@ socketRealtime.on('bot-delete', async (data) => {
 
             allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && listOrderOC.push(cancelDataObject)
 
-            listOrderTP.push({
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&  listOrderTP.push({
                 ...cancelDataObject,
                 orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                 gongLai: true
