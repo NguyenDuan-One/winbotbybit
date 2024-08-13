@@ -119,15 +119,16 @@ const dataCoinByBitController = {
 
     getAllStrategies: async (req, res) => {
         try {
-            // const userID = req.user._id
+            const userID = req.user._id
             const { botListInput } = req.body
 
             const botList = botListInput.map(item => new mongoose.Types.ObjectId(item));
-
+            
             const resultFilter = await StrategiesModel.aggregate([
                 {
-                    // $match: { "children.userID": new mongoose.Types.ObjectId(userID) }
-                    $match: { "children.botID": { $in: botList } }
+                    $match: {
+                        "children.botID": { $in: botList }
+                    }
                 },
                 {
                     $addFields: {
@@ -136,7 +137,7 @@ const dataCoinByBitController = {
                                 input: "$children",
                                 as: "child",
                                 cond: {
-                                    $in: ["$$child.botID", botList],
+                                    $in: ["$$child.botID", botList]
                                 }
                             }
                         }
@@ -152,7 +153,20 @@ const dataCoinByBitController = {
                                 args: ["$children"],
                                 lang: "js"
                             }
+                        },
+                        hasUserID: {
+                            $cond: {
+                                if: { $in: [userID, { $ifNull: ["$bookmarkList", []] }] },
+                                then: 1,
+                                else: 0
+                            }
                         }
+                    }
+                },
+                {
+                    $sort: {
+                        hasUserID: -1,  
+                        label: 1       
                     }
                 },
                 {
@@ -160,14 +174,12 @@ const dataCoinByBitController = {
                         label: 1,
                         value: 1,
                         volume24h: 1,
+                        bookmarkList: 1,
                         children: "$childrenSorted"
                     }
-                },
-                {
-                    $sort: { "label": 1 }
                 }
             ]);
-
+            
 
             const result = await StrategiesModel.populate(resultFilter, {
                 path: 'children.botID',
@@ -458,6 +470,55 @@ const dataCoinByBitController = {
         } catch (error) {
             // Xử lý lỗi nếu có
             res.status(500).json({ message: "Update Mul-Strategies Error" });
+        }
+    },
+
+    addToBookmark: async (req, res) => {
+        try {
+
+            const symbolID = req.params.id;
+            const userID = req.user._id;
+
+
+            const result = await StrategiesModel.updateOne(
+                { "_id": symbolID },
+                { $addToSet: { bookmarkList: userID } }
+            )
+
+            if (result.acknowledged && result.matchedCount !== 0) {
+                res.customResponse(200, "Add Bookmark Successful", "");
+            }
+            else {
+                res.customResponse(400, "Add Bookmark Failed", "");
+            }
+
+        } catch (error) {
+            // Xử lý lỗi nếu có
+            res.status(500).json({ message: "Add Bookmark Error" });
+        }
+    },
+    removeToBookmark: async (req, res) => {
+        try {
+
+            const symbolID = req.params.id;
+            const userID = req.user._id;
+
+
+            const result = await StrategiesModel.updateOne(
+                { "_id": symbolID },
+                { $pull: { bookmarkList: userID } }
+            )
+
+            if (result.acknowledged && result.matchedCount !== 0) {
+                res.customResponse(200, "Add Bookmark Successful", "");
+            }
+            else {
+                res.customResponse(400, "Add Bookmark Failed", "");
+            }
+
+        } catch (error) {
+            // Xử lý lỗi nếu có
+            res.status(500).json({ message: "Add Bookmark Error" });
         }
     },
 

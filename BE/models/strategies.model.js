@@ -37,6 +37,7 @@ const strategiesSchema = new mongoose.Schema({
     unique: true,
   },
   volume24h: String,
+  bookmarkList: [String],
   children: [childrenStrategiesSchema]
 })
 

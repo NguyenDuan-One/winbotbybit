@@ -1,3 +1,5 @@
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarIcon from '@mui/icons-material/Star';
 import AddIcon from '@mui/icons-material/Add';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
@@ -11,8 +13,8 @@ import styles from "./TreeParent.module.scss"
 import TreeChild from '../TreeChild';
 import { memo, useEffect, useState } from 'react';
 import DialogCustom from '../../../../../components/DialogCustom';
-import { deleteStrategies, updateStrategiesMultiple } from '../../../../../services/dataCoinByBitService';
-import { useDispatch } from 'react-redux';
+import { addToBookmark, deleteStrategies, removeToBookmark, updateStrategiesMultiple } from '../../../../../services/dataCoinByBitService';
+import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../../../../store/slices/Toast';
 import { handleCheckAllCheckBox } from '../../../../../functions';
 function TreeParent({
@@ -22,6 +24,8 @@ function TreeParent({
     setDataCheckTree,
     dataCheckTreeDefaultRef
 }) {
+
+    const userData = useSelector(state => state.userDataSlice.userData)
 
 
     const dispatch = useDispatch()
@@ -174,6 +178,42 @@ function TreeParent({
         }
         closeDeleteDialog()
     }
+    const handleAddToBookmark = async () => {
+        try {
+            const res = await addToBookmark({ symbolID: treeData._id })
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message,
+            }))
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Add Bookmark Error",
+            }))
+        }
+        closeDeleteDialog()
+    }
+    const handleRemoveToBookmark = async () => {
+        try {
+            const res = await removeToBookmark({ symbolID: treeData._id })
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message,
+            }))
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Add Bookmark Error",
+            }))
+        }
+        closeDeleteDialog()
+    }
     return (
         <div className={styles.treeParent}  >
             <div style={{
@@ -219,6 +259,23 @@ function TreeParent({
                             }
                         })
                     }}
+                />
+                <Checkbox
+                    defaultChecked={treeData.bookmarkList?.includes(userData._id)}
+                    style={{
+                        padding: " 0 3px",
+                    }}
+                    sx={{
+                        color: "#b5b5b5",
+                        '&.Mui-checked': {
+                            color: "var(--yellowColor)",
+                        },
+                    }}
+                    onClick={e => {
+                        e.target.checked ? handleAddToBookmark() : handleRemoveToBookmark()
+                    }}
+                    icon={<StarBorderIcon />}
+                    checkedIcon={<StarIcon />}
                 />
                 <p className={styles.label}>
                     {treeData.label.split("USDT")[0]}

@@ -17,6 +17,8 @@ router.post('/createStrategies', MiddlewareController.verifyToken, dataCoinByBit
 
 router.put('/updateStrategies/:id', MiddlewareController.verifyToken, dataCoinByBitController.updateStrategiesByID)
 router.post('/updateStrategiesMultiple', MiddlewareController.verifyToken, dataCoinByBitController.updateStrategiesMultiple)
+router.put('/addToBookmark/:id', MiddlewareController.verifyToken, dataCoinByBitController.addToBookmark)
+router.put('/removeToBookmark/:id', MiddlewareController.verifyToken, dataCoinByBitController.removeToBookmark)
 
 router.post('/deleteStrategiesItem', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategiesItem)
 router.delete('/deleteStrategies/:id', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategies)

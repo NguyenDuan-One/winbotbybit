@@ -5,7 +5,7 @@ export const closeAllBotForUpCode = async () => {
     return await api.get("/dataCoinByBit/closeAllBotForUpCode")
 }
 export const getAllStrategies = async (botListInput) => {
-    return await api.post("/dataCoinByBit/getAllStrategies",{botListInput})
+    return await api.post("/dataCoinByBit/getAllStrategies", { botListInput })
 }
 export const getAllSymbol = async () => {
     return await api.get("/dataCoinByBit/getAllSymbol")
@@ -40,6 +40,12 @@ export const updateStrategiesByID = async ({ id, data }) => {
 export const updateStrategiesMultiple = async (data) => {
     return await api.post("/dataCoinByBit/updateStrategiesMultiple", data)
 }
+export const addToBookmark = async ({ symbolID }) => {
+    return await api.put(`/dataCoinByBit/addToBookmark/${symbolID}`)
+}
+export const removeToBookmark = async ({ symbolID }) => {
+    return await api.put(`/dataCoinByBit/removeToBookmark/${symbolID}`)
+}
 
 // DELETE
 export const deleteStrategies = async (id) => {
@@ -63,5 +69,5 @@ export const copyMultipleStrategiesToBot = async (newData) => {
     return await api.post(`/dataCoinByBit/copyMultipleStrategiesToBot`, newData)
 }
 export const balanceWallet = async (data) => {
-    return await api.post("/dataCoinByBit/balanceWallet",data)
+    return await api.post("/dataCoinByBit/balanceWallet", data)
 }

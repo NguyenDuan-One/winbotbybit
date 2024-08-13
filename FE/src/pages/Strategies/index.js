@@ -1,5 +1,6 @@
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarIcon from '@mui/icons-material/Star';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
-import ReactDOM from 'react-dom';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -209,7 +210,7 @@ function Strategies() {
         setLoadingDataCheckTree(true)
         filterQuantityRef.current = []
         !filterStatus && resetAfterSuccess()
-        
+
         dataCheckTreeSelectedRef.current = []
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
@@ -326,6 +327,10 @@ function Strategies() {
         setSearchKey("")
     }
 
+    // const handleFilterBookmark = (checked) => {
+    //     const newDataCheckTree = checked ? dataCheckTree.filter(item => item.bookmarkList?.includes(userData._id)) : dataCheckTreeDefaultRef.current
+    //     setDataCheckTree(newDataCheckTree)
+    // }
     const searchDebounce = useDebounce(searchKey)
 
     useEffect(() => {
@@ -539,7 +544,34 @@ function Strategies() {
                                 fontWeight: "600",
                                 marginLeft: "6px"
                             }}>( {countTotalActive.countActive} / {countTotalActive.totalItem} )</span>
+
+                            {/* <span style={{ margin: "0px 2px 3px 12px", opacity: ".6", fontSize: ".9rem" }}>|</span>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    fontWeight: 500
+                                }}>
+                                <Checkbox
+                                    style={{
+                                        padding: " 0 6px",
+                                    }}
+                                    sx={{
+                                        color: "#b5b5b5",
+                                        '&.Mui-checked': {
+                                            color: "var(--yellowColor)",
+                                        },
+                                    }}
+                                    onClick={e=>{
+                                        handleFilterBookmark(e.target.checked);
+                                    }}
+                                    icon={<StarBorderIcon />}
+                                    checkedIcon={<StarIcon />}
+                                />
+                                <span>Bookmark</span>
+                            </div> */}
                         </p>
+
                         {dataCheckTree.slice(0, dataTreeViewIndex).map((treeData) => {
                             return (
                                 <TreeParent
