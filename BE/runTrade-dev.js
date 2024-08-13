@@ -372,8 +372,6 @@ const handleCancelOrderOC = async ({
     botID
 }) => {
 
-    const orderId = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
-
     const client = new RestClientV5({
         testnet: false,
         key: ApiKey,
@@ -388,7 +386,7 @@ const handleCancelOrderOC = async ({
             .cancelOrder({
                 category: 'linear',
                 symbol,
-                orderId
+                orderId:allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID
             })
             .then((response) => {
                 if (response.retCode == 0) {
@@ -610,7 +608,7 @@ const getMoneyFuture = async (botApiListInput) => {
 }
 
 const sendAllBotTelegram = async () => {
-    const text = "<b>❗ Bão BTC ❗</b>"
+    const text = "<b>❗ BTC đang biến động 0.7% [1m] ❗</b>"
     console.log(text);
     await Promise.allSettled(Object.values(botApiList).map(botApiData => {
 
@@ -1210,7 +1208,7 @@ const handleSocketListKline = async (listKlineInput) => {
                         sendAllBotTelegram()
                     }
                     if (BTCPricePercent >= 1) {
-                        const newNangOCValue = Math.ceil(BTCPricePercent) * 5
+                        const newNangOCValue = Math.round(BTCPricePercent) * 5
 
                         if (newNangOCValue !== nangOCValue) {
                             nangOCValue = newNangOCValue
@@ -1416,7 +1414,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                 const coinOpen = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen
 
                                 let checkMoveMain = false
-                                const percentt = 4 / 100
+                                const percentt = 2 / 100
                                 const priceOrderOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.priceOrder
 
                                 if (side === "Buy") {
