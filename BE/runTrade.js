@@ -652,7 +652,7 @@ const cancelAll = (
         },
     }
 
-    listOCByBot[botID]?.list[strategyID] && delete listOCByBot[botID].list[strategyID]
+    listOCByBot[botID]?.list?.[strategyID] && delete listOCByBot[botID].list[strategyID]
 }
 
 // 
@@ -1008,36 +1008,34 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
 
                                             // Fill toàn bộ
-                                            // if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
-                                            // 
-                                            console.log(`\n[_FULL Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
+                                            if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
+                                                console.log(`\n[_FULL Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
 
-                                            missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
+                                                missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
-                                            if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                                deletePositionBE({
-                                                    orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                                }).then(message => {
-                                                    console.log(`[...] Delete Position ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
-                                                    console.log(message);
-                                                }).catch(err => {
-                                                    console.log("ERROR deletePositionBE:", err)
+                                                if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+                                                    deletePositionBE({
+                                                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                                    }).then(message => {
+                                                        console.log(`[...] Delete Position ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
+                                                        console.log(message);
+                                                    }).catch(err => {
+                                                        console.log("ERROR deletePositionBE:", err)
+                                                    })
+                                                }
+
+                                                console.log(`[...] Reset All ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
+
+                                                resetMissData({
+                                                    botID,
+                                                    symbol,
                                                 })
+
+                                            }
+                                            else {
+                                                console.log(`\n[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
                                             }
 
-                                            console.log(`[...] Reset All ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
-
-                                            resetMissData({
-                                                botID,
-                                                symbol,
-                                            })
-
-                                            // }
-                                            // else {
-                                            //     console.log(`\n[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
-                                            // }
-
-                                            // allStrategiesByBotIDOrderOC[botID][symbol].totalOC -= 1
 
                                             sendMessageWithRetry({
                                                 messageText: `${teleText} \n${textWinLose}`,
@@ -1092,6 +1090,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             if (allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID) {
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
                                             }
+                                            listOCByBot[botID]?.list?.[strategyID] && delete listOCByBot[botID].list[strategyID]
                                         }
 
                                     }
@@ -1524,7 +1523,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                     else {
                                         +conditionOrder <= coinCurrent && (coinOpen - coinCurrent) < 0 && conditionPre && handleSubmitOrder(dataInput)
                                     }
-                                    
+
                                 }
                             }
 
@@ -1773,7 +1772,7 @@ const handleSocketListKline = async (listKlineInput) => {
 
                                 listOCByBot[botID].timeout = setTimeout(() => {
                                     listOCByBot[botID].canceling = false
-                                }, 30000)
+                                }, 20000)
 
                                 Object.values(listOCByBot[botID]?.list || {})?.length > 0 && handleCancelAllOrderOC({ items: Object.values(listOCByBot[botID].list) || [] })
 
@@ -2457,7 +2456,7 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
         if (!strategiesData.IsActive) {
 
-            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&  listOrderTP.push({
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && listOrderTP.push({
                 ...cancelDataObject,
                 orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                 gongLai: true
@@ -2523,7 +2522,7 @@ socketRealtime.on('bot-api', async (data) => {
 
             allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && listOrderOC.push(cancelDataObject)
 
-            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&  listOrderTP.push({
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && listOrderTP.push({
                 ...cancelDataObject,
                 orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                 gongLai: true
@@ -2626,7 +2625,7 @@ socketRealtime.on('bot-delete', async (data) => {
 
             allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && listOrderOC.push(cancelDataObject)
 
-            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID &&  listOrderTP.push({
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && listOrderTP.push({
                 ...cancelDataObject,
                 orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
                 gongLai: true

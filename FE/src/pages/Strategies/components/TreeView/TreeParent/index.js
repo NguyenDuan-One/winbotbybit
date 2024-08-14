@@ -235,7 +235,7 @@ function TreeParent({
                 />
                 <div
                     style={{
-                        lineHeight: "100%"
+                        display: "contents"
                     }}
                     onClick={e => {
                         e.currentTarget.parentElement.parentElement.classList.toggle(styles.showNoteContent)
