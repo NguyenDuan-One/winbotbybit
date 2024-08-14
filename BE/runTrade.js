@@ -797,9 +797,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                         if (orderStatus === "Filled") {
                             console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
                         }
-                        if (orderStatus === "PartiallyFilled") {
-                            console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, dataCoin.topic));
-                        }
 
                         if (ApiKey && SecretKey) {
 
@@ -810,7 +807,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 const strategy = strategyData?.strategy
                                 const OCTrue = strategyData?.OC
                                 const TPTrue = strategyData?.TP
-
 
                                 if (strategy) {
 
@@ -1016,7 +1012,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         }
 
                                         if (orderStatus === "PartiallyFilled") {
-                                            console.log(changeColorConsole.blue(`[V] PartiallyFilled-Order OrderID( ${botName} - ${dataMain.side} - ${symbol} ):`, dataMain.qty));
+                                            console.log(changeColorConsole.blueBright(`[V] PartiallyFilled-Order OrderID( ${botName} - ${dataMain.side} - ${symbol} ):`, dataMain.qty));
                                         }
                                     }
 
@@ -1078,7 +1074,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
                                 missTPDataBySymbol[botSymbolMissID].sizeTotal = size
-                                
+
                                 if (size > 0) {
                                     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
                                     missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
@@ -1139,7 +1135,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 if (!missTPDataBySymbol[botSymbolMissID]?.orderID) {
 
                                                     const teleText = `<b>⚠️ [ MISS ] | ${symbol.replace("USDT", "")}</b> - ${side} - Bot: ${botName} - PnL: ${dataMain.unrealisedPnl} \n`
-                                                    console.log(changeColorConsole.redBright(`\n${teleText}\n`));
+                                                    console.log(changeColorConsole.redBright(`\n${teleText.slice(5)}\n`));
 
                                                     // const TPNew = missTPDataBySymbol[botSymbolMissID].priceOrderTP
                                                     let TPNew = openTrade
@@ -1204,7 +1200,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         }
                                         else {
                                             const teleText = `<b>⚠️ [ MISS ] | ${symbol.replace("USDT", "")}</b> - ${side} - Bot: ${botName} - PnL: ${dataMain.unrealisedPnl} \n`
-                                            console.log(changeColorConsole.redBright(`\n${teleText}\n`));
+                                            console.log(changeColorConsole.redBright(`\n${teleText.slice(5)}\n`));
                                             updatePositionBE({
                                                 newDataUpdate: {
                                                     Miss: true,
