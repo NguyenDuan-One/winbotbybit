@@ -194,13 +194,13 @@ function Strategies() {
         const newDataCheckTree = data.map(item => (
             {
                 ...item,
-                bookmarkList:item?.bookmarkList || [],
+                bookmarkList: item?.bookmarkList || [],
                 children: item?.children.length > 0 ? item?.children.map(itemChild => (
                     {
                         ...itemChild,
                         value: `${item._id}-${itemChild._id}`,
                         volume24h: item?.volume24h,
-                        
+
                     }
                 )) : item?.children
             }
@@ -277,7 +277,7 @@ function Strategies() {
                 const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
                 const checkCandle = candlestickSelectedRef.current === "All" || candlestickSelectedRef.current === item.Candlestick;
                 const checkSearch = searchDebounce === "" || data.label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
-                const checkBookmark = bookmarkCheckRef.current  ? data.bookmarkList?.includes(userData._id) : true
+                const checkBookmark = bookmarkCheckRef.current ? data.bookmarkList?.includes(userData._id) : true
 
                 return checkBotType && checkBot && checkPosition && checkCandle && checkSearch && checkBookmark;
             });
@@ -496,82 +496,82 @@ function Strategies() {
 
 
             </div>
+            <div className={styles.strategiesData}>
 
-            {
-                (dataCheckTree.length > 0 && !loadingDataCheckTree)
-                    ?
-                    <div className={styles.strategiesData}>
-                        <p
+                {!loadingDataCheckTree && <p
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        lineHeight: "100%"
+                    }}
+                >
+                    <input
+                        className={clsx(styles.checkboxStyle, "treeNodeCheckAll")}
+                        type="checkbox"
+                        onClick={e => {
+                            const check = e.target.checked
+
+                            e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeParentSelected")?.forEach(item => {
+                                item.checked = check
+                            })
+                            e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeItemSelected")?.forEach(child => {
+                                child.checked = check
+                            })
+
+                            selectAllRef.current = check
+                            if (check) {
+                                dataCheckTree.forEach(data => {
+                                    data.children?.forEach(child => {
+                                        dataCheckTreeSelectedRef.current.push(JSON.stringify({
+                                            ...child,
+                                            parentID: data._id
+                                        }))
+                                    })
+                                })
+                            }
+                            else {
+                                dataCheckTreeSelectedRef.current = []
+                            }
+                        }}
+                    />
+                    <span style={{
+                        fontWeight: "bold",
+                        color: "black",
+                        fontSize: "1.1rem"
+                    }}>All</span> <span style={{
+                        fontWeight: "600",
+                        marginLeft: "6px"
+                    }}>( {countTotalActive.countActive} / {countTotalActive.totalItem} )</span>
+
+                    <span style={{ margin: "0px 2px 3px 12px", opacity: ".6", fontSize: ".9rem" }}>|</span>
+                    <div className={styles.bookmarkAll}   >
+                        <Checkbox
+                            checked={bookmarkCheckRef.current}
                             style={{
-                                display: "flex",
-                                alignItems: "center",
-                                lineHeight: "100%"
+                                padding: " 0 6px",
                             }}
-                        >
-                            <input
-                                className={clsx(styles.checkboxStyle, "treeNodeCheckAll")}
-                                type="checkbox"
-                                onClick={e => {
-                                    const check = e.target.checked
+                            sx={{
+                                color: "#b5b5b5",
+                                '&.Mui-checked': {
+                                    color: "var(--yellowColor)",
+                                },
+                            }}
+                            onClick={e => {
+                                const value = e.target.checked;
+                                bookmarkCheckRef.current = value
+                                handleFilterAll()
+                            }}
+                            icon={<StarBorderIcon />}
+                            checkedIcon={<StarIcon />}
+                        />
+                        <span>Bookmark</span>
+                    </div>
+                </p>}
+                {
+                    (dataCheckTree.length > 0 && !loadingDataCheckTree)
+                        ?
 
-                                    e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeParentSelected")?.forEach(item => {
-                                        item.checked = check
-                                    })
-                                    e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeItemSelected")?.forEach(child => {
-                                        child.checked = check
-                                    })
-
-                                    selectAllRef.current = check
-                                    if (check) {
-                                        dataCheckTree.forEach(data => {
-                                            data.children?.forEach(child => {
-                                                dataCheckTreeSelectedRef.current.push(JSON.stringify({
-                                                    ...child,
-                                                    parentID: data._id
-                                                }))
-                                            })
-                                        })
-                                    }
-                                    else {
-                                        dataCheckTreeSelectedRef.current = []
-                                    }
-                                }}
-                            />
-                            <span style={{
-                                fontWeight: "bold",
-                                color: "black",
-                                fontSize: "1.1rem"
-                            }}>All</span> <span style={{
-                                fontWeight: "600",
-                                marginLeft: "6px"
-                            }}>( {countTotalActive.countActive} / {countTotalActive.totalItem} )</span>
-
-                            <span style={{ margin: "0px 2px 3px 12px", opacity: ".6", fontSize: ".9rem" }}>|</span>
-                            <div className={styles.bookmarkAll}   >
-                                <Checkbox
-                                checked= {bookmarkCheckRef.current}
-                                    style={{
-                                        padding: " 0 6px",
-                                    }}
-                                    sx={{
-                                        color: "#b5b5b5",
-                                        '&.Mui-checked': {
-                                            color: "var(--yellowColor)",
-                                        },
-                                    }}
-                                    onClick={e => {
-                                        const value = e.target.checked;
-                                        bookmarkCheckRef.current = value
-                                        handleFilterAll()
-                                    }}
-                                    icon={<StarBorderIcon />}
-                                    checkedIcon={<StarIcon />}
-                                />
-                                <span>Bookmark</span>
-                            </div>
-                        </p>
-
-                        {dataCheckTree.slice(0, dataTreeViewIndex).map((treeData) => {
+                        dataCheckTree.slice(0, dataTreeViewIndex).map((treeData) => {
                             return (
                                 <TreeParent
                                     dataCheckTreeSelectedRef={dataCheckTreeSelectedRef}
@@ -582,16 +582,16 @@ function Strategies() {
                                     key={treeData._id}
                                 />
                             )
-                        })}
-                    </div>
+                        })
 
-                    :
-                    <p style={{
-                        textAlign: "center",
-                        margin: "16px 0 6px",
-                        fontWeight: 500
-                    }}>{loadingDataCheckTree ? "Loading..." : "No data"}</p>
-            }
+                        :
+                        <p style={{
+                            textAlign: "center",
+                            margin: "6px 0",
+                            fontWeight: 500
+                        }}>{loadingDataCheckTree ? "Loading..." : "No data"}</p>
+                }
+            </div>
 
             <div className={styles.strategiesBtnAction}>
                 <Tooltip title="Sync Symbol" placement="left">

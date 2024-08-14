@@ -123,8 +123,7 @@ const dataCoinByBitController = {
             const { botListInput } = req.body
 
             const botList = botListInput.map(item => new mongoose.Types.ObjectId(item));
-
-
+            
             const resultFilter = await StrategiesModel.aggregate([
                 {
                     $match: {
@@ -132,40 +131,16 @@ const dataCoinByBitController = {
                     }
                 },
                 {
-                    $lookup: {
-                        from: 'bots', 
-                        localField: 'children.botID',
-                        foreignField: '_id',
-                        as: 'childrenDetails'
-                    }
-                },
-                {
-                    $unwind: '$children'
-                },
-                {
-                    $lookup: {
-                        from: 'bots', 
-                        localField: 'children.botID',
-                        foreignField: '_id',
-                        as: 'children.botID'
-                    }
-                },
-                {
-                    $unwind: '$children.botID'
-                },
-                {
-                    $match: {
-                        'children.botID.Status': 'Running'
-                    }
-                },
-                {
-                    $group: {
-                        _id: '$_id',
-                        label: { $first: '$label' },
-                        value: { $first: '$value' },
-                        volume24h: { $first: '$volume24h' },
-                        bookmarkList: { $first: '$bookmarkList' },
-                        children: { $push: '$children' }
+                    $addFields: {
+                        children: {
+                            $filter: {
+                                input: "$children",
+                                as: "child",
+                                cond: {
+                                    $in: ["$$child.botID", botList]
+                                }
+                            }
+                        }
                     }
                 },
                 {
@@ -178,11 +153,7 @@ const dataCoinByBitController = {
                                 args: ["$children"],
                                 lang: "js"
                             }
-                        }
-                    }
-                },
-                {
-                    $addFields: {
+                        },
                         hasUserID: {
                             $cond: {
                                 if: { $in: [userID, { $ifNull: ["$bookmarkList", []] }] },
@@ -194,8 +165,8 @@ const dataCoinByBitController = {
                 },
                 {
                     $sort: {
-                        hasUserID: -1,
-                        label: 1
+                        hasUserID: -1,  
+                        label: 1       
                     }
                 },
                 {
@@ -209,7 +180,21 @@ const dataCoinByBitController = {
                 }
             ]);
             
-            const handleResult = resultFilter;
+
+            const result = await StrategiesModel.populate(resultFilter, {
+                path: 'children.botID',
+            })
+
+            const handleResult = result.reduce((result, child) => {
+                if (child.children.some(childData => childData.botID.Status === "Running")) {
+                    result.push({
+                        ...child,
+                        children: child.children.filter(item => item.botID.Status === "Running")
+                    })
+                }
+                return result
+            }, []) || []
+
 
             res.customResponse(res.statusCode, "Get All Strategies Successful", handleResult);
 
