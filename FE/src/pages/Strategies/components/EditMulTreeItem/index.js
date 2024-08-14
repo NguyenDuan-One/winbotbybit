@@ -175,7 +175,7 @@ function EditMulTreeItem({
     const addFilterRow = () => {
         setFilterDataRowList(filterRowList => [
             ...filterRowList,
-            fieldFilterList[2]
+            fieldFilterList[0]
         ])
     }
 

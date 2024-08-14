@@ -471,6 +471,7 @@ async function handleCancelAllOrderOC({
 
     if (items.length > 0) {
         console.log(`[...] Canceling OC`);
+        console.log("items", items.length);
 
         let index = 0;
         while (index < items.length) {
@@ -793,44 +794,11 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                         const botSymbolMissID = `${botID}-${symbol}`
 
-                        if (!orderID && (orderStatus === "New" || orderStatus === "Filled") && dataMain.orderType !== "Market") {
-
-                            console.log(`[...] Close Limit From Web ( ${botName} - ${symbol} )`);
-
-                            const botSymbolMissID = `${botID}-${symbol}`
-
-                            const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
-
-                            listMiss?.length > 0 && await handleCancelAllOrderTP({
-                                items: listMiss.map((orderIdTPData) => ({
-                                    ApiKey,
-                                    SecretKey,
-                                    strategyID: orderIdTPData?.strategyID,
-                                    symbol,
-                                    side: dataMain.side,
-                                    orderId: orderIdTPData?.orderID,
-                                    botID,
-                                    botName
-                                }))
-                            })
-
-                            !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
-
-                            missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
-
-                            missTPDataBySymbol[botSymbolMissID].orderIDOfListTP = []
-
-                            missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
-                                orderID: dataMain.orderId,
-                            })
-                            missTPDataBySymbol[botSymbolMissID].size = Math.abs(dataMain.qty)
-                        }
-
                         if (orderStatus === "Filled") {
                             console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
                         }
                         if (orderStatus === "PartiallyFilled") {
-                            console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
+                            console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, dataCoin.topic));
                         }
 
                         if (ApiKey && SecretKey) {
@@ -1096,53 +1064,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                     }
                                 }
                             }
-                            // User cancel vị thế
-                            if (dataMain.orderType === "Market") {
-                                const side = dataMain.side
-                                console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế`)
 
-                                const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
-
-                                listMiss?.length > 0 && await handleCancelAllOrderTP({
-                                    items: listMiss.map((orderIdTPData) => ({
-                                        ApiKey,
-                                        SecretKey,
-                                        strategyID: orderIdTPData?.strategyID,
-                                        symbol,
-                                        side: dataMain.side,
-                                        orderId: orderIdTPData?.orderID,
-                                        botID,
-                                        botName
-                                    }))
-                                })
-
-                                if (missTPDataBySymbol[botSymbolMissID]?.orderID) {
-                                    console.log(`[...] Cancel Position MISS`);
-                                    handleCancelOrderTP(
-                                        {
-                                            strategyID,
-                                            symbol: strategy.symbol,
-                                            side,
-                                            orderId: missTPDataBySymbol[botSymbolMissID].orderID,
-                                            candle: strategy.Candlestick,
-                                            ApiKey,
-                                            SecretKey,
-                                            botName,
-                                            botID
-                                        }
-                                    )
-                                }
-
-                                if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                    deletePositionBE({
-                                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                    }).then(message => {
-                                        console.log(message);
-                                    }).catch(err => {
-                                        console.log("ERROR deletePositionBE:", err)
-                                    })
-                                }
-                            }
 
                             else if (dataCoin.topic === "position") {
 
@@ -1297,6 +1219,87 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
                                 }
                             }
+
+                            // User cancel vị thế ( Limit )
+                            if (!orderID && (orderStatus === "New" || orderStatus === "Filled") && dataMain.orderType !== "Market") {
+
+                                console.log(`[...] Close Limit From Web ( ${botName} - ${symbol} )`);
+
+                                const botSymbolMissID = `${botID}-${symbol}`
+
+                                const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
+
+                                listMiss?.length > 0 && await handleCancelAllOrderTP({
+                                    items: listMiss.map((orderIdTPData) => ({
+                                        ApiKey,
+                                        SecretKey,
+                                        strategyID: orderIdTPData?.strategyID,
+                                        symbol,
+                                        side: dataMain.side,
+                                        orderId: orderIdTPData?.orderID,
+                                        botID,
+                                        botName
+                                    }))
+                                })
+
+                                !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
+
+                                missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
+
+                                missTPDataBySymbol[botSymbolMissID].orderIDOfListTP = []
+
+                                missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
+                                    orderID: dataMain.orderId,
+                                })
+                                missTPDataBySymbol[botSymbolMissID].size = Math.abs(dataMain.qty)
+                            }
+                            // User cancel vị thế ( Market )
+                            if (dataMain.orderType === "Market") {
+                                const side = dataMain.side
+                                console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế`)
+
+                                const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
+
+                                listMiss?.length > 0 && await handleCancelAllOrderTP({
+                                    items: listMiss.map((orderIdTPData) => ({
+                                        ApiKey,
+                                        SecretKey,
+                                        strategyID: orderIdTPData?.strategyID,
+                                        symbol,
+                                        side: dataMain.side,
+                                        orderId: orderIdTPData?.orderID,
+                                        botID,
+                                        botName
+                                    }))
+                                })
+
+                                if (missTPDataBySymbol[botSymbolMissID]?.orderID) {
+                                    console.log(`[...] Cancel Position MISS`);
+                                    handleCancelOrderTP(
+                                        {
+                                            strategyID,
+                                            symbol: strategy.symbol,
+                                            side,
+                                            orderId: missTPDataBySymbol[botSymbolMissID].orderID,
+                                            candle: strategy.Candlestick,
+                                            ApiKey,
+                                            SecretKey,
+                                            botName,
+                                            botID
+                                        }
+                                    )
+                                }
+
+                                if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+                                    deletePositionBE({
+                                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                    }).then(message => {
+                                        console.log(message);
+                                    }).catch(err => {
+                                        console.log("ERROR deletePositionBE:", err)
+                                    })
+                                }
+                            }
                         }
 
                         else {
@@ -1402,7 +1405,6 @@ const handleSocketListKline = async (listKlineInput) => {
 
                                 if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime >= 250) {
 
-                                    trichMauOCListObject[symbolCandleID].preTime = new Date()
 
                                     const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
@@ -1446,6 +1448,9 @@ const handleSocketListKline = async (listKlineInput) => {
                                     }
 
                                     trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
+
+                                    trichMauOCListObject[symbolCandleID].preTime = new Date()
+
                                 }
 
 
