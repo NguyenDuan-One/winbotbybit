@@ -587,8 +587,9 @@ function Strategies() {
                         :
                         <p style={{
                             textAlign: "center",
-                            margin: "6px 0",
-                            fontWeight: 500
+                            margin: "16px 0 6px",
+                            fontWeight: 500,
+                            opacity: ".6"
                         }}>{loadingDataCheckTree ? "Loading..." : "No data"}</p>
                 }
             </div>
