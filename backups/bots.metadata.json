@@ -1,1 +1,0 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"ApiKey":{"$numberInt":"1"}},"name":"ApiKey_1","background":true,"unique":true}],"uuid":"50589ddde8c543f5ac54d55e91fad652","collectionName":"bots","type":"collection"}

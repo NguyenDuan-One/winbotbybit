@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "archiver": "^7.0.1",
     "bcrypt": "^5.1.1",
     "bybit-api": "^3.10.3",
     "cli-color": "^2.0.4",

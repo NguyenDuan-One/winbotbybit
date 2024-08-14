@@ -465,7 +465,7 @@ const handleCancelOrderOC = async ({
 
 
 async function handleCancelAllOrderOC({
-    items,
+    items = [],
     batchSize = 10
 }) {
 
