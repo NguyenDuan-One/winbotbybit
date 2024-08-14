@@ -817,7 +817,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                     const strategyID = strategy.value
                                     // const coinOpenOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen || strategy.coinOpen
 
-                                    if (orderStatus === "Filled") {
+                                    if (orderStatus === "Filled" || orderStatus === "PartiallyFilled") {
 
                                         if (OCTrue) {
 
@@ -975,11 +975,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
 
-                                            console.log("QTY",qty);
-                                            console.log("missTPDataBySymbol[botSymbolMissID]?.sizeTotal",missTPDataBySymbol[botSymbolMissID]?.sizeTotal);
-                                            console.log("missTPDataBySymbol[botSymbolMissID]?.size",missTPDataBySymbol[botSymbolMissID]?.size);
-                                            
-
                                             // Fill toàn bộ
                                             if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
                                                 console.log(`\n[_FULL Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
@@ -1019,9 +1014,10 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
 
                                         }
-                                    }
-                                    else if (orderStatus === "PartiallyFilled") {
-                                        console.log(changeColorConsole.blue(`[V] PartiallyFilled-Order OrderID( ${botName} - ${dataMain.side} - ${symbol} ):`, dataMain.qty));
+
+                                        if (orderStatus === "PartiallyFilled") {
+                                            console.log(changeColorConsole.blue(`[V] PartiallyFilled-Order OrderID( ${botName} - ${dataMain.side} - ${symbol} ):`, dataMain.qty));
+                                        }
                                     }
 
                                     else if (orderStatus === "Cancelled") {
