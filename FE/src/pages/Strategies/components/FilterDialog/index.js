@@ -184,7 +184,7 @@ function FilterDialog({
     const addFilterRow = () => {
         setFilterDataRowList(filterRowList => [
             ...filterRowList,
-            fieldFilterList[fieldFilterList.length - 1]
+            fieldFilterList[fieldFilterList.length - 2]
         ])
     }
 
@@ -406,7 +406,7 @@ function FilterDialog({
         if (filterLength > 0) {
             setFilterDataRowList(filterQuantityRef.current)
         } else {
-            setFilterDataRowList([fieldFilterList[fieldFilterList.length - 2]])
+            setFilterDataRowList([fieldFilterList[2]])
         }
     }, [filterQuantityRef]);
 

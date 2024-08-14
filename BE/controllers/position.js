@@ -236,13 +236,13 @@ const PositionController = {
                         orderID: positionData.id
                     })
 
-                    PositionController.sendDataRealtime({
-                        type: "close-limit",
-                        data: {
-                            positionData,
-                            newOrderID: response.result.orderId
-                        }
-                    })
+                    // PositionController.sendDataRealtime({
+                    //     type: "close-limit",
+                    //     data: {
+                    //         positionData,
+                    //         newOrderID: response.result.orderId
+                    //     }
+                    // })
                     res.customResponse(200, "Close Limit Successful");
 
                 }

@@ -459,7 +459,9 @@ const handleCancelOrderOC = async ({
             .catch((error) => {
                 console.log(`[!] Cancel order ( ${botName} - ${side} -  ${symbol} - ${candle} ) error `, error)
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = ""
-            });
+
+            })
+    listOCByBot[botID]?.list?.[strategyID] && delete listOCByBot[botID].list[strategyID]
 
 }
 
@@ -470,8 +472,6 @@ async function handleCancelAllOrderOC({
 }) {
 
     if (items.length > 0) {
-        console.log(`[...] Canceling OC`);
-        console.log("items", items.length);
 
         let index = 0;
         while (index < items.length) {
@@ -975,6 +975,11 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             missTPDataBySymbol[botSymbolMissID].size -= Math.abs(qty)
 
+                                            console.log("QTY",qty);
+                                            console.log("missTPDataBySymbol[botSymbolMissID]?.sizeTotal",missTPDataBySymbol[botSymbolMissID]?.sizeTotal);
+                                            console.log("missTPDataBySymbol[botSymbolMissID]?.size",missTPDataBySymbol[botSymbolMissID]?.size);
+                                            
+
                                             // Fill toàn bộ
                                             if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal == qty || missTPDataBySymbol[botSymbolMissID]?.size == 0) {
                                                 console.log(`\n[_FULL Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
@@ -1004,6 +1009,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 console.log(`\n[_Part Filled_] Filled TP ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )\n`);
                                             }
 
+                                            cancelAll({ strategyID, botID })
 
                                             sendMessageWithRetry({
                                                 messageText: `${teleText} \n${textWinLose}`,
@@ -1011,9 +1017,11 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 telegramToken,
                                             })
 
-                                            cancelAll({ strategyID, botID })
 
                                         }
+                                    }
+                                    else if (orderStatus === "PartiallyFilled") {
+                                        console.log(changeColorConsole.blue(`[V] PartiallyFilled-Order OrderID( ${botName} - ${dataMain.side} - ${symbol} ):`, dataMain.qty));
                                     }
 
                                     else if (orderStatus === "Cancelled") {
@@ -1070,9 +1078,11 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                 const size = Math.abs(dataMain.size)
 
-                                // if (size > 0 && strategy.Candlestick === missTPDataBySymbol[botSymbolMissID].Candlestick) {
+
                                 !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
+                                missTPDataBySymbol[botSymbolMissID].sizeTotal = size
+                                
                                 if (size > 0) {
                                     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
                                     missTPDataBySymbol[botSymbolMissID].timeOutFunc = setTimeout(async () => {
@@ -1081,13 +1091,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         const symbol = dataMain.symbol
                                         const side = dataMain.side
                                         const openTrade = +dataMain.entryPrice  //Gia khop lenh
+                                        const size = Math.abs(dataMain.size)
 
                                         const missSize = size - missTPDataBySymbol[botSymbolMissID].size
-
                                         missTPDataBySymbol[botSymbolMissID].sizeTotal = size
 
                                         const Quantity = side === "Buy" ? size : (size * -1)
-
 
                                         if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
 
@@ -1223,7 +1232,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                             // User cancel vị thế ( Limit )
                             if (!orderID && (orderStatus === "New" || orderStatus === "Filled") && dataMain.orderType !== "Market") {
 
-                                console.log(`[...] Close Limit From Web ( ${botName} - ${symbol} )`);
+                                console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế (Limit) - ( ${symbol} )`)
 
                                 const botSymbolMissID = `${botID}-${symbol}`
 
@@ -1256,7 +1265,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                             // User cancel vị thế ( Market )
                             if (dataMain.orderType === "Market") {
                                 const side = dataMain.side
-                                console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế`)
+                                console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế (Market) - ( ${symbol} )`)
 
                                 const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
 
@@ -2782,42 +2791,42 @@ socketRealtime.on('sync-symbol', async (newData) => {
 
 });
 
-socketRealtime.on("close-limit", async (data) => {
-    const { positionData, newOrderID } = data
+// socketRealtime.on("close-limit", async (data) => {
+//     const { positionData, newOrderID } = data
 
-    const symbol = positionData.Symbol
-    const botName = positionData.BotName
-    const botID = positionData.botID
-    console.log(`[...] Close Limit ( ${botName} - ${symbol} )`);
+//     const symbol = positionData.Symbol
+//     const botName = positionData.BotName
+//     const botID = positionData.botID
+//     console.log(`[...] Close Limit ( ${botName} - ${symbol} )`);
 
-    const botSymbolMissID = `${botID}-${symbol}`
+//     const botSymbolMissID = `${botID}-${symbol}`
 
-    const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
+//     const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
 
-    listMiss?.length > 0 && await Promise.allSettled(listMiss.map((orderIdTPData) => {
-        handleCancelOrderTP({
-            ApiKey: positionData.botData.ApiKey,
-            SecretKey: positionData.botData.SecretKey,
-            strategyID: orderIdTPData?.strategyID,
-            symbol,
-            side: positionData.Side,
-            orderId: orderIdTPData?.orderID,
-            botID,
-            botName
-        })
-    }))
-    !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
+//     listMiss?.length > 0 && await Promise.allSettled(listMiss.map((orderIdTPData) => {
+//         handleCancelOrderTP({
+//             ApiKey: positionData.botData.ApiKey,
+//             SecretKey: positionData.botData.SecretKey,
+//             strategyID: orderIdTPData?.strategyID,
+//             symbol,
+//             side: positionData.Side,
+//             orderId: orderIdTPData?.orderID,
+//             botID,
+//             botName
+//         })
+//     }))
+//     !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
-    missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
+//     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
-    missTPDataBySymbol[botSymbolMissID].orderIDOfListTP = []
+//     missTPDataBySymbol[botSymbolMissID].orderIDOfListTP = []
 
-    missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
-        orderID: newOrderID,
-    })
-    missTPDataBySymbol[botSymbolMissID].size = Math.abs(positionData.Quantity)
+//     missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
+//         orderID: newOrderID,
+//     })
+//     missTPDataBySymbol[botSymbolMissID].size = Math.abs(positionData.Quantity)
 
-})
+// })
 
 socketRealtime.on('close-upcode', async () => {
 
