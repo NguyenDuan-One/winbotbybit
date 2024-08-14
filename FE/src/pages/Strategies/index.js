@@ -119,6 +119,7 @@ function Strategies() {
     const positionSideSelectedRef = useRef("All")
     const candlestickSelectedRef = useRef("All")
     const selectAllRef = useRef(false)
+    const bookmarkCheckRef = useRef(false)
 
     const dispatch = useDispatch()
 
@@ -193,11 +194,13 @@ function Strategies() {
         const newDataCheckTree = data.map(item => (
             {
                 ...item,
+                bookmarkList:item?.bookmarkList || [],
                 children: item?.children.length > 0 ? item?.children.map(itemChild => (
                     {
                         ...itemChild,
                         value: `${item._id}-${itemChild._id}`,
-                        volume24h: item?.volume24h
+                        volume24h: item?.volume24h,
+                        
                     }
                 )) : item?.children
             }
@@ -274,8 +277,9 @@ function Strategies() {
                 const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
                 const checkCandle = candlestickSelectedRef.current === "All" || candlestickSelectedRef.current === item.Candlestick;
                 const checkSearch = searchDebounce === "" || data.label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
+                const checkBookmark = bookmarkCheckRef.current  ? data.bookmarkList?.includes(userData._id) : true
 
-                return checkBotType && checkBot && checkPosition && checkCandle && checkSearch;
+                return checkBotType && checkBot && checkPosition && checkCandle && checkSearch && checkBookmark;
             });
 
             if (filteredChildren.length > 0) {
@@ -327,10 +331,7 @@ function Strategies() {
         setSearchKey("")
     }
 
-    // const handleFilterBookmark = (checked) => {
-    //     const newDataCheckTree = checked ? dataCheckTree.filter(item => item.bookmarkList?.includes(userData._id)) : dataCheckTreeDefaultRef.current
-    //     setDataCheckTree(newDataCheckTree)
-    // }
+
     const searchDebounce = useDebounce(searchKey)
 
     useEffect(() => {
@@ -545,14 +546,10 @@ function Strategies() {
                                 marginLeft: "6px"
                             }}>( {countTotalActive.countActive} / {countTotalActive.totalItem} )</span>
 
-                            {/* <span style={{ margin: "0px 2px 3px 12px", opacity: ".6", fontSize: ".9rem" }}>|</span>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    fontWeight: 500
-                                }}>
+                            <span style={{ margin: "0px 2px 3px 12px", opacity: ".6", fontSize: ".9rem" }}>|</span>
+                            <div className={styles.bookmarkAll}   >
                                 <Checkbox
+                                checked= {bookmarkCheckRef.current}
                                     style={{
                                         padding: " 0 6px",
                                     }}
@@ -562,14 +559,16 @@ function Strategies() {
                                             color: "var(--yellowColor)",
                                         },
                                     }}
-                                    onClick={e=>{
-                                        handleFilterBookmark(e.target.checked);
+                                    onClick={e => {
+                                        const value = e.target.checked;
+                                        bookmarkCheckRef.current = value
+                                        handleFilterAll()
                                     }}
                                     icon={<StarBorderIcon />}
                                     checkedIcon={<StarIcon />}
                                 />
                                 <span>Bookmark</span>
-                            </div> */}
+                            </div>
                         </p>
 
                         {dataCheckTree.slice(0, dataTreeViewIndex).map((treeData) => {

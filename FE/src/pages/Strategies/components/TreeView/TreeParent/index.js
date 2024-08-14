@@ -187,6 +187,19 @@ function TreeParent({
                 status: status,
                 message: message,
             }))
+
+            if (status === 200) {
+                
+                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+                    if (data._id === treeData._id) {
+                        return {
+                            ...treeData,
+                            bookmarkList: treeData.bookmarkList.concat(userData._id)
+                        }
+                    }
+                    return data
+                })
+            }
         }
         catch (err) {
             dispatch(addMessageToast({
@@ -205,6 +218,19 @@ function TreeParent({
                 status: status,
                 message: message,
             }))
+
+            if (status === 200) {
+                
+                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+                    if (data._id === treeData._id) {
+                        return {
+                            ...treeData,
+                            bookmarkList: treeData.bookmarkList.filter(item => item !== userData._id)
+                        }
+                    }
+                    return data
+                })
+            }
         }
         catch (err) {
             dispatch(addMessageToast({
@@ -214,6 +240,7 @@ function TreeParent({
         }
         closeDeleteDialog()
     }
+
     return (
         <div className={styles.treeParent}  >
             <div style={{
