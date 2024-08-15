@@ -721,8 +721,8 @@ const getMoneyFuture = async (botApiListInput) => {
     }
 }
 
-const sendAllBotTelegram = async () => {
-    const text = "<b>❗ BTC đang biến động 0.7% [1m] ❗</b>"
+const sendAllBotTelegram = async (BTCPricePercent) => {
+    const text = `<b>❗ BTC đang biến động ${BTCPricePercent}% [1m] ❗</b>`
     console.log(text);
     await Promise.allSettled(Object.values(botApiList).map(botApiData => {
 
@@ -797,7 +797,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                         if (orderStatus === "Filled") {
                             console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
                         }
-
+                        if (orderStatus === "PartiallyFilled") {
+                            console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID( ${botName} - ${dataMain.side} - ${symbol} - ${strategy.Candlestick} ):`, dataMain.qty));
+                        }
                         if (ApiKey && SecretKey) {
 
                             if (dataCoin.topic === "order") {
@@ -808,9 +810,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 const OCTrue = strategyData?.OC
                                 const TPTrue = strategyData?.TP
 
-                                if (orderStatus === "PartiallyFilled") {
-                                    console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID( ${botName} - ${dataMain.side} - ${symbol} - ${strategy.Candlestick} ):`, dataMain.qty));
-                                }
+                                
                                 if (strategy) {
 
                                     const strategyID = strategy.value
@@ -1358,10 +1358,18 @@ const handleSocketListKline = async (listKlineInput) => {
                     const newCheckBTC07Price = Math.round(BTCPricePercent)
                     if (newCheckBTC07Price !== checkBTC07Price) {
                         checkBTC07Price = newCheckBTC07Price
-                        sendAllBotTelegram()
+                        sendAllBotTelegram(BTCPricePercent.toFixed(2))
                     }
                     if (BTCPricePercent >= 1) {
-                        const newNangOCValue = Math.ceil(BTCPricePercent) * 5
+                        const newNangOCValue = Math.round(BTCPricePercent) * 5
+
+                        if (newNangOCValue !== nangOCValue) {
+                            nangOCValue = newNangOCValue
+                            checkOrderOCAll = false
+                        }
+                    }
+                    else if (BTCPricePercent >= 0.7) {
+                        const newNangOCValue = 1
 
                         if (newNangOCValue !== nangOCValue) {
                             nangOCValue = newNangOCValue
