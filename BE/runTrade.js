@@ -165,7 +165,7 @@ const handleSubmitOrder = async ({
 
                     const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
 
-                    const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price}`
+                    const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${orderLinkId}`
                     console.log(text)
                     // console.log(changeColorConsole.greenBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ): ${newOrderLinkID}`));
 
@@ -281,7 +281,7 @@ const handleSubmitOrderTP = async ({
                 }
 
 
-                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price} - ${qty}`)
+                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${orderLinkId} - ${qty}`)
                 // console.log(changeColorConsole.greenBright(`[_TP orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ): ${newOrderLinkID}`));
 
             }
