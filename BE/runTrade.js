@@ -1837,7 +1837,7 @@ const handleSocketListKline = async (listKlineInput) => {
             else {
                 console.log(changeColorConsole.greenBright("[...] START NÂNG OC"));
 
-                await Promise.allSettled(
+                const nangAllOC =  Promise.allSettled(
                     allSymbol.map(async symbolItem => {
                         const symbol = symbolItem.value
                         return Promise.allSettled([1, 3, 5, 15].map(candle => {
@@ -1862,9 +1862,11 @@ const handleSocketListKline = async (listKlineInput) => {
                 console.log(changeColorConsole.greenBright("[V] NÂNG OC XONG"));
 
                 console.log("[...] Canceling All OC");
-                await Promise.allSettled(Object.values(listOCByBot).map(item => {
+                const cancelAllOC =  Promise.allSettled(Object.values(listOCByBot).map(item => {
                     Object.values(item?.list || {})?.length > 0 && handleCancelAllOrderOC({ items: Object.values(item.list) || [] })
                 }))
+
+                await Promise.allSettled([nangAllOC, cancelAllOC])
                 console.log("[V] Cancel All OC Successful");
 
                 checkOrderOCAll = true
