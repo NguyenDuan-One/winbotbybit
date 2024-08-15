@@ -808,13 +808,16 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 const OCTrue = strategyData?.OC
                                 const TPTrue = strategyData?.TP
 
+                                if (orderStatus === "PartiallyFilled") {
+                                    console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID( ${botName} - ${dataMain.side} - ${symbol} - ${strategy.Candlestick} ):`, dataMain.qty));
+                                }
                                 if (strategy) {
 
                                     const strategyID = strategy.value
                                     // const coinOpenOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen || strategy.coinOpen
 
-                                    if (orderStatus === "Filled" || orderStatus === "PartiallyFilled") {
-
+                                    if (orderStatus === "Filled") {
+                                        
                                         if (OCTrue) {
 
                                             const coinOpenOC = strategyData.coinOpen
@@ -826,7 +829,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade = openTrade
 
                                             const sideText = strategy.PositionSide === "Long" ? "Buy" : "Sell"
-
 
                                             const qty = dataMain.qty
 
