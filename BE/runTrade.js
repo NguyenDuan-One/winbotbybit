@@ -197,7 +197,7 @@ const handleSubmitOrder = async ({
 
                 allStrategiesByBotIDOrderOC[botID].logError = false
                 allStrategiesByBotIDOrderOC[botID].totalOC = 0
-            }, 1000)
+            }, 20 *1000)
         }
     }
 }
@@ -1341,6 +1341,14 @@ const handleSocketListKline = async (listKlineInput) => {
 
         console.log("[V] Subscribe kline successful\n");
 
+        let cancelingAll = {};
+
+        [1,3,5,15].forEach(candleItem=>{
+            cancelingAll[candleItem] = {
+                canceling:false
+            }
+        });
+
         wsSymbol.on('update', async (dataCoin) => {
 
             const [_, candle, symbol] = dataCoin.topic.split(".");
@@ -1348,6 +1356,9 @@ const handleSocketListKline = async (listKlineInput) => {
             const dataMain = dataCoin.data[0]
             const coinOpen = +dataMain.open
             const coinCurrent = +dataMain.close
+
+            const symbolCandleID = `${symbol}-${candle}`
+
 
             if (symbol === "BTCUSDT" && candle == 1) {
                 const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open) * 100
@@ -1404,7 +1415,6 @@ const handleSocketListKline = async (listKlineInput) => {
 
                         const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
-                        const symbolCandleID = `${symbol}-${candle}`
 
                         if (dataMain.confirm == false && strategy.IsActive) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
@@ -1771,28 +1781,6 @@ const handleSocketListKline = async (listKlineInput) => {
                         // Coin CLosed
                         else if (dataMain.confirm == true) {
 
-                            const coinClose = +dataMain.close
-
-                            listPricePreOne[symbolCandleID] = {
-                                open: +dataMain.open,
-                                close: coinClose,
-                                high: +dataMain.high,
-                                low: +dataMain.low,
-                            }
-
-                            if (!listOCByBot[botID].canceling) {
-
-                                listOCByBot[botID].canceling = true
-
-                                listOCByBot[botID].timeout = setTimeout(() => {
-                                    listOCByBot[botID].canceling = false
-                                }, 20000)
-
-                                Object.values(listOCByBot[botID]?.list || {})?.length > 0 && handleCancelAllOrderOC({ items: Object.values(listOCByBot[botID].list) || [] })
-
-                            }
-
-
                             // TP chưa khớp -> Dịch TP mới
 
                             if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
@@ -1822,17 +1810,6 @@ const handleSocketListKline = async (listKlineInput) => {
                                     botName,
                                     botID
                                 })
-                            }
-
-
-
-                            trichMauOCListObject[symbolCandleID] = {
-                                maxPrice: 0,
-                                minPrice: [],
-                                prePrice: 0,
-                                coinColor: [],
-                                curTime: 0,
-                                preTime: 0,
                             }
 
                         }
@@ -1902,6 +1879,41 @@ const handleSocketListKline = async (listKlineInput) => {
                 }, 5 * 60 * 1000)
             }
 
+            if (dataMain.confirm == true) {
+
+                const coinClose = +dataMain.close
+
+                listPricePreOne[symbolCandleID] = {
+                    open: +dataMain.open,
+                    close: coinClose,
+                    high: +dataMain.high,
+                    low: +dataMain.low,
+                }
+
+                trichMauOCListObject[symbolCandleID] = {
+                    maxPrice: 0,
+                    minPrice: [],
+                    prePrice: 0,
+                    coinColor: [],
+                    curTime: 0,
+                    preTime: 0,
+                }
+
+                if (!cancelingAll[candle].canceling) {
+
+                    cancelingAll[candle].canceling = true
+
+                    cancelingAll[candle].timeout = setTimeout(() => {
+                        cancelingAll[candle].canceling = false
+                    }, 20000)
+
+                   const listMain =  Object.values(listOCByBot)
+                   listMain.length > 0 && Promise.allSettled(listMain.map(item=>{
+                    
+                    handleCancelAllOrderOC({items:Object.values(item.list || {}).filter(listItem=>listItem.candle == `${candle}m`)})
+                   }))
+                }
+            }
             // Xử lý miss
 
             // if (dataMain.confirm == true && topic.includes(`kline.1`)) {
@@ -2833,7 +2845,6 @@ socketRealtime.on('sync-symbol', async (newData) => {
 socketRealtime.on('close-upcode', async () => {
 
     console.log(`[...] Close All Bot For Upcode`);
-    const listOrderOC = []
 
     await Promise.allSettled(
         allSymbol.map(async symbolItem => {
@@ -2848,18 +2859,6 @@ socketRealtime.on('close-upcode', async () => {
                             IsActive: false
                         }
 
-                        allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && listOrderOC.push(
-                            {
-                                strategyID,
-                                symbol,
-                                ApiKey: strategy.botID.ApiKey,
-                                SecretKey: strategy.botID.SecretKey,
-                                botName: strategy.botID.botName,
-                                botID: strategy.botID._id,
-                                side: strategy.PositionSide,
-                                candle
-                            }
-                        )
                     }))
                 }
             }))
@@ -2867,7 +2866,9 @@ socketRealtime.on('close-upcode', async () => {
         ))
 
     console.log("[...] Canceling All OC");
-    await handleCancelAllOrderOC({ items: listOrderOC })
+    await  Promise.allSettled(Object.values(listOCByBot).map(item => {
+        Object.values(item?.list || {})?.length > 0 && handleCancelAllOrderOC({ items: Object.values(item.list) || [] })
+    }))
     console.log("[V] Cancel All OC Successful");
 
     console.log("PM2 Kill Successful");
