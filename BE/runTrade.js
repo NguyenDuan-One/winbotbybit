@@ -194,10 +194,9 @@ const handleSubmitOrder = async ({
             console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
             allStrategiesByBotIDOrderOC[botID].logError = true
             setTimeout(() => {
-
                 allStrategiesByBotIDOrderOC[botID].logError = false
                 allStrategiesByBotIDOrderOC[botID].totalOC = 0
-            }, 20 *1000)
+            }, 1000)
         }
     }
 }
@@ -387,35 +386,32 @@ const handleMoveOrderTP = async ({
     const sideText = side === "Buy" ? "Sell" : "buy"
     const symbol = strategy.symbol
 
-    if (allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID) {
+    const TPOld = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.price
 
-        const TPOld = allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.price
-
-        let TPNew
-        if (strategy.PositionSide === "Long") {
-            TPNew = TPOld - Math.abs(TPOld - coinOpen) * (strategy.ReduceTakeProfit / 100)
-        }
-        else {
-            TPNew = TPOld + Math.abs(TPOld - coinOpen) * (strategy.ReduceTakeProfit / 100)
-        }
-
-        allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = TPNew
-
-        const dataInput = {
-            strategyID,
-            symbol,
-            price: TPNew.toFixed(strategy.digit),
-            orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID,
-            candle,
-            side: sideText,
-            ApiKey,
-            SecretKey,
-            botName,
-            botID
-        }
-        await moveOrderTP(dataInput)
-
+    let TPNew
+    if (strategy.PositionSide === "Long") {
+        TPNew = TPOld - Math.abs(TPOld - coinOpen) * (strategy.ReduceTakeProfit / 100)
     }
+    else {
+        TPNew = TPOld + Math.abs(TPOld - coinOpen) * (strategy.ReduceTakeProfit / 100)
+    }
+
+    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = TPNew
+
+    const dataInput = {
+        strategyID,
+        symbol,
+        price: TPNew.toFixed(strategy.digit),
+        orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID,
+        candle,
+        side: sideText,
+        ApiKey,
+        SecretKey,
+        botName,
+        botID
+    }
+    await moveOrderTP(dataInput)
+
 }
 
 const handleCancelOrderOC = async ({
@@ -1343,9 +1339,9 @@ const handleSocketListKline = async (listKlineInput) => {
 
         let cancelingAll = {};
 
-        [1,3,5,15].forEach(candleItem=>{
+        [1, 3, 5, 15].forEach(candleItem => {
             cancelingAll[candleItem] = {
-                canceling:false
+                canceling: false
             }
         });
 
@@ -1358,7 +1354,6 @@ const handleSocketListKline = async (listKlineInput) => {
             const coinCurrent = +dataMain.close
 
             const symbolCandleID = `${symbol}-${candle}`
-
 
             if (symbol === "BTCUSDT" && candle == 1) {
                 const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open) * 100
@@ -1781,6 +1776,8 @@ const handleSocketListKline = async (listKlineInput) => {
                         // Coin CLosed
                         else if (dataMain.confirm == true) {
 
+                            const coinClose = +dataMain.close
+
                             // TP chưa khớp -> Dịch TP mới
 
                             if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
@@ -1797,7 +1794,6 @@ const handleSocketListKline = async (listKlineInput) => {
                                 }
 
                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = newPriceCompare
-
 
                                 !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID].TP.moveSuccess && handleMoveOrderTP({
                                     ApiKey,
@@ -1907,11 +1903,11 @@ const handleSocketListKline = async (listKlineInput) => {
                         cancelingAll[candle].canceling = false
                     }, 20000)
 
-                   const listMain =  Object.values(listOCByBot)
-                   listMain.length > 0 && Promise.allSettled(listMain.map(item=>{
-                    
-                    handleCancelAllOrderOC({items:Object.values(item.list || {}).filter(listItem=>listItem.candle == `${candle}m`)})
-                   }))
+                    const listMain = Object.values(listOCByBot)
+                    listMain.length > 0 && Promise.allSettled(listMain.map(item => {
+
+                        handleCancelAllOrderOC({ items: Object.values(item.list || {}).filter(listItem => listItem.candle == `${candle}m`) })
+                    }))
                 }
             }
             // Xử lý miss
@@ -2866,7 +2862,7 @@ socketRealtime.on('close-upcode', async () => {
         ))
 
     console.log("[...] Canceling All OC");
-    await  Promise.allSettled(Object.values(listOCByBot).map(item => {
+    await Promise.allSettled(Object.values(listOCByBot).map(item => {
         Object.values(item?.list || {})?.length > 0 && handleCancelAllOrderOC({ items: Object.values(item.list) || [] })
     }))
     console.log("[V] Cancel All OC Successful");
