@@ -1012,10 +1012,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
 
                                         }
-
-                                        if (orderStatus === "PartiallyFilled") {
-                                            console.log(changeColorConsole.blueBright(`[V] PartiallyFilled-Order OrderID( ${botName} - ${dataMain.side} - ${symbol} ):`, dataMain.qty));
-                                        }
+                                        
                                     }
 
                                     else if (orderStatus === "Cancelled") {
