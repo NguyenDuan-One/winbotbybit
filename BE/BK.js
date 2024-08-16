@@ -48,7 +48,7 @@ function sendBackupToTelegram() {
                 resolve();
             })
             .catch(err => {
-                console.log(`Error sending backup to Telegram: ${err}`);
+                console.log(`Error sending to Telegram: ${err}`);
                 reject(err);
             });
     });
