@@ -39,6 +39,8 @@ function backupDatabase() {
 // Hàm gửi file sao lưu đến Telegram
 function sendBackupToTelegram() {
     return new Promise((resolve, reject) => {
+        console.log(BACKUP_FILE);
+        
         bot.sendDocument(CHAT_ID, BACKUP_FILE, {
             caption: `Backup | ${new Date().toLocaleString()}`
         })
