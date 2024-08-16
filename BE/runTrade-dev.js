@@ -533,12 +533,13 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
                 const batch = list.slice(index, index + batchSize);
 
                 const newList = batch.reduce((pre, cur) => {
+                    const curOrderLinkId = cur.orderLinkId
                     if (!allStrategiesByBotIDAndStrategiesID?.[cur.botID]?.[cur.strategyID]?.OC?.orderFilled) {
                         pre.push({
                             symbol: cur.symbol,
-                            orderLinkId: cur.orderLinkId,
+                            orderLinkId: curOrderLinkId,
                         })
-                        listCancel[cur.orderLinkId] = cur
+                        listCancel[curOrderLinkId] = cur
                     }
                     return pre
                 }, [])
@@ -546,30 +547,32 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
                 console.log(`[...] Canceling ${newList.length} OC`);
 
                 const res = await client.batchCancelOrders("linear", newList)
-                if (res) {
-                    const listSuccess = res.result.list || []
-                    const listSuccessCode = res.retExtInfo.list || []
+                const listSuccess = res.result.list || []
+                const listSuccessCode = res.retExtInfo.list || []
 
-                    listSuccess.forEach((item, index) => {
-                        const data = listCancel[item.orderLinkId]
-                        const codeData = listSuccessCode[index]
-                        if (data && codeData.code == 0) {
-                            const botIDTemp = data.botID
-                            const strategyIDTemp = data.strategyID
-                            console.log(`[V] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${data.candle} ) successful `);
-                            cancelAll({
-                                botID: botIDTemp,
-                                strategyID: strategyIDTemp,
-                            })
-                            delete listOCByCandleBot[data.candle][botIDTemp].listOC[strategyIDTemp]
-                        }
-                        else {
-                            allStrategiesByBotIDAndStrategiesID[botIDTemp][strategyIDTemp].OC.orderID = ""
-                            console.log(`[V] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${data.candle} ) failed `, codeData.msg);
-                        }
-                    })
-                }
-                await delay(1200)
+
+                listSuccess.forEach((item, index) => {
+                    const data = listCancel[item.orderLinkId]
+                    const codeData = listSuccessCode[index]
+                    const botIDTemp = data.botID
+                    const strategyIDTemp = data.strategyID
+                    const candleTemp = data.candle
+
+                    if (codeData.code == 0) {
+                        console.log(`[V] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) successful `);
+                        cancelAll({
+                            botID: botIDTemp,
+                            strategyID: strategyIDTemp,
+                        })
+                    }
+                    else {
+                        allStrategiesByBotIDAndStrategiesID[botIDTemp][strategyIDTemp].OC.orderID = ""
+                        console.log(changeColorConsole.yellowBright(`[!] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) failed `, codeData.msg));
+                    }
+                    delete listOCByCandleBot[candleTemp][botIDTemp].listOC[strategyIDTemp]
+                })
+
+                await delay(1000)
                 index += batchSize
             }
         }

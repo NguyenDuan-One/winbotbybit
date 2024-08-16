@@ -1,0 +1,78 @@
+const cron = require('node-cron');
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const TelegramBot = require('node-telegram-bot-api');
+
+const TOKEN = '7430422460:AAHWBefQH7clQPt8AbCfZuuqlpJ2fsP7Tt8';
+const CHAT_ID = '-1002162225326';
+const MONGO_URI = 'mongodb://localhost:27017/crypto-bot'; // URI kết nối MongoDB
+const BACKUP_PATH = 'bk/'; // Đường dẫn lưu trữ sao lưu
+const BACKUP_FILE = path.join(BACKUP_PATH, `backup.gz`); // Tên file sao lưu
+
+const bot = new TelegramBot(TOKEN);
+
+// Hàm kiểm tra và tạo thư mục nếu chưa tồn tại
+function ensureDirectoryExistence(filePath) {
+    const dirname = path.dirname(filePath);
+    if (!fs.existsSync(dirname)) {
+        fs.mkdirSync(dirname, { recursive: true });
+    }
+}
+
+// Hàm sao lưu MongoDB
+function backupDatabase() {
+    return new Promise((resolve, reject) => {
+        ensureDirectoryExistence(BACKUP_FILE); // Đảm bảo thư mục tồn tại
+
+        console.log(`mongodump --uri="${MONGO_URI}" --gzip --archive="${BACKUP_FILE}"`);
+
+        exec(`mongodump --uri="${MONGO_URI}" --gzip --archive="${BACKUP_FILE}"`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error executing mongodump: ${error.message}`);
+                reject(error);
+            } else {
+                console.log('Database backup completed.');
+                resolve();
+            }
+        });
+    });
+}
+
+// Hàm gửi file sao lưu đến Telegram
+function sendBackupToTelegram() {
+    return new Promise((resolve, reject) => {
+        bot.sendDocument(CHAT_ID, BACKUP_FILE, {
+            caption: `Backup | ${new Date().toLocaleString()}`
+        })
+            .then(() => {
+                console.log('Backup sent to Telegram.');
+                resolve();
+            })
+            .catch(err => {
+                console.error(`Error sending backup to Telegram: ${err.message}`);
+                reject(err);
+            });
+    });
+}
+
+// Chạy sao lưu và gửi file
+async function main() {
+    try {
+        await backupDatabase();
+        await sendBackupToTelegram();
+    } catch (err) {
+        console.error(`Error: ${err.message}`);
+    }
+    // finally {
+    //     // Xóa file sao lưu nếu không cần thiết lưu lại
+    //     if (fs.existsSync(BACKUP_FILE)) {
+    //         fs.unlinkSync(BACKUP_FILE);
+    //     }
+    // }
+}
+
+
+cron.schedule('0 */6 * * *', () => {
+    main();
+});
