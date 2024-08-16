@@ -129,7 +129,7 @@ const handleWalletBalance = async () => {
                 }
             }
             sendMessageWithRetryByBot({
-                messageText: `<b>Bot:</b> ${botData.botName}\n🍉 [Balance]: ${balancePrice.toFixed(3)}$`,
+                messageText: `<b>Bot:</b> ${botData.botName}\n💵 <b>Balance:</b> ${balancePrice.toFixed(3)}$`,
                 telegramID: botData.telegramID,
                 telegramToken: botData.telegramToken,
                 botName: botData.botName
@@ -154,7 +154,7 @@ try {
                     const key = item[0]
                     const value = item[1]
                     sendMessageWithRetryByBot({
-                        messageText: `<b>BotType:</b> ${value.botType}\n🍑 [Total Balance]: ${(value.totalBalanceAllBot).toFixed(3)}$`,
+                        messageText: `<b>BotType:</b> ${value.botType}\n💰 <b>Total Balance:</b> ${(value.totalBalanceAllBot).toFixed(3)}$`,
                         telegramID: value.telegramInfo.telegramID,
                         telegramToken: value.telegramInfo.telegramToken,
                         botName: "Total Bot"

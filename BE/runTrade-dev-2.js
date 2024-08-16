@@ -75,9 +75,9 @@ const roundPrice = (
 
 const cancelAllListOrderOC = async (listOCByCandleBotInput) => {
 
-
     const allData = ["1m", "3m", "5m", "15m"].reduce((pre, candleItem) => {
         const arr = Object.values(listOCByCandleBotInput[candleItem] || {})
+
         if (arr.length > 0) {
 
             arr.forEach(item => {
@@ -86,7 +86,7 @@ const cancelAllListOrderOC = async (listOCByCandleBotInput) => {
 
                     pre[item.ApiKey] = {
                         listOC: {
-                            ...pre[item.ApiKey]?.listOC || {},
+                            ...(pre[item.ApiKey]?.listOC || {}),
                             ...item.listOC
                         },
                         ApiKey: item.ApiKey,
@@ -191,6 +191,7 @@ const handleSubmitOrder = async ({
 
                     const newOrderID = response.result.orderId
                     const newOrderLinkID = response.result.orderLinkId
+
                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderID = newOrderID
                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderLinkId = newOrderLinkID
                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
@@ -325,7 +326,7 @@ const handleSubmitOrderTP = async ({
                 }
 
 
-                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:  ${qty}}`)
+                console.log(`[+TP] Order TP ${missState ? "( MISS )" : ''} ( ${botName} - ${side} - ${symbol} - ${candle} ) successful:  ${qty}`)
                 console.log(changeColorConsole.greenBright(`[_TP orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ): ${newOrderLinkID}`));
 
             }
@@ -524,53 +525,57 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
         });
         const list = Object.values(item.listOC || {})
 
-        let index = 0;
-        const listCancel = {}
+        if (list.length > 0) {
+            console.log(`[...] Total OC Be Cancelled: ${list.length}`);
+            let index = 0;
+            const listCancel = {}
+            while (index < list.length) {
+                const batch = list.slice(index, index + batchSize);
 
-
-        while (index < list.length) {
-            const batch = list.slice(index, index + batchSize);
-
-            const newList = batch.reduce((pre, cur) => {
-                if (!allStrategiesByBotIDAndStrategiesID?.[cur.botID]?.[cur.strategyID]?.OC?.orderFilled) {
-                    pre.push({
-                        symbol: cur.symbol,
-                        orderLinkId: cur.orderLinkId,
-                    })
-                    listCancel[cur.orderLinkId] = cur
-                }
-                return pre
-            }, [])
-
-            console.log(`[...] Canceling ${newList.length} OC`);
-
-            const res = await client.batchCancelOrders("linear", newList)
-            if (res) {
-                const listSuccess = res.result.list || []
-
-                listSuccess.forEach(item => {
-                    const data = listCancel[item.orderLinkId]
-
-                    if (data) {
-                        const botIDTemp = data.botID
-                        const strategyIDTemp = data.strategyID
-
-                        cancelAll({
-                            botID: botIDTemp,
-                            strategyID: strategyIDTemp,
+                const newList = batch.reduce((pre, cur) => {
+                    if (!allStrategiesByBotIDAndStrategiesID?.[cur.botID]?.[cur.strategyID]?.OC?.orderFilled) {
+                        pre.push({
+                            symbol: cur.symbol,
+                            orderLinkId: cur.orderLinkId,
                         })
-
-                        delete listOCByCandleBot[data.candle][botIDTemp].listOC[strategyIDTemp]
+                        listCancel[cur.orderLinkId] = cur
                     }
-                })
+                    return pre
+                }, [])
+
+                console.log(`[...] Canceling ${newList.length} OC`);
+
+                const res = await client.batchCancelOrders("linear", newList)
+                if (res) {
+                    const listSuccess = res.result.list || []
+
+                    listSuccess.forEach(item => {
+                        const data = listCancel[item.orderLinkId]
+
+                        if (data) {
+                            const botIDTemp = data.botID
+                            const strategyIDTemp = data.strategyID
+
+                            cancelAll({
+                                botID: botIDTemp,
+                                strategyID: strategyIDTemp,
+                            })
+
+                            delete listOCByCandleBot[data.candle][botIDTemp].listOC[strategyIDTemp]
+                        }
+                    })
+                }
+                await delay(1200)
+                index += batchSize
             }
-            await delay(1000)
-            index += batchSize
         }
     }))
 
     console.log("[V] Cancel All OC Successful");
-    updatingAllMain = false
+
+    setTimeout(() => {
+        updatingAllMain = false
+    }, 1000)
 
 }
 
@@ -711,6 +716,7 @@ const cancelAll = (
     allStrategiesByBotIDAndStrategiesID[botID][strategyID] = {
         "OC": {
             orderID: "",
+            orderLinkId: "",
             orderFilled: false,
             openTrade: "",
             dataSend: {},
@@ -723,6 +729,7 @@ const cancelAll = (
         },
         "TP": {
             orderID: "",
+            orderLinkId: "",
             orderFilled: false,
             price: 0,
             qty: 0,
@@ -1465,7 +1472,7 @@ const handleSocketListKline = async (listKlineInput) => {
                     }
                     if (BTCPricePercent >= 1) {
                         const newNangOCValue = Math.ceil(BTCPricePercent) * 5
-                      
+
                         if (newNangOCValue !== nangOCValue) {
                             nangOCValue = newNangOCValue
                             checkOrderOCAll = false
@@ -1508,7 +1515,6 @@ const handleSocketListKline = async (listKlineInput) => {
                         const telegramToken = strategy.botID.telegramToken
 
                         const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
-
 
                         if (dataMain.confirm == false && strategy.IsActive && !updatingAllMain) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
@@ -2253,7 +2259,27 @@ const Main = async () => {
 }
 
 try {
-    Main()
+    // Main()
+
+    const client = new RestClientV5({
+        testnet: false,
+        key: '5rIH1WMsT7f4GJLi59',
+        secret: "QENQ6ecdubSRUNhoIz0ydib1KkRJPAjTI1VW",
+        syncTimeBeforePrivateRequests: true,
+
+    });
+     client.batchCancelOrders("linear", [
+        {
+            symbol: "sdsd",
+            orderLinkId: "dffgd"
+        }
+    ]).then(res=>{
+
+        console.log(res.retExtInfo.list);
+        console.log(res.result.list);
+    })
+
+
 
     setTimeout(() => {
         cron.schedule(`*/3 * * * * *`, () => {
@@ -3042,33 +3068,13 @@ socketRealtime.on('sync-symbol', async (newData) => {
 socketRealtime.on('close-upcode', async () => {
 
     console.log(`[...] Close All Bot For Upcode`);
+
     updatingAllMain = true
-
-
-    await Promise.allSettled(
-        allSymbol.map(async symbolItem => {
-            const symbol = symbolItem.value
-            return Promise.allSettled([1, 3, 5, 15].map(candle => {
-                const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
-                if (listDataObject && Object.values(listDataObject)?.length > 0) {
-                    return Promise.allSettled(Object.values(listDataObject).map(async strategy => {
-                        const strategyID = strategy.value
-                        allStrategiesByCandleAndSymbol[symbol][candle][strategyID] = {
-                            ...allStrategiesByCandleAndSymbol[symbol][candle][strategyID],
-                            IsActive: false
-                        }
-
-
-                    }))
-                }
-            }))
-        }
-        ))
 
     await cancelAllListOrderOC(listOCByCandleBot)
 
     console.log("PM2 Kill Successful");
-    exec("pm2 stop runTrade-dev-2")
+    exec("pm2 stop runTrade-dev")
 
 });
 
