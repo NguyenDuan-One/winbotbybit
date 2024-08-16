@@ -1117,6 +1117,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }
 
                                                 cancelAll({ strategyID, botID })
+                                                
+                                                delete listOCByCandleBot[strategy.Candlestick][botID].listOC[strategyID]
+
 
                                                 sendMessageWithRetry({
                                                     messageText: `${teleText} \n${textWinLose}`,

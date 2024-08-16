@@ -125,7 +125,7 @@ const PositionController = {
                         }
                     }).catch(error => {
                         console.log("Error", error);
-                        return []; 
+                        return [];
                     });
                 }));
 
@@ -223,6 +223,7 @@ const PositionController = {
                 orderType: 'Limit',
                 qty: Math.abs(Quantity).toString(),
                 price: Math.abs(Price).toString(),
+                reduceOnly: true
             })
             .then((response) => {
 
