@@ -99,7 +99,7 @@ function CreateStrategy({
             const res = await getAllSymbol()
             const { status, message, data: symbolListDataRes } = res.data
 
-            const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
+            const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
 
             symbolListRef.current = newSymbolList
 
@@ -320,7 +320,7 @@ function CreateStrategy({
                                     <Checkbox
                                         checked={selected || symbolGroupData.findIndex(item => item.value === option.value) > -1}
                                     />
-                                    {option.name}
+                                    {option.name.split("USDT")[0]}
                                 </li>
                             </>
                         )}

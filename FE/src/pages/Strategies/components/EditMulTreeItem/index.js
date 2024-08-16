@@ -540,8 +540,8 @@ function EditMulTreeItem({
             const { status, message, data: symbolListDataRes } = res.data
 
             if (status === 200) {
-                // const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
-                const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
+                const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
+                // const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
 
                 setSymbolListData(newSymbolList)
             }
@@ -608,7 +608,7 @@ function EditMulTreeItem({
                                     <Checkbox
                                         checked={selected || symbolListSelected.findIndex(item => item.value === option.value) > -1}
                                     />
-                                    {option.name}
+                                    {option.name.split("USDT")[0]}
                                 </li>
                             </>
                         )}
