@@ -534,12 +534,21 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
 
                 const newList = batch.reduce((pre, cur) => {
                     const curOrderLinkId = cur.orderLinkId
-                    if (!allStrategiesByBotIDAndStrategiesID?.[cur.botID]?.[cur.strategyID]?.OC?.orderFilled) {
+
+                    const botIDTemp = cur.botID
+                    const strategyIDTemp = cur.strategyID
+                    const candleTemp = cur.candle
+
+                    if (!allStrategiesByBotIDAndStrategiesID?.[botIDTemp]?.[strategyIDTemp]?.OC?.orderFilled) {
                         pre.push({
                             symbol: cur.symbol,
                             orderLinkId: curOrderLinkId,
                         })
                         listCancel[curOrderLinkId] = cur
+                    }
+                    else {
+                        console.log(changeColorConsole.yellowBright(`[V] Cancel order ( ${cur.botName} - ${cur.side} -  ${cur.symbol} - ${candleTemp} ) has been filled `));
+                        delete listOCByCandleBot[candleTemp][botIDTemp].listOC[strategyIDTemp]
                     }
                     return pre
                 }, [])
