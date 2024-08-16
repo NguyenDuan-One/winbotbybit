@@ -7,7 +7,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const TOKEN = '7430422460:AAHWBefQH7clQPt8AbCfZuuqlpJ2fsP7Tt8';
 const CHAT_ID = '-1002162225326';
 const MONGO_URI = 'mongodb://localhost:27017/crypto-bot'; // URI kết nối MongoDB
-const BACKUP_PATH = 'bk/'; // Đường dẫn lưu trữ sao lưu
+const BACKUP_PATH = '/root/CryptoBot/BE/bk/'; // Đường dẫn lưu trữ sao lưu
 const BACKUP_FILE = path.join(BACKUP_PATH, `backup.gz`); // Tên file sao lưu
 
 const bot = new TelegramBot(TOKEN);
@@ -24,8 +24,6 @@ function ensureDirectoryExistence(filePath) {
 function backupDatabase() {
     return new Promise((resolve, reject) => {
         ensureDirectoryExistence(BACKUP_FILE); // Đảm bảo thư mục tồn tại
-
-        console.log(`mongodump --uri="${MONGO_URI}" --gzip --archive="${BACKUP_FILE}"`);
 
         exec(`mongodump --uri="${MONGO_URI}" --gzip --archive="${BACKUP_FILE}"`, (error, stdout, stderr) => {
             if (error) {
