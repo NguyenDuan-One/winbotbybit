@@ -78,7 +78,6 @@ async function main() {
 }
 
 
-main();
 cron.schedule('0 */6 * * *', () => {
     main();
 });
