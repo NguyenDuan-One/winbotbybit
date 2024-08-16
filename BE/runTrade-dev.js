@@ -526,7 +526,7 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
         const list = Object.values(item.listOC || {})
 
         if (list.length > 0) {
-            console.log(`[...] Total OC Be Cancelled: ${list.length}`);
+            console.log(`[...] Total OC Can Be Cancelled: ${list.length}`);
             let index = 0;
             const listCancel = {}
             while (index < list.length) {
@@ -548,20 +548,24 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
                 const res = await client.batchCancelOrders("linear", newList)
                 if (res) {
                     const listSuccess = res.result.list || []
+                    const listSuccessCode = res.retExtInfo.list || []
 
-                    listSuccess.forEach(item => {
+                    listSuccess.forEach((item, index) => {
                         const data = listCancel[item.orderLinkId]
-
-                        if (data) {
+                        const codeData = listSuccessCode[index]
+                        if (data && codeData.code == 0) {
                             const botIDTemp = data.botID
                             const strategyIDTemp = data.strategyID
-
+                            console.log(`[V] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${data.candle} ) successful `);
                             cancelAll({
                                 botID: botIDTemp,
                                 strategyID: strategyIDTemp,
                             })
-
                             delete listOCByCandleBot[data.candle][botIDTemp].listOC[strategyIDTemp]
+                        }
+                        else {
+                            allStrategiesByBotIDAndStrategiesID[botIDTemp][strategyIDTemp].OC.orderID = ""
+                            console.log(`[V] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${data.candle} ) failed `, codeData.msg);
                         }
                     })
                 }
