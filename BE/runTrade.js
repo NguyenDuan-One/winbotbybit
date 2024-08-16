@@ -244,7 +244,8 @@ const handleSubmitOrderTP = async ({
             orderType: 'Limit',
             qty,
             price,
-            orderLinkId
+            orderLinkId,
+            reduceOnly: true
         })
         .then((response) => {
             if (response.retCode == 0) {
@@ -468,6 +469,8 @@ async function handleCancelAllOrderOC({
 }) {
 
     if (items.length > 0) {
+        
+        console.log(`[...] Total OC Be Cancelled: ${items.length}`);
 
         let index = 0;
         while (index < items.length) {
@@ -1079,6 +1082,10 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             const symbol = dataMain.symbol
                                             const side = dataMain.side
                                             const openTrade = +dataMain.entryPrice  //Gia khop lenh
+
+                                            const size = Math.abs(dataMain.size)
+
+                                            missTPDataBySymbol[botSymbolMissID].sizeTotal = size
 
                                             const missSize = size - missTPDataBySymbol[botSymbolMissID].size
 

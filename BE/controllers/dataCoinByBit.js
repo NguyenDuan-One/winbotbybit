@@ -123,7 +123,7 @@ const dataCoinByBitController = {
             const { botListInput } = req.body
 
             const botList = botListInput.map(item => new mongoose.Types.ObjectId(item));
-            
+
             const resultFilter = await StrategiesModel.aggregate([
                 {
                     $match: {
@@ -165,8 +165,8 @@ const dataCoinByBitController = {
                 },
                 {
                     $sort: {
-                        hasUserID: -1,  
-                        label: 1       
+                        hasUserID: -1,
+                        label: 1
                     }
                 },
                 {
@@ -179,7 +179,7 @@ const dataCoinByBitController = {
                     }
                 }
             ]);
-            
+
 
             const result = await StrategiesModel.populate(resultFilter, {
                 path: 'children.botID',
@@ -371,13 +371,13 @@ const dataCoinByBitController = {
                 return child
             })) || []
 
-            handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "add",
-                data: handleResult
-            })
-
+            
             if (result.acknowledged && result.matchedCount !== 0) {
-
+                
+                handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
+                    type: "add",
+                    data: handleResult
+                })
                 res.customResponse(200, "Add New Strategies Successful", []);
             }
             else {
@@ -405,18 +405,18 @@ const dataCoinByBitController = {
                 { $set: { "children.$": newData } }
             )
 
-            if (dataCoinByBitController.checkConditionStrategies(newData)) {
-                dataCoinByBitController.sendDataRealtime({
-                    type: "update",
-                    data: [{
-                        ...newData,
-                        value: `${parentID}-${strategiesID}`,
-                        symbol
-                    }]
-                })
-            }
-
+            
             if (result.acknowledged && result.matchedCount !== 0) {
+                if (dataCoinByBitController.checkConditionStrategies(newData)) {
+                    dataCoinByBitController.sendDataRealtime({
+                        type: "update",
+                        data: [{
+                            ...newData,
+                            value: `${parentID}-${strategiesID}`,
+                            symbol
+                        }]
+                    })
+                }
                 res.customResponse(200, "Update Strategies Successful", "");
             }
             else {
@@ -453,6 +453,12 @@ const dataCoinByBitController = {
             const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
 
             if (bulkResult.modifiedCount === dataList.length) {
+                const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+                
+                newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                    type: "update",
+                    data: newDataSocketWithBotData
+                })
                 res.customResponse(200, "Update Mul-Strategies Successful", "");
             }
             else {
@@ -460,12 +466,6 @@ const dataCoinByBitController = {
 
             }
 
-            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
-
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "update",
-                data: newDataSocketWithBotData
-            })
 
         } catch (error) {
             // Xử lý lỗi nếu có
@@ -538,10 +538,6 @@ const dataCoinByBitController = {
                 return child
             }) || []
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "delete",
-                data: newDataSocketWithBotData
-            })
 
             const result = await StrategiesModel.updateOne(
                 { _id: strategiesID },
@@ -554,7 +550,13 @@ const dataCoinByBitController = {
 
             if (result.acknowledged && result.deletedCount !== 0) {
 
+                
+                newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                    type: "delete",
+                    data: newDataSocketWithBotData
+                })
                 res.customResponse(200, "Delete Strategies Successful");
+
             }
             else {
                 res.customResponse(400, "Delete Strategies failed");
@@ -601,10 +603,7 @@ const dataCoinByBitController = {
                 return child
             }) || []
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "delete",
-                data: newDataSocketWithBotData
-            })
+
 
             const result = await StrategiesModel.updateOne(
                 { _id: parentID },
@@ -615,6 +614,11 @@ const dataCoinByBitController = {
 
             if (result.acknowledged && result.deletedCount !== 0) {
 
+                
+                newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                    type: "delete",
+                    data: newDataSocketWithBotData
+                })
                 res.customResponse(200, "Delete Strategies Successful");
             }
             else {
@@ -668,10 +672,7 @@ const dataCoinByBitController = {
                 return child
             })) || []
 
-            handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "delete",
-                data: handleResult
-            })
+
 
             const bulkOperations = strategiesIDList.map(data => ({
                 updateOne: {
@@ -684,7 +685,13 @@ const dataCoinByBitController = {
 
             // if (result.acknowledged && result.deletedCount !== 0) {
             if (bulkResult.modifiedCount === strategiesIDList.length) {
+
+                handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
+                    type: "delete",
+                    data: handleResult
+                })
                 res.customResponse(200, "Delete Strategies Successful");
+
             }
             else {
                 res.customResponse(400, `Delete Strategies Failed ${strategiesIDList.length - bulkResult.modifiedCount} `);
@@ -749,17 +756,20 @@ const dataCoinByBitController = {
 
             if (bulkResult.modifiedCount === symbolList.length) {
 
+
+                const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+
+                newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                    type: "update",
+                    data: newDataSocketWithBotData
+                })
                 res.customResponse(200, "Copy Strategies To Symbol Successful", []);
+
             }
             else {
                 res.customResponse(400, "Copy Strategies To Symbol Failed", "");
             }
-            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
 
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "update",
-                data: newDataSocketWithBotData
-            })
 
         }
 
@@ -797,18 +807,19 @@ const dataCoinByBitController = {
 
 
             if (bulkResult.modifiedCount === symbolListData.length) {
+                const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+    
+                newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                    type: "update",
+                    data: newDataSocketWithBotData
+                })
                 res.customResponse(200, "Copy Strategies To Bot Successful", "");
+
             }
             else {
                 res.customResponse(400, "Copy Strategies To Bot Failed", "");
             }
 
-            const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
-
-            newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                type: "update",
-                data: newDataSocketWithBotData
-            })
 
 
         }
@@ -865,7 +876,6 @@ const dataCoinByBitController = {
                 await Promise.allSettled([insertSymbolNew, insertVol24])
 
                 if (newSymbolList.length > 0) {
-                    res.customResponse(200, "Have New Sync Successful", newSymbolList)
 
                     const newSymbolResult = await StrategiesModel.find({
                         value: { $in: newSymbolNameList }
@@ -875,6 +885,8 @@ const dataCoinByBitController = {
                         type: "sync-symbol",
                         data: newSymbolResult
                     })
+                    res.customResponse(200, "Have New Sync Successful", newSymbolList)
+
                 }
                 else {
                     res.customResponse(200, "Sync Successful", [])
