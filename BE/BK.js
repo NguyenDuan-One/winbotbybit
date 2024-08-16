@@ -7,8 +7,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const TOKEN = '7430422460:AAHWBefQH7clQPt8AbCfZuuqlpJ2fsP7Tt8';
 const CHAT_ID = '-1002162225326';
 const MONGO_URI = 'mongodb://localhost:27017/crypto-bot'; // URI kết nối MongoDB
-const BACKUP_PATH = 'bk/'; // Đường dẫn lưu trữ sao lưu
-const BACKUP_FILE = path.join(BACKUP_PATH, `backup.gz`); // Tên file sao lưu
+const BACKUP_FILE = path.join(__dirname, 'bk', 'backup.gz');
 
 const bot = new TelegramBot(TOKEN);
 
@@ -40,7 +39,7 @@ function backupDatabase() {
 // Hàm gửi file sao lưu đến Telegram
 function sendBackupToTelegram() {
     return new Promise((resolve, reject) => {
-        bot.sendDocument(CHAT_ID, "bk/backup.gz", {
+        bot.sendDocument(CHAT_ID, BACKUP_FILE, {
             caption: `Backup | ${new Date().toLocaleString()}`
         })
             .then(() => {
