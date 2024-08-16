@@ -1481,7 +1481,7 @@ const handleSocketListKline = async (listKlineInput) => {
             const coinCurrent = +dataMain.close
 
             if (symbol === "BTCUSDT" && candle == 1) {
-                const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open) * 100
+                const BTCPricePercent = Math.abs(coinCurrent - coinOpen) / coinOpen * 100
 
                 if (BTCPricePercent >= 0.7) {
                     const newCheckBTC07Price = Math.round(BTCPricePercent)
@@ -1490,14 +1490,14 @@ const handleSocketListKline = async (listKlineInput) => {
                         sendAllBotTelegram(BTCPricePercent.toFixed(2))
                     }
                     if (BTCPricePercent >= 1) {
-                        const newNangOCValue = Math.ceil(BTCPricePercent) * 5
+                        const newNangOCValue = Math.round(BTCPricePercent) * 5
 
                         if (newNangOCValue !== nangOCValue) {
                             nangOCValue = newNangOCValue
                             checkOrderOCAll = false
                         }
                     }
-                    else if (BTCPricePercent >= 0.7) {
+                    else if (BTCPricePercent >= 0.7 && BTCPricePercent < 0.8) {
                         const newNangOCValue = 1
 
                         if (newNangOCValue !== nangOCValue) {
