@@ -40,7 +40,7 @@ function backupDatabase() {
 // Hàm gửi file sao lưu đến Telegram
 function sendBackupToTelegram() {
     return new Promise((resolve, reject) => {
-        bot.sendDocument(CHAT_ID, "backup.gz", {
+        bot.sendDocument(CHAT_ID, "bk/backup.gz", {
             caption: `Backup | ${new Date().toLocaleString()}`
         })
             .then(() => {
