@@ -42,7 +42,7 @@ const strategiesSchema = new mongoose.Schema({
 })
 
 
-const Spot = mongoose.model('Spot', strategiesSchema);
+const Margin = mongoose.model('Margin', strategiesSchema);
 
 
-module.exports = Spot;
+module.exports = Margin;

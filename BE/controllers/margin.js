@@ -1,5 +1,5 @@
 const { RestClientV5, WebsocketClient } = require('bybit-api');
-const SpotModel = require('../models/spot.model')
+const MarginModel = require('../models/margin.model')
 const BotModel = require('../models/bot.model')
 const { v4: uuidv4 } = require('uuid');
 const { default: mongoose } = require('mongoose');
@@ -12,7 +12,7 @@ const dataCoinByBitController = {
     },
     getAllStrategiesNewUpdate: async (TimeTemp) => {
 
-        const resultFilter = await SpotModel.aggregate([
+        const resultFilter = await MarginModel.aggregate([
             {
                 $match: {
                     children: {
@@ -41,7 +41,7 @@ const dataCoinByBitController = {
                 }
             }
         ]);
-        const result = await SpotModel.populate(resultFilter, {
+        const result = await MarginModel.populate(resultFilter, {
             path: 'children.botID',
         })
 
@@ -124,7 +124,7 @@ const dataCoinByBitController = {
 
             const botList = botListInput.map(item => new mongoose.Types.ObjectId(item));
 
-            const resultFilter = await SpotModel.aggregate([
+            const resultFilter = await MarginModel.aggregate([
                 {
                     $match: {
                         "children.botID": { $in: botList }
@@ -181,7 +181,7 @@ const dataCoinByBitController = {
             ]);
 
 
-            const result = await SpotModel.populate(resultFilter, {
+            const result = await MarginModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -204,7 +204,7 @@ const dataCoinByBitController = {
     },
     getAllSymbolSpot: async (req, res) => {
         try {
-            const result = await SpotModel.find().sort({ "label": 1 });
+            const result = await MarginModel.find().sort({ "label": 1 });
 
             res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => item.value));
 
@@ -214,7 +214,7 @@ const dataCoinByBitController = {
     },
     getAllSymbolWith24: async (req, res) => {
         try {
-            const result = await SpotModel.find();
+            const result = await MarginModel.find();
 
             res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => ({
                 _id: item._id,
@@ -305,7 +305,7 @@ const dataCoinByBitController = {
             }
 
             if (newData.PositionSide === "Both") {
-                result = await SpotModel.updateMany(
+                result = await MarginModel.updateMany(
                     { "value": { "$in": Symbol } },
                     {
                         "$push": {
@@ -319,14 +319,14 @@ const dataCoinByBitController = {
                 )
             }
             else {
-                result = await SpotModel.updateMany(
+                result = await MarginModel.updateMany(
                     { "value": { "$in": Symbol } },
                     { "$push": { "children": botListId.map(botID => ({ ...newData, botID, userID, TimeTemp })) } },
                     { new: true }
                 );
             }
 
-            const resultFilter = await SpotModel.aggregate([
+            const resultFilter = await MarginModel.aggregate([
                 {
                     $match: {
                         children: {
@@ -361,7 +361,7 @@ const dataCoinByBitController = {
             ]);
 
 
-            const resultGet = await SpotModel.populate(resultFilter, {
+            const resultGet = await MarginModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -400,7 +400,7 @@ const dataCoinByBitController = {
 
             const { parentID, newData, symbol } = req.body
 
-            const result = await SpotModel.updateOne(
+            const result = await MarginModel.updateOne(
                 { "children._id": strategiesID, _id: parentID },
                 { $set: { "children.$": newData } }
             )
@@ -450,7 +450,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
+            const bulkResult = await MarginModel.bulkWrite(bulkOperations);
 
             if (bulkResult.modifiedCount === dataList.length) {
                 const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
@@ -480,7 +480,7 @@ const dataCoinByBitController = {
             const userID = req.user._id;
 
 
-            const result = await SpotModel.updateOne(
+            const result = await MarginModel.updateOne(
                 { "_id": symbolID },
                 { $addToSet: { bookmarkList: userID } }
             )
@@ -504,7 +504,7 @@ const dataCoinByBitController = {
             const userID = req.user._id;
 
 
-            const result = await SpotModel.updateOne(
+            const result = await MarginModel.updateOne(
                 { "_id": symbolID },
                 { $pull: { bookmarkList: userID } }
             )
@@ -528,7 +528,7 @@ const dataCoinByBitController = {
 
             const strategiesID = req.params.id;
 
-            const resultGet = await SpotModel.findOne(
+            const resultGet = await MarginModel.findOne(
                 { _id: strategiesID },
             ).populate("children.botID")
 
@@ -539,7 +539,7 @@ const dataCoinByBitController = {
             }) || []
 
 
-            const result = await SpotModel.updateOne(
+            const result = await MarginModel.updateOne(
                 { _id: strategiesID },
                 {
                     "children": []
@@ -572,7 +572,7 @@ const dataCoinByBitController = {
 
             const { id, parentID } = req.body;
 
-            const resultFilter = await SpotModel.aggregate([
+            const resultFilter = await MarginModel.aggregate([
                 {
                     $match: {
                         "_id": new mongoose.Types.ObjectId(parentID),
@@ -594,7 +594,7 @@ const dataCoinByBitController = {
                 }
             ]);
 
-            const resultGet = await SpotModel.populate(resultFilter, {
+            const resultGet = await MarginModel.populate(resultFilter, {
                 path: 'children.botID',
             })
             const newDataSocketWithBotData = resultGet[0].children.map(child => {
@@ -605,7 +605,7 @@ const dataCoinByBitController = {
 
 
 
-            const result = await SpotModel.updateOne(
+            const result = await MarginModel.updateOne(
                 { _id: parentID },
                 { $pull: { children: { _id: id } } }
             );
@@ -638,7 +638,7 @@ const dataCoinByBitController = {
             const parentIDs = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.parentID));
             const ids = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.id));
 
-            const resultFilter = await SpotModel.aggregate([
+            const resultFilter = await MarginModel.aggregate([
                 {
                     $match: {
                         "_id": { $in: parentIDs }
@@ -662,7 +662,7 @@ const dataCoinByBitController = {
                 }
             ]);
 
-            const resultGet = await SpotModel.populate(resultFilter, {
+            const resultGet = await MarginModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -681,7 +681,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
+            const bulkResult = await MarginModel.bulkWrite(bulkOperations);
 
             // if (result.acknowledged && result.deletedCount !== 0) {
             if (bulkResult.modifiedCount === strategiesIDList.length) {
@@ -751,7 +751,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
+            const bulkResult = await MarginModel.bulkWrite(bulkOperations);
 
 
             if (bulkResult.modifiedCount === symbolList.length) {
@@ -803,7 +803,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await SpotModel.bulkWrite(bulkOperations);
+            const bulkResult = await MarginModel.bulkWrite(bulkOperations);
 
 
             if (bulkResult.modifiedCount === symbolListData.length) {
@@ -839,7 +839,7 @@ const dataCoinByBitController = {
             if (listSymbolObject?.length) {
 
 
-                const existingDocs = await SpotModel.find({ value: { $in: listSymbolObject.map(item => item.symbol) } });
+                const existingDocs = await MarginModel.find({ value: { $in: listSymbolObject.map(item => item.symbol) } });
 
                 const existingValues = existingDocs.map(doc => doc.value);
 
@@ -858,7 +858,7 @@ const dataCoinByBitController = {
                     newSymbolNameList.push(value.symbol);
                 })
 
-                const insertSymbolNew = SpotModel.insertMany(newSymbolList)
+                const insertSymbolNew = MarginModel.insertMany(newSymbolList)
 
                 const bulkOperations = listSymbolObject.map(data => ({
                     updateOne: {
@@ -871,13 +871,13 @@ const dataCoinByBitController = {
                     }
                 }));
 
-                const insertVol24 = SpotModel.bulkWrite(bulkOperations);
+                const insertVol24 = MarginModel.bulkWrite(bulkOperations);
 
                 await Promise.allSettled([insertSymbolNew, insertVol24])
 
                 if (newSymbolList.length > 0) {
 
-                    const newSymbolResult = await SpotModel.find({
+                    const newSymbolResult = await MarginModel.find({
                         value: { $in: newSymbolNameList }
                     }).select("value")
 
@@ -1227,7 +1227,7 @@ const dataCoinByBitController = {
         try {
             require("../models/bot.model")
 
-            const resultFilter = await SpotModel.aggregate([
+            const resultFilter = await MarginModel.aggregate([
                 {
                     $match: { "children.IsActive": true }
                 },
@@ -1246,7 +1246,7 @@ const dataCoinByBitController = {
                     }
                 }
             ]);
-            const result = await SpotModel.populate(resultFilter, {
+            const result = await MarginModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -1279,7 +1279,7 @@ const dataCoinByBitController = {
     },
     getAllSymbolBE: async (req, res) => {
         try {
-            const result = await SpotModel.find().select("value");
+            const result = await MarginModel.find().select("value");
             return result || []
 
         } catch (err) {

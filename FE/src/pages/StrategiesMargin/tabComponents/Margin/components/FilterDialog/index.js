@@ -3,15 +3,18 @@ import { NumericFormat } from 'react-number-format';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useEffect, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
+
 import { Checkbox, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
-import { handleCheckAllCheckBox } from '../../../../functions';
+import DialogCustom from '../../../../../../components/DialogCustom';
+import { handleCheckAllCheckBox } from '../../../../../../functions';
 
 function FilterDialog({
     onClose,
     filterQuantityRef,
     dataCheckTreeDefaultRef,
-    setDataCheckTree
+    setDataCheckTree,
+    resetAfterSuccess,
+    botListInput
 }) {
 
     const compareFilterListDefault = [
@@ -52,6 +55,7 @@ function FilterDialog({
             value: "Short"
         }
     ]
+
     const fieldFilterList = [
 
         {
@@ -63,6 +67,7 @@ function FilterDialog({
             value: "PositionSide",
             compareFilterList: ["="],
         },
+
         {
             data: {
                 compare: "=",
@@ -86,8 +91,8 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "Extended",
-            value: "ExtendedOCPercent",
+            name: "Auto Amount",
+            value: "AmountAutoPercent",
             compareFilterList: compareFilterListDefault,
 
         },
@@ -97,8 +102,8 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "TP",
-            value: "TakeProfit",
+            name: "Expire",
+            value: "Expire",
             compareFilterList: compareFilterListDefault,
 
         },
@@ -107,8 +112,8 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "Reduce",
-            value: "ReduceTakeProfit",
+            name: "Limit",
+            value: "Limit",
             compareFilterList: compareFilterListDefault,
         },
         {
@@ -116,18 +121,18 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "Ignore",
-            value: "Ignore",
+            name: "Auto OC",
+            value: "AmountIncreaseOC",
             compareFilterList: compareFilterListDefault,
         },
         {
             data: {
                 compare: "=",
-                value: "1m"
+                value: ""
             },
-            name: "Candlestick",
-            value: "Candlestick",
-            compareFilterList: ["="],
+            name: "Amount exp",
+            value: "AmountExpire",
+            compareFilterList: compareFilterListDefault,
         },
         {
             data: {
@@ -137,25 +142,24 @@ function FilterDialog({
             name: "Active",
             value: "IsActive",
             compareFilterList: ["="],
-
         },
         {
             data: {
                 compare: "=",
-                value: ""
+                value: false
             },
-            name: "EntryTrailing",
-            value: "EntryTrailing",
-            compareFilterList: compareFilterListDefault,
+            name: "Adaptive",
+            value: "Adaptive",
+            compareFilterList: ["="],
         },
         {
             data: {
                 compare: "=",
-                value: ""
+                value: false
             },
-            name: "StopLose",
-            value: "StopLose",
-            compareFilterList: compareFilterListDefault,
+            name: "Reverse",
+            value: "Reverse",
+            compareFilterList: ["="],
         },
         {
             data: {
@@ -166,6 +170,15 @@ function FilterDialog({
             value: "volume24h",
             compareFilterList: compareFilterListDefault,
         },
+        {
+            data: {
+                compare: "=",
+                value: botListInput[0].name
+            },
+            name: "Bot",
+            value: "Bot",
+            compareFilterList: ["="],
+        },
     ]
 
     const [filterDataRowList, setFilterDataRowList] = useState([]);
@@ -173,7 +186,7 @@ function FilterDialog({
     const addFilterRow = () => {
         setFilterDataRowList(filterRowList => [
             ...filterRowList,
-            fieldFilterList[2]
+            fieldFilterList[fieldFilterList.length - 2]
         ])
     }
 
@@ -205,9 +218,13 @@ function FilterDialog({
 
         if (filterValue !== "PositionSide" &&
             filterValue !== "Candlestick" &&
-            filterValue !== "IsActive") {
-                value1 = +value1
-                value2 = +value2
+            filterValue !== "IsActive" &&
+            filterValue !== "Adaptive" &&
+            filterValue !== "Reverse" &&
+            filterValue !== "Bot"
+        ) {
+            value1 = +value1
+            value2 = +value2
         }
         // if (checkFloatString(value1)) {
         //     value1 = +value1
@@ -276,10 +293,27 @@ function FilterDialog({
                     }
                 </Select>
             case "IsActive":
+            case "Reverse":
+            case "Adaptive":
                 return <Checkbox
                     checked={item.data.value}
                     onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
                 />
+            case "Bot":
+                return <Select
+                    value={item.data.value}
+                    size="small"
+                    style={{
+                        width: "100%"
+                    }}
+                    onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
+                >
+                    {
+                        botListInput.map(item => (
+                            <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                        ))
+                    }
+                </Select>
             default:
                 // return <TextField
                 //     type='number'
@@ -348,7 +382,14 @@ function FilterDialog({
                 //     return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
                 // }
                 // return true
-                return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value, filterRow.value))
+                return filterDataRowList.every(filterRow => {
+
+                    if (filterRow.value !== "Bot") {
+
+                        return handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value, filterRow.value)
+                    }
+                    return handleCompare(item.botID._id, filterRow.data.compare, filterRow.data.value, filterRow.value)
+                })
             }
             )
         }
@@ -362,6 +403,7 @@ function FilterDialog({
             ? dataCheckTreeDefaultRef.current.map(dataItem => handleFilterExpression(dataItem)).filter(dataItem => dataItem.children.length > 0)
             : dataCheckTreeDefaultRef.current)
         handleCheckAllCheckBox(false)
+        resetAfterSuccess()
         onClose()
     }
 

@@ -1,13 +1,13 @@
-import { FormControl, FormLabel, Autocomplete, TextField, Button, Checkbox, RadioGroup, FormControlLabel, Radio, MenuItem, Switch, InputAdornment } from "@mui/material";
-import clsx from "clsx";
-import { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
-import DialogCustom from "../../../../../../components/DialogCustom";
-import { addMessageToast } from "../../../../../../store/slices/Toast";
+
+import { FormControl, FormLabel, Autocomplete, TextField, Button, Checkbox, RadioGroup, FormControlLabel, Radio, MenuItem, Switch, InputAdornment } from "@mui/material"
+import clsx from "clsx"
+import { useState, useRef, useEffect } from "react"
+import { useForm } from "react-hook-form"
+import { useDispatch } from "react-redux"
+import DialogCustom from "../../../../../../components/DialogCustom"
+import { addMessageToast } from "../../../../../../store/slices/Toast"
 import styles from "./CreateStrategy.module.scss"
 import { createStrategiesSpot, getAllSymbolSpot } from "../../../../../../services/spotService";
-
 
 function CreateStrategy({
     botListInput,
@@ -38,6 +38,32 @@ function CreateStrategy({
         },
     ]
 
+    const candlestickList = [
+        {
+            name: "1m",
+            value: "1m",
+        },
+        {
+            name: "3m",
+            value: "3m",
+        },
+        {
+            name: "5m",
+            value: "5m",
+        },
+        {
+            name: "15m",
+            value: "15m",
+        },
+        // {
+        //     name: "30m",
+        //     value: "30m",
+        // },
+        // {
+        //     name: "60m",
+        //     value: "60m",
+        // },
+    ]
 
     const {
         register,
@@ -48,6 +74,8 @@ function CreateStrategy({
 
     const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput ? [symbolValueInput] : [])
     const [botList, setBotList] = useState([])
+
+    const dataChangeRef = useRef(false)
 
     const [symbolGroupDataList, setSymbolGroupDataList] = useState({
         label: "Symbol",
@@ -72,7 +100,7 @@ function CreateStrategy({
             const res = await getAllSymbolSpot()
             const { status, message, data: symbolListDataRes } = res.data
 
-            const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
+            const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
 
             symbolListRef.current = newSymbolList
 
@@ -90,7 +118,7 @@ function CreateStrategy({
     }
 
     const handleSubmitCreate = async data => {
-        let dataChange = false
+
         if (symbolGroupData.length > 0 && botList.length > 0) {
             try {
                 const res = await createStrategiesSpot({
@@ -107,7 +135,7 @@ function CreateStrategy({
 
                 if (status === 200) {
                     reset()
-                    dataChange = true
+                    dataChangeRef.current = true
                 }
             }
             catch (err) {
@@ -116,14 +144,43 @@ function CreateStrategy({
                     message: "Add New Error",
                 }))
             }
-            closeDialog(dataChange)
+            closeDialog()
         }
     }
 
-    const closeDialog = (dataChange = false) => {
+    const handleSubmitCreateWithAddMore = async data => {
+
+        if (symbolGroupData.length > 0 && botList.length > 0) {
+            try {
+                const res = await createStrategiesSpot({
+                    data: data,
+                    botListId: botList.map(item => item.value),
+                    [symbolGroupDataList.label]: symbolGroupData.map(item => item.value)
+                })
+                const { status, message, data: symbolListDataRes } = res.data
+
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message
+                }))
+
+                if (status === 200) {
+                    dataChangeRef.current = true
+                }
+            }
+            catch (err) {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Add New Error",
+                }))
+            }
+        }
+    }
+
+    const closeDialog = () => {
         onClose({
             isOpen: false,
-            dataChange
+            dataChange: dataChangeRef.current
         })
         reset()
     }
@@ -135,11 +192,13 @@ function CreateStrategy({
 
     return (
         <DialogCustom
-            dialogTitle="Create Strategy ( Spot )"
+            dialogTitle="Create Strategy"
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitCreate)}
             maxWidth="sm"
+            addMore
+            addMoreFuntion={handleSubmit(handleSubmitCreateWithAddMore)}
         >
 
             <form className={styles.dialogForm}>
@@ -341,7 +400,7 @@ function CreateStrategy({
                             type='number'
                             label="Auto amount percent"
                             variant="outlined"
-                            defaultValue={80}
+                            defaultValue={5}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -360,7 +419,7 @@ function CreateStrategy({
                             type='number'
                             label="Expire"
                             variant="outlined"
-                            defaultValue={100}
+                            defaultValue={20}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -379,7 +438,7 @@ function CreateStrategy({
                             type='number'
                             label="Limit"
                             variant="outlined"
-                            defaultValue={100}
+                            defaultValue={200}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -398,7 +457,7 @@ function CreateStrategy({
                             type='number'
                             label="Amount increase OC"
                             variant="outlined"
-                            defaultValue={100}
+                            defaultValue={8}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -417,7 +476,7 @@ function CreateStrategy({
                             type='number'
                             label="Amount expire"
                             variant="outlined"
-                            defaultValue={50}
+                            defaultValue={10}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -434,9 +493,9 @@ function CreateStrategy({
 
                     <div style={{
                         width: "100%",
-                        display:"flex",
+                        display: "flex",
                         justifyContent: "space-between",
-                        margin:"0 12px"
+                        margin: "0 12px"
                     }}>
                         <FormControl className={clsx(styles.formControl)}>
 

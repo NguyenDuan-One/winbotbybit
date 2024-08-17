@@ -1,6 +1,6 @@
-
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarIcon from '@mui/icons-material/Star';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
-import ReactDOM from 'react-dom';
 import CloudSyncIcon from '@mui/icons-material/CloudSync';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -9,17 +9,20 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
 import { useDispatch, useSelector } from 'react-redux';
+import CreateStrategy from './components/CreateStrategy';
+import EditMulTreeItem from './components/EditMulTreeItem';
+import FilterDialog from './components/FilterDialog';
+import TreeParent from './components/TreeView/TreeParent';
 import clsx from 'clsx';
 import AddBreadcrumbs from '../../../../components/BreadcrumbsCutom';
+import { handleCheckAllCheckBox } from '../../../../functions';
+import useDebounce from '../../../../hooks/useDebounce';
 import { getAllBotActiveByUserID } from '../../../../services/botService';
-import { getTotalFutureByBot, getAllStrategies, syncSymbol } from '../../../../services/dataCoinByBitService';
+import { getTotalFutureByBot } from '../../../../services/dataCoinByBitService';
 import { addMessageToast } from '../../../../store/slices/Toast';
 import { setTotalFuture } from '../../../../store/slices/TotalFuture';
-import CreateStrategy from '../Spot/components/CreateStrategy';
-import EditMulTreeItem from '../Spot/components/EditMulTreeItem';
-import FilterDialog from '../Spot/components/FilterDialog';
-import TreeParent from '../Spot/components/TreeView/TreeParent';
-import { handleCheckAllCheckBox } from '../../../../functions';
+import { getAllStrategiesSpot, syncSymbolSpot } from '../../../../services/marginService';
+
 
 function Margin() {
 
@@ -54,36 +57,7 @@ function Margin() {
         },
     ]
 
-    const candlestickList = [
-        {
-            name: "All",
-            value: "All",
-        },
-        {
-            name: "1m",
-            value: "1m",
-        },
-        {
-            name: "3m",
-            value: "3m",
-        },
-        {
-            name: "5m",
-            value: "5m",
-        },
-        {
-            name: "15m",
-            value: "15m",
-        },
-        // {
-        //     name: "30m",
-        //     value: "30m",
-        // },
-        // {
-        //     name: "60m",
-        //     value: "60m",
-        // },
-    ]
+
 
 
     const [openFilterDialog, setOpenFilterDialog] = useState(false);
@@ -101,27 +75,24 @@ function Margin() {
         name: "All",
         value: "All"
     },]);
+    const [loadingDataCheckTree, setLoadingDataCheckTree] = useState(false);
 
     const dataCheckTreeSelectedRef = useRef([])
     const dataCheckTreeDefaultRef = useRef([])
-    const dataCheckTreeRef = useRef([])
     const [dataCheckTree, setDataCheckTree] = useState([]);
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
     const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX_FIRST);
 
+    const [searchKey, setSearchKey] = useState("");
     // Filter
-    const [botTypeSelected, setBotTypeSelected] = useState("All");
-    const [botSelected, setBotSelected] = useState("All");
-    const [positionSideSelected, setPositionSideSelected] = useState(positionSideList[0].value);
-    const [candlestickSelected, setCandlestickSelected] = useState(candlestickList[0].value);
 
     const filterQuantityRef = useRef([])
-    const searchRef = useRef("")
     const botTypeSelectedRef = useRef("All")
     const botSelectedRef = useRef("All")
     const positionSideSelectedRef = useRef("All")
     const candlestickSelectedRef = useRef("All")
     const selectAllRef = useRef(false)
+    const bookmarkCheckRef = useRef(false)
 
     const dispatch = useDispatch()
 
@@ -159,6 +130,8 @@ function Margin() {
                     ...newData
                 ]
                 setBotList(newMain)
+                handleGetAllStrategies(newData)
+
             })
             .catch(error => {
             }
@@ -194,11 +167,13 @@ function Margin() {
         const newDataCheckTree = data.map(item => (
             {
                 ...item,
+                bookmarkList: item?.bookmarkList || [],
                 children: item?.children.length > 0 ? item?.children.map(itemChild => (
                     {
                         ...itemChild,
                         value: `${item._id}-${itemChild._id}`,
-                        volume24h: item?.volume24h
+                        volume24h: item?.volume24h,
+
                     }
                 )) : item?.children
             }
@@ -206,18 +181,29 @@ function Margin() {
         return newDataCheckTree
     }
 
-    const handleGetAllStrategies = async () => {
-        resetAfterSuccess()
+    const handleGetAllStrategies = async (botListInput = botList.slice(1), filterStatus = false) => {
+
+        setLoadingDataCheckTree(true)
+        filterQuantityRef.current = []
+        !filterStatus && resetAfterSuccess()
+
+        dataCheckTreeSelectedRef.current = []
+        openCreateStrategy.dataChange = false
+        openEditTreeItemMultipleDialog.dataChange = false
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        handleCheckAllCheckBox(false)
+
         try {
             window.scrollTo(0, 0)
 
-            const res = await getAllStrategies()
+            const res = await getAllStrategiesSpot(botListInput?.map(item => item?.value))
             const { status, message, data: resData } = res.data
 
             const newDataCheckTree = handleDataTree(resData)
 
             dataCheckTreeDefaultRef.current = newDataCheckTree
-            setDataCheckTree(newDataCheckTree)
+
+            !filterStatus ? setDataCheckTree(newDataCheckTree) : handleFilterAll()
         }
         catch (err) {
             dispatch(addMessageToast({
@@ -225,6 +211,7 @@ function Margin() {
                 message: "Get All Strategies Error",
             }))
         }
+        setLoadingDataCheckTree(false)
     }
 
 
@@ -232,7 +219,7 @@ function Margin() {
         if (!loadingUploadSymbol) {
             try {
                 setLoadingUploadSymbol(true)
-                const res = await syncSymbol()
+                const res = await syncSymbolSpot()
                 const { status, message, data: resData } = res.data
 
                 dispatch(addMessageToast({
@@ -240,6 +227,7 @@ function Margin() {
                     message: message,
                 }))
 
+                handleGetAllStrategies()
                 setLoadingUploadSymbol(false)
             }
             catch (err) {
@@ -254,19 +242,26 @@ function Margin() {
 
     const handleFilterAll = () => {
         filterQuantityRef.current = []
-        const listData = dataCheckTreeDefaultRef.current.map(data => {
-            return {
-                ...data,
-                children: data?.children?.filter(item => {
-                    const checkBotType = botTypeSelectedRef.current !== "All" ? botTypeSelectedRef.current === item.botID.botType : true
-                    const checkBot = botSelectedRef.current !== "All" ? botSelectedRef.current === item.botID._id : true
-                    const checkPosition = positionSideSelectedRef.current !== "All" ? positionSideSelectedRef.current === item.PositionSide : true
-                    const checkCandle = candlestickSelectedRef.current !== "All" ? candlestickSelectedRef.current === item.Candlestick : true
-                    const checkSearch = searchRef.current !== "" ? data.label.toUpperCase().includes(searchRef.current.toUpperCase()?.trim()) : true
-                    return checkBotType && checkBot && checkPosition && checkCandle && checkSearch
-                })
+        const listData = dataCheckTreeDefaultRef.current.reduce((acc, data) => {
+
+            const filteredChildren = data?.children?.filter(item => {
+                const checkBotType = botTypeSelectedRef.current === "All" || botTypeSelectedRef.current === item.botID.botType;
+                const checkBot = botSelectedRef.current === "All" || botSelectedRef.current === item.botID._id;
+                const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
+                const checkCandle = candlestickSelectedRef.current === "All" || candlestickSelectedRef.current === item.Candlestick;
+                const checkSearch = searchDebounce === "" || data.label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
+                const checkBookmark = bookmarkCheckRef.current ? data.bookmarkList?.includes(userData._id) : true
+
+                return checkBotType && checkBot && checkPosition && checkCandle && checkSearch && checkBookmark;
+            });
+
+            if (filteredChildren.length > 0) {
+                acc.push({ ...data, children: filteredChildren });
             }
-        }).filter(data => data?.children?.length > 0)
+
+            return acc;
+        }, []);
+
 
         setDataCheckTree(listData)
         handleCheckAllCheckBox(false)
@@ -284,7 +279,7 @@ function Margin() {
 
         if (dataTreeViewIndexTemp <= dataCheckTree.length) {
             const newIndex = dataTreeViewIndex + SCROLL_INDEX
-            if (scrollPercentage >= 80) {
+            if (scrollPercentage >= 70) {
                 setDataTreeViewIndex(newIndex)
             }
 
@@ -298,29 +293,27 @@ function Margin() {
 
     const resetAfterSuccess = () => {
         dataCheckTreeSelectedRef.current = []
+        openCreateStrategy.dataChange = false
+        openEditTreeItemMultipleDialog.dataChange = false
+        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        handleCheckAllCheckBox(false)
         botTypeSelectedRef.current = "All"
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
         candlestickSelectedRef.current = "All"
-        searchRef.current = ""
-        openCreateStrategy.dataChange = false
-        openEditTreeItemMultipleDialog.dataChange = false
-        handleCheckAllCheckBox(false)
-        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
+        setSearchKey("")
     }
 
-    // const dataCheckTreeCurrentLength = useMemo(() => {
-    //     const list = dataCheckTreeRef.current.length > 0 ? dataCheckTreeRef.current : dataCheckTreeDefaultRef.current
-    //     const result = list.reduce((pre, cur) => {
-    //         return pre += cur.children.length
-    //     }, 0)
-    //     return result
-    // }, [dataCheckTreeDefaultRef.current, dataCheckTreeRef.current])
+
+    const searchDebounce = useDebounce(searchKey)
+
+    useEffect(() => {
+        handleFilterAll()
+    }, [searchDebounce]);
 
     useEffect(() => {
         if (userData.userName) {
             handleGetAllBotByUserID()
-            handleGetAllStrategies()
             handleGetTotalFutureByBot()
         }
 
@@ -354,12 +347,14 @@ function Margin() {
     }, [dataCheckTree, dataTreeViewIndex]);
 
     useEffect(() => {
-        (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) && handleGetAllStrategies()
-    }, [openCreateStrategy, openEditTreeItemMultipleDialog]);
+        if (openCreateStrategy.dataChange || openEditTreeItemMultipleDialog.dataChange) {
+            handleGetAllStrategies(undefined, true)
+        }
+    }, [openCreateStrategy.dataChange, openEditTreeItemMultipleDialog.dataChange]);
 
     return (
         <div className={styles.strategies}>
-            <AddBreadcrumbs list={["Margin"]} />
+            <AddBreadcrumbs list={["Strategies"]} />
 
             <div
                 style={{
@@ -372,13 +367,11 @@ function Margin() {
 
                 <div className={styles.strategiesFilter}>
                     <TextField
-                        value={searchRef.current}
+                        value={searchKey}
                         size="small"
                         placeholder="Search"
                         onChange={(e) => {
-                            const key = e.target.value
-                            searchRef.current = key
-                            handleFilterAll()
+                            setSearchKey(e.target.value)
                         }}
                         className={styles.strategiesFilterInput}
                     />
@@ -453,80 +446,86 @@ function Margin() {
                         </Select>
                     </FormControl>
 
-                    <FormControl className={styles.strategiesHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Candle</FormLabel>
-                        <Select
-                            value={candlestickSelectedRef.current}
-                            size="small"
-                            onChange={e => {
-                                const value = e.target.value;
-                                candlestickSelectedRef.current = value
-                                handleFilterAll()
-                            }}
-                        >
-                            {
-                                candlestickList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl>
-
                 </div>
 
 
             </div>
+            <div className={styles.strategiesData}>
 
-            {
-                dataCheckTree.length > 0
-                    ?
-                    <div className={styles.strategiesData}>
-                        <p
+                {!loadingDataCheckTree && <p
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        lineHeight: "100%"
+                    }}
+                >
+                    <input
+                        className={clsx(styles.checkboxStyle, "treeNodeCheckAll")}
+                        type="checkbox"
+                        onClick={e => {
+                            const check = e.target.checked
+
+                            e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeParentSelected")?.forEach(item => {
+                                item.checked = check
+                            })
+                            e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeItemSelected")?.forEach(child => {
+                                child.checked = check
+                            })
+
+                            selectAllRef.current = check
+                            if (check) {
+                                dataCheckTree.forEach(data => {
+                                    data.children?.forEach(child => {
+                                        dataCheckTreeSelectedRef.current.push(JSON.stringify({
+                                            ...child,
+                                            parentID: data._id
+                                        }))
+                                    })
+                                })
+                            }
+                            else {
+                                dataCheckTreeSelectedRef.current = []
+                            }
+                        }}
+                    />
+                    <span style={{
+                        fontWeight: "bold",
+                        color: "black",
+                        fontSize: "1.1rem"
+                    }}>All</span> <span style={{
+                        fontWeight: "600",
+                        marginLeft: "6px"
+                    }}>( {countTotalActive.countActive} / {countTotalActive.totalItem} )</span>
+
+                    <span style={{ margin: "0px 2px 3px 12px", opacity: ".6", fontSize: ".9rem" }}>|</span>
+                    <div className={styles.bookmarkAll}   >
+                        <Checkbox
+                            checked={bookmarkCheckRef.current}
                             style={{
-                                display: "flex",
-                                alignItems: "center",
-                                lineHeight: "100%"
+                                padding: " 0 6px",
                             }}
-                        >
-                            <input
-                                className={clsx(styles.checkboxStyle, "treeNodeCheckAll")}
-                                type="checkbox"
-                                onClick={e => {
-                                    const check = e.target.checked
+                            sx={{
+                                color: "#b5b5b5",
+                                '&.Mui-checked': {
+                                    color: "var(--yellowColor)",
+                                },
+                            }}
+                            onClick={e => {
+                                const value = e.target.checked;
+                                bookmarkCheckRef.current = value
+                                handleFilterAll()
+                            }}
+                            icon={<StarBorderIcon />}
+                            checkedIcon={<StarIcon />}
+                        />
+                        <span>Bookmark</span>
+                    </div>
+                </p>}
+                {
+                    (dataCheckTree.length > 0 && !loadingDataCheckTree)
+                        ?
 
-                                    e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeParentSelected")?.forEach(item => {
-                                        item.checked = check
-                                    })
-                                    e.currentTarget.parentElement.parentElement.querySelectorAll(".nodeItemSelected")?.forEach(child => {
-                                        child.checked = check
-                                    })
-
-                                    selectAllRef.current = check
-                                    if (check) {
-                                        dataCheckTree.forEach(data => {
-                                            data.children?.forEach(child => {
-                                                dataCheckTreeSelectedRef.current.push(JSON.stringify({
-                                                    ...child,
-                                                    parentID: data._id
-                                                }))
-                                            })
-                                        })
-                                    }
-                                    else {
-                                        dataCheckTreeSelectedRef.current = []
-                                    }
-                                }}
-                            />
-                            <span style={{
-                                fontWeight: "bold",
-                                color: "black",
-                                fontSize: "1.1rem"
-                            }}>All</span> <span style={{
-                                fontWeight: "600",
-                                marginLeft: "6px"
-                            }}>( {countTotalActive.countActive} / {countTotalActive.totalItem} )</span>
-                        </p>
-                        {dataCheckTree.slice(0, dataTreeViewIndex).map((treeData) => {
+                        dataCheckTree.slice(0, dataTreeViewIndex).map((treeData) => {
                             return (
                                 <TreeParent
                                     dataCheckTreeSelectedRef={dataCheckTreeSelectedRef}
@@ -537,17 +536,17 @@ function Margin() {
                                     key={treeData._id}
                                 />
                             )
-                        })}
-                    </div>
+                        })
 
-                    : (
+                        :
                         <p style={{
                             textAlign: "center",
-                            marginTop: "16px",
-                            fontWeight: 500
-                        }}>No data</p>
-                    )
-            }
+                            margin: "16px 0 6px",
+                            fontWeight: 500,
+                            opacity: ".6"
+                        }}>{loadingDataCheckTree ? "Loading..." : "No data"}</p>
+                }
+            </div>
 
             <div className={styles.strategiesBtnAction}>
                 <Tooltip title="Sync Symbol" placement="left">
@@ -612,6 +611,7 @@ function Margin() {
                     onClose={() => {
                         setOpenFilterDialog(false)
                     }}
+                    botListInput={botList.slice(1)}
                 />
 
             }

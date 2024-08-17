@@ -1,5 +1,4 @@
 import { Tabs, Tab } from "@mui/material";
-import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
 import Margin from "./tabComponents/Margin";
 import Spot from "./tabComponents/Spot";
 import { useState } from "react";

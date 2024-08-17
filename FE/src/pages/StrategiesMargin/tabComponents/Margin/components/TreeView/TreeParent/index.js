@@ -1,3 +1,5 @@
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarIcon from '@mui/icons-material/Star';
 import AddIcon from '@mui/icons-material/Add';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
@@ -5,24 +7,26 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Switch, Popover } from "@mui/material";
+import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Popover } from "@mui/material";
 import clsx from "clsx";
 import styles from "./TreeParent.module.scss"
 import TreeChild from '../TreeChild';
-import { memo, useEffect, useState } from 'react';
-import DialogCustom from '../../../../../components/DialogCustom';
-import { deleteStrategies, updateStrategiesMultiple } from '../../../../../services/dataCoinByBitService';
-import { useDispatch } from 'react-redux';
-import { addMessageToast } from '../../../../../store/slices/Toast';
-import { handleCheckAllCheckBox } from '../../../../../functions';
+import { memo, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import DialogCustom from '../../../../../../../components/DialogCustom';
+import { handleCheckAllCheckBox } from '../../../../../../../functions';
+import { addMessageToast } from '../../../../../../../store/slices/Toast';
+import { updateStrategiesMultipleSpot,deleteStrategiesSpot,addToBookmarkSpot,removeToBookmarkSpot } from '../../../../../../../services/marginService';
+
 function TreeParent({
     treeData,
     dataCheckTreeSelectedRef,
     setOpenCreateStrategy,
-    dataCheckTreeCurrentLength,
     setDataCheckTree,
     dataCheckTreeDefaultRef
 }) {
+
+    const userData = useSelector(state => state.userDataSlice.userData)
 
 
     const dispatch = useDispatch()
@@ -87,7 +91,7 @@ function TreeParent({
                 )
             })
 
-            const res = await updateStrategiesMultiple(newData)
+            const res = await updateStrategiesMultipleSpot(newData)
 
             const { status, message } = res.data
 
@@ -125,7 +129,7 @@ function TreeParent({
                 )
             })
 
-            const res = await updateStrategiesMultiple(newData)
+            const res = await updateStrategiesMultipleSpot(newData)
 
             const { status, message } = res.data
 
@@ -149,7 +153,7 @@ function TreeParent({
 
     const handleDeleteStrategies = async () => {
         try {
-            const res = await deleteStrategies(treeData._id,)
+            const res = await deleteStrategiesSpot(treeData._id,)
             const { status, message } = res.data
 
             if (status === 200) {
@@ -175,6 +179,69 @@ function TreeParent({
         }
         closeDeleteDialog()
     }
+    const handleAddToBookmark = async () => {
+        try {
+            const res = await addToBookmarkSpot({ symbolID: treeData._id })
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message,
+            }))
+
+            if (status === 200) {
+                
+                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+                    if (data._id === treeData._id) {
+                        return {
+                            ...treeData,
+                            bookmarkList: treeData.bookmarkList.concat(userData._id)
+                        }
+                    }
+                    return data
+                })
+            }
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Add Bookmark Error",
+            }))
+        }
+        closeDeleteDialog()
+    }
+    const handleRemoveToBookmark = async () => {
+        try {
+            const res = await removeToBookmarkSpot({ symbolID: treeData._id })
+            const { status, message } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message,
+            }))
+
+            if (status === 200) {
+                
+                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+                    if (data._id === treeData._id) {
+                        return {
+                            ...treeData,
+                            bookmarkList: treeData.bookmarkList.filter(item => item !== userData._id)
+                        }
+                    }
+                    return data
+                })
+            }
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Remove Bookmark Error",
+            }))
+        }
+        closeDeleteDialog()
+    }
+
     return (
         <div className={styles.treeParent}  >
             <div style={{
@@ -186,7 +253,6 @@ function TreeParent({
                 <input
                     className={clsx("nodeParentSelected", styles.checkboxStyle)}
                     type="checkbox"
-                    // checked={dataCheckTreeCurrentLength === dataCheckTreeSelectedRef.current?.length || undefined}
                     onClick={e => {
                         const check = e.target.checked
                         e.currentTarget.parentElement.parentElement.querySelectorAll(`.nodeItemSelected-${treeData._id}`)?.forEach(item => {
@@ -197,7 +263,7 @@ function TreeParent({
                 />
                 <div
                     style={{
-                        lineHeight: "100%"
+                        display: "contents"
                     }}
                     onClick={e => {
                         e.currentTarget.parentElement.parentElement.classList.toggle(styles.showNoteContent)
@@ -221,6 +287,23 @@ function TreeParent({
                             }
                         })
                     }}
+                />
+                <Checkbox
+                    defaultChecked={treeData.bookmarkList?.includes(userData._id)}
+                    style={{
+                        padding: " 0 3px",
+                    }}
+                    sx={{
+                        color: "#b5b5b5",
+                        '&.Mui-checked': {
+                            color: "var(--yellowColor)",
+                        },
+                    }}
+                    onClick={e => {
+                        e.target.checked ? handleAddToBookmark() : handleRemoveToBookmark()
+                    }}
+                    icon={<StarBorderIcon />}
+                    checkedIcon={<StarIcon />}
                 />
                 <p className={styles.label}>
                     {treeData.label.split("USDT")[0]}
@@ -247,15 +330,15 @@ function TreeParent({
                                     }>Action</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Bot</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Position</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Amount</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>OC</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Candle</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>TP</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Reduce</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Extended</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>Ignore</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>EntryTrailing</TableCell>
-                                    <TableCell className={styles.tableHeadCell}>StopLose</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Amount ($)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>OC (%)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Auto amount	(%)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Expire (min)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Limit ($)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Auto OC (%)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Amount exp (min)</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Adaptive</TableCell>
+                                    <TableCell className={styles.tableHeadCell}>Reverse</TableCell>
                                     <TableCell className={styles.tableHeadCell}>Volume24h</TableCell>
                                 </TableRow>
                             </TableHead>
@@ -268,7 +351,6 @@ function TreeParent({
                                                 treeNode={treeNode}
                                                 dataCheckTreeSelectedRef={dataCheckTreeSelectedRef}
                                                 setDataCheckTree={setDataCheckTree}
-                                                dataCheckTreeCurrentLength={dataCheckTreeCurrentLength}
                                                 dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                                                 key={treeNode.value}
                                             />

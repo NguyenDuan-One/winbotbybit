@@ -1,12 +1,13 @@
-import { useForm } from "react-hook-form";
-import DialogCustom from "../../../../components/DialogCustom";
+
+import { FormControl, FormLabel, Autocomplete, TextField, Button, Checkbox, RadioGroup, FormControlLabel, Radio, MenuItem, Switch, InputAdornment } from "@mui/material"
+import clsx from "clsx"
+import { useState, useRef, useEffect } from "react"
+import { useForm } from "react-hook-form"
+import { useDispatch } from "react-redux"
+import DialogCustom from "../../../../../../components/DialogCustom"
+import { addMessageToast } from "../../../../../../store/slices/Toast"
 import styles from "./CreateStrategy.module.scss"
-import { Autocomplete, Button, Checkbox, FormControl, FormControlLabel, FormLabel, MenuItem, Radio, RadioGroup, Select, Switch, TextField } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
-import { createStrategies, getAllSymbol } from "../../../../services/dataCoinByBitService";
-import { useDispatch } from "react-redux";
-import { addMessageToast } from "../../../../store/slices/Toast";
+import { createStrategiesSpot, getAllSymbolSpot } from "../../../../../../services/marginService";
 
 function CreateStrategy({
     botListInput,
@@ -14,7 +15,7 @@ function CreateStrategy({
     symbolValueInput,
 }) {
 
-    const formControlMinValue= .1
+    const formControlMinValue = .1
     const groupList = [
         {
             name: "Group 1",
@@ -74,6 +75,8 @@ function CreateStrategy({
     const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput ? [symbolValueInput] : [])
     const [botList, setBotList] = useState([])
 
+    const dataChangeRef = useRef(false)
+
     const [symbolGroupDataList, setSymbolGroupDataList] = useState({
         label: "Symbol",
         list: []
@@ -94,10 +97,10 @@ function CreateStrategy({
 
     const handleGetSymbolList = async () => {
         try {
-            const res = await getAllSymbol()
+            const res = await getAllSymbolSpot()
             const { status, message, data: symbolListDataRes } = res.data
 
-            const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
+            const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
 
             symbolListRef.current = newSymbolList
 
@@ -115,10 +118,10 @@ function CreateStrategy({
     }
 
     const handleSubmitCreate = async data => {
-        let dataChange = false
+
         if (symbolGroupData.length > 0 && botList.length > 0) {
             try {
-                const res = await createStrategies({
+                const res = await createStrategiesSpot({
                     data: data,
                     botListId: botList.map(item => item.value),
                     [symbolGroupDataList.label]: symbolGroupData.map(item => item.value)
@@ -129,10 +132,10 @@ function CreateStrategy({
                     status: status,
                     message: message
                 }))
-                
+
                 if (status === 200) {
                     reset()
-                    dataChange = true
+                    dataChangeRef.current = true
                 }
             }
             catch (err) {
@@ -141,14 +144,43 @@ function CreateStrategy({
                     message: "Add New Error",
                 }))
             }
-            closeDialog(dataChange)
+            closeDialog()
         }
     }
 
-    const closeDialog = (dataChange = false) => {
+    const handleSubmitCreateWithAddMore = async data => {
+
+        if (symbolGroupData.length > 0 && botList.length > 0) {
+            try {
+                const res = await createStrategiesSpot({
+                    data: data,
+                    botListId: botList.map(item => item.value),
+                    [symbolGroupDataList.label]: symbolGroupData.map(item => item.value)
+                })
+                const { status, message, data: symbolListDataRes } = res.data
+
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message
+                }))
+
+                if (status === 200) {
+                    dataChangeRef.current = true
+                }
+            }
+            catch (err) {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Add New Error",
+                }))
+            }
+        }
+    }
+
+    const closeDialog = () => {
         onClose({
             isOpen: false,
-            dataChange
+            dataChange: dataChangeRef.current
         })
         reset()
     }
@@ -165,6 +197,8 @@ function CreateStrategy({
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitCreate)}
             maxWidth="sm"
+            addMore
+            addMoreFuntion={handleSubmit(handleSubmitCreateWithAddMore)}
         >
 
             <form className={styles.dialogForm}>
@@ -312,7 +346,7 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={positionSideList[0].value}
                             size="medium"
-                            {...register("PositionSide", { required: true,  })}
+                            {...register("PositionSide", { required: true, })}
                         >
                             {
 
@@ -322,77 +356,24 @@ function CreateStrategy({
                             }
                         </TextField>
                     </FormControl>
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            select
-                            label="Candlestick"
-                            defaultValue={candlestickList[0].value}
-                            size="medium"
-                            {...register("Candlestick", { required: true, })}
-                        >
-                            {
 
-                                candlestickList.map(item => (
-                                    <MenuItem value={item?.value} key={item?.value}>{item?.name}</MenuItem>
-                                ))
-                            }
-                        </TextField>
-                    </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Order change"
+                            label="OC"
                             variant="outlined"
                             defaultValue={4}
                             size="medium"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    %
+                                </InputAdornment>,
+                            }}
                             {...register("OrderChange", { required: true, min: formControlMinValue })}
                         />
                         {errors.OrderChange?.type === 'required' && <p className="formControlErrorLabel">The OC field is required.</p>}
                         {errors.OrderChange?.type === "min" && <p className="formControlErrorLabel">The OC must bigger 0.1.</p>}
-
-                    </FormControl>
-
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            type='number'
-                            label="Extended OC percent"
-                            variant="outlined"
-                            defaultValue={80}
-                            size="medium"
-                            {...register("ExtendedOCPercent", { required: true, min: formControlMinValue })}
-                        />
-                        {errors.ExtendedOCPercent?.type === 'required' && <p className="formControlErrorLabel">The Extended field is required.</p>}
-                        {errors.ExtendedOCPercent?.type === "min" && <p className="formControlErrorLabel">The Extended must bigger 0.1.</p>}
-
-                    </FormControl>
-
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            type='number'
-                            label="Take profit"
-                            variant="outlined"
-                            defaultValue={50}
-                            size="medium"
-                            {...register("TakeProfit", { required: true, min: formControlMinValue })}
-                        />
-                        {errors.TakeProfit?.type === 'required' && <p className="formControlErrorLabel">The TP field is required.</p>}
-                        {errors.TakeProfit?.type === "min" && <p className="formControlErrorLabel">The TP must bigger 0.1.</p>}
-
-                    </FormControl>
-
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            type='number'
-                            label="Reduce take profit"
-                            variant="outlined"
-                            defaultValue={45}
-                            size="medium"
-                            {...register("ReduceTakeProfit", { required: true, min: formControlMinValue })}
-                        />
-                        {errors.ReduceTakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Reduce TP field is required.</p>}
-                        {errors.ReduceTakeProfit?.type === "min" && <p className="formControlErrorLabel">The Reduce TP must bigger 0.1.</p>}
-
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
@@ -402,6 +383,11 @@ function CreateStrategy({
                             variant="outlined"
                             defaultValue={100}
                             size="medium"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    USDT
+                                </InputAdornment>
+                            }}
                             {...register("Amount", { required: true, min: formControlMinValue })}
                         />
                         {errors.Amount?.type === 'required' && <p className="formControlErrorLabel">The Amount field is required.</p>}
@@ -412,63 +398,143 @@ function CreateStrategy({
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Ignore"
+                            label="Auto amount percent"
                             variant="outlined"
-                            defaultValue={85}
+                            defaultValue={5}
                             size="medium"
-                            {...register("Ignore", { required: true, min: formControlMinValue })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    %
+                                </InputAdornment>
+                            }}
+                            {...register("AmountAutoPercent", { required: true, min: formControlMinValue })}
                         />
-                        {errors.Ignore?.type === 'required' && <p className="formControlErrorLabel">The Ignore field is required.</p>}
-                        {errors.Ignore?.type === "min" && <p className="formControlErrorLabel">The Ignore must bigger 0.1.</p>}
+                        {errors.AmountAutoPercent?.type === 'required' && <p className="formControlErrorLabel">The AutoPercent field is required.</p>}
+                        {errors.AmountAutoPercent?.type === "min" && <p className="formControlErrorLabel">The AutoPercent must bigger 0.1.</p>}
 
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Entry Trailing"
+                            label="Expire"
                             variant="outlined"
+                            defaultValue={20}
                             size="medium"
-                            {...register("EntryTrailing", { min: formControlMinValue })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    min
+                                </InputAdornment>
+                            }}
+                            {...register("Expire", { required: true, min: formControlMinValue })}
                         />
-                        {/* {errors.EntryTrailing?.type === 'required' && <p className="formControlErrorLabel">The Entry Trailing field is required.</p>} */}
+                        {errors.Expire?.type === 'required' && <p className="formControlErrorLabel">The Expire field is required.</p>}
+                        {errors.Expire?.type === "min" && <p className="formControlErrorLabel">The Expire must bigger 0.1.</p>}
 
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Stop Lose"
+                            label="Limit"
                             variant="outlined"
-                            defaultValue={50}
+                            defaultValue={200}
                             size="medium"
-                            {...register("StopLose", { required: true, formControlMinValue })}
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    USDT
+                                </InputAdornment>
+                            }}
+                            {...register("Limit", { required: true, min: formControlMinValue })}
                         />
-                        {errors.StopLose?.type === 'required' && <p className="formControlErrorLabel">The StopLose field is required.</p>}
-                        {errors.StopLose?.type === "min" && <p className="formControlErrorLabel">The StopLose must bigger 0.1.</p>}
+                        {errors.Limit?.type === 'required' && <p className="formControlErrorLabel">The Limit field is required.</p>}
+                        {errors.Limit?.type === "min" && <p className="formControlErrorLabel">The Limit must bigger 0.1.</p>}
 
                     </FormControl>
 
-                    <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
-
-                        <FormLabel className={styles.label}>IsActive</FormLabel>
-                        <Switch
-                            defaultChecked
-                            title="IsActive"
-                            {...register("IsActive")}
-
+                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <TextField
+                            type='number'
+                            label="Amount increase OC"
+                            variant="outlined"
+                            defaultValue={8}
+                            size="medium"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    %
+                                </InputAdornment>
+                            }}
+                            {...register("AmountIncreaseOC", { required: true, min: formControlMinValue })}
                         />
+                        {errors.AmountIncreaseOC?.type === 'required' && <p className="formControlErrorLabel">The IncreaseOC field is required.</p>}
+                        {errors.AmountIncreaseOC?.type === "min" && <p className="formControlErrorLabel">The IncreaseOC must bigger 0.1.</p>}
+
+                    </FormControl>
+
+                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <TextField
+                            type='number'
+                            label="Amount expire"
+                            variant="outlined"
+                            defaultValue={10}
+                            size="medium"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    min
+                                </InputAdornment>
+                            }}
+                            {...register("AmountExpire", { required: true, min: formControlMinValue })}
+                        />
+                        {errors.AmountExpire?.type === 'required' && <p className="formControlErrorLabel">The Amount expire field is required.</p>}
+                        {errors.AmountExpire?.type === "min" && <p className="formControlErrorLabel">The Amount expire must bigger 0.1.</p>}
+
                     </FormControl>
 
 
-                    <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
-                        <FormLabel className={styles.label}>Remember</FormLabel>
-                        <Switch
-                            title="Remember"
-                            {...register("Remember")}
+                    <div style={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        margin: "0 12px"
+                    }}>
+                        <FormControl className={clsx(styles.formControl)}>
 
-                        />
-                    </FormControl>
+                            <FormLabel className={styles.label}>IsActive</FormLabel>
+                            <Switch
+                                defaultChecked
+                                title="IsActive"
+                                {...register("IsActive")}
+                            />
+                        </FormControl>
+
+                        <FormControl className={clsx(styles.formControl)}>
+                            <FormLabel className={styles.label}>Adaptive</FormLabel>
+                            <Switch
+                                defaultChecked
+                                title="Adaptive"
+                                {...register("Adaptive")}
+
+                            />
+                        </FormControl>
+
+                        <FormControl className={clsx(styles.formControl)}>
+                            <FormLabel className={styles.label}>Reverse</FormLabel>
+                            <Switch
+                                title="Reverse"
+                                {...register("Reverse")}
+
+                            />
+                        </FormControl>
+
+                        <FormControl className={clsx(styles.formControl)}>
+                            <FormLabel className={styles.label}>Remember</FormLabel>
+                            <Switch
+                                title="Remember"
+                                {...register("Remember")}
+
+                            />
+                        </FormControl>
+                    </div>
                 </div>
 
 
