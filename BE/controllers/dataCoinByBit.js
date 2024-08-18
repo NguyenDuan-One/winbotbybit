@@ -8,7 +8,7 @@ const dataCoinByBitController = {
     // SOCKET
 
     checkConditionStrategies: (strategiesData) => {
-        return strategiesData.botID.Status === "Running" && strategiesData.botID.ApiKey
+        return strategiesData.botID?.Status === "Running" && strategiesData.botID.ApiKey
     },
     getAllStrategiesNewUpdate: async (TimeTemp) => {
 
@@ -186,10 +186,10 @@ const dataCoinByBitController = {
             })
 
             const handleResult = result.reduce((result, child) => {
-                if (child.children.some(childData => childData.botID.Status === "Running")) {
+                if (child.children.some(childData => childData.botID?.Status === "Running")) {
                     result.push({
                         ...child,
-                        children: child.children.filter(item => item.botID.Status === "Running")
+                        children: child.children.filter(item => item.botID?.Status === "Running")
                     })
                 }
                 return result

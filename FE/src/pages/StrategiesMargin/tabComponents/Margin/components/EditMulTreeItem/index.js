@@ -1,12 +1,14 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { useEffect, useMemo, useRef, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
-import { Autocomplete, Button, Checkbox, FormControl, FormControlLabel, MenuItem, Radio, RadioGroup, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
-import { useDispatch } from 'react-redux';
-import { addMessageToast } from '../../../../store/slices/Toast';
-import { copyMultipleStrategiesToBot, copyMultipleStrategiesToSymbol, deleteStrategiesMultiple, getAllSymbol, updateStrategiesMultiple } from '../../../../services/dataCoinByBitService';
-import { getAllBot } from '../../../../services/botService';
+import { useEffect, useMemo, useState } from "react";
+import { Checkbox, TextField, Autocomplete, Button, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, FormControl, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+import DialogCustom from '../../../../../../components/DialogCustom';
+import { verifyTokenVIP } from '../../../../../../services/authService';
+import { getAllBotActive } from '../../../../../../services/botService';
+import { getUserByID } from '../../../../../../services/userService';
+import { addMessageToast } from '../../../../../../store/slices/Toast';
+import { updateStrategiesMultipleSpot, getAllSymbolSpot, deleteStrategiesMultipleSpot, copyMultipleStrategiesToSymbolSpot, copyMultipleStrategiesToBotSpot } from '../../../../../../services/marginService';
 
 function EditMulTreeItem({
     onClose,
@@ -14,6 +16,7 @@ function EditMulTreeItem({
     dataCheckTreeSelected,
 }) {
 
+    const userData = useSelector(state => state.userDataSlice.userData)
 
     const compareFilterListDefault = [
         "=",
@@ -49,8 +52,8 @@ function EditMulTreeItem({
                 compare: "=",
                 value: ""
             },
-            name: "Extended",
-            value: "ExtendedOCPercent",
+            name: "Auto Amount",
+            value: "AmountAutoPercent",
             compareFilterList: compareFilterListDefault,
 
         },
@@ -60,8 +63,8 @@ function EditMulTreeItem({
                 compare: "=",
                 value: ""
             },
-            name: "TP",
-            value: "TakeProfit",
+            name: "Expire",
+            value: "Expire",
             compareFilterList: compareFilterListDefault,
 
         },
@@ -70,8 +73,8 @@ function EditMulTreeItem({
                 compare: "=",
                 value: ""
             },
-            name: "Reduce",
-            value: "ReduceTakeProfit",
+            name: "Limit",
+            value: "Limit",
             compareFilterList: compareFilterListDefault,
         },
         {
@@ -79,8 +82,17 @@ function EditMulTreeItem({
                 compare: "=",
                 value: ""
             },
-            name: "Ignore",
-            value: "Ignore",
+            name: "Auto OC",
+            value: "AmountIncreaseOC",
+            compareFilterList: compareFilterListDefault,
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "Amount exp",
+            value: "AmountExpire",
             compareFilterList: compareFilterListDefault,
         },
         {
@@ -95,24 +107,27 @@ function EditMulTreeItem({
         {
             data: {
                 compare: "=",
-                value: ""
+                value: false
             },
-            name: "EntryTrailing",
-            value: "EntryTrailing",
-            compareFilterList: compareFilterListDefault,
+            name: "Adaptive",
+            value: "Adaptive",
+            compareFilterList: ["="],
         },
         {
             data: {
                 compare: "=",
-                value: ""
+                value: false
             },
-            name: "StopLose",
-            value: "StopLose",
-            compareFilterList: compareFilterListDefault,
+            name: "Reverse",
+            value: "Reverse",
+            compareFilterList: ["="],
         },
+
     ]
 
     const dispatch = useDispatch()
+
+
 
     const [copyType, setCopyType] = useState("Symbol");
     const [symbolListData, setSymbolListData] = useState([]);
@@ -120,20 +135,57 @@ function EditMulTreeItem({
 
     // const [botListData, setBotListData] = useState([]);
     const [botLisSelected, setBotLisSelected] = useState([]);
+    const [botListInputVIP, setBotListInputVIP] = useState([]);
 
     const [filterDataRowList, setFilterDataRowList] = useState([fieldFilterList[1]]);
     const [radioValue, setRadioValue] = useState("Update");
     const [loadingSubmit, setLoadingSubmit] = useState(false);
-
+    const [roleNameMainVIP, setRoleNameMainVIP] = useState("");
 
     const handleDataCheckTreeSelected = useMemo(() => {
         return dataCheckTreeSelected.map(item => JSON.parse(item))
     }, [dataCheckTreeSelected])
 
+    const handleVerifyLogin = async () => {
+        try {
+            const res = await verifyTokenVIP({
+                token: localStorage.getItem("tk_crypto")
+            })
+            const userData = res.data.data
+
+            const resUser = await getUserByID(userData._id)
+            const { data: resUserData } = resUser.data
+            setRoleNameMainVIP(resUserData.roleName === "SuperAdmin" || resUserData.roleName === "Admin")
+        } catch (error) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Role User Main Error",
+            }))
+        }
+    }
+    const handleGetAllBot = async () => {
+        try {
+            const res = await getAllBotActive()
+            const { data: resUserData } = res.data
+            setBotListInputVIP(resUserData.map(item => ({
+                name: item.botName,
+                value: item._id
+            })))
+
+        } catch (error) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get Role User Main Error",
+            }))
+        }
+    }
+
+
+
     const addFilterRow = () => {
         setFilterDataRowList(filterRowList => [
             ...filterRowList,
-            fieldFilterList[2]
+            fieldFilterList[0]
         ])
     }
 
@@ -165,6 +217,8 @@ function EditMulTreeItem({
     const handleFiledValueElement = (item, indexRow) => {
         switch (item.name) {
             case "Active":
+            case "Adaptive":
+            case "Reverse":
                 return <Checkbox
                     checked={item.data.value}
                     onChange={(e) => {
@@ -274,7 +328,7 @@ function EditMulTreeItem({
             if (checkValueMin) {
                 setLoadingSubmit(true)
 
-                const res = await updateStrategiesMultiple(newData)
+                const res = await updateStrategiesMultipleSpot(newData)
 
                 const { status, message } = res.data
 
@@ -315,7 +369,7 @@ function EditMulTreeItem({
                 parentID: dataCheckTreeItem.parentID,
             }))
 
-            const res = await deleteStrategiesMultiple(newData)
+            const res = await deleteStrategiesMultipleSpot(newData)
 
             const { status, message } = res.data
 
@@ -352,13 +406,13 @@ function EditMulTreeItem({
             try {
                 let res
                 if (copyType === "Symbol") {
-                    res = await copyMultipleStrategiesToSymbol({
+                    res = await copyMultipleStrategiesToSymbolSpot({
                         symbolListData: handleDataCheckTreeSelected,
                         symbolList: symbolListSelected.map(item => item.value)
                     })
                 }
                 else {
-                    res = await copyMultipleStrategiesToBot({
+                    res = await copyMultipleStrategiesToBotSpot({
                         symbolListData: handleDataCheckTreeSelected,
                         symbolList: botLisSelected.map(item => item.value)
                     })
@@ -401,7 +455,7 @@ function EditMulTreeItem({
                 }
             ))
 
-            const res = await updateStrategiesMultiple(newData)
+            const res = await updateStrategiesMultipleSpot(newData)
 
             const { status, message } = res.data
 
@@ -440,7 +494,7 @@ function EditMulTreeItem({
                 }
             ))
 
-            const res = await updateStrategiesMultiple(newData)
+            const res = await updateStrategiesMultipleSpot(newData)
 
             const { status, message } = res.data
 
@@ -494,11 +548,13 @@ function EditMulTreeItem({
 
     const handleGetSymbolList = async () => {
         try {
-            const res = await getAllSymbol()
+            const res = await getAllSymbolSpot()
             const { status, message, data: symbolListDataRes } = res.data
 
             if (status === 200) {
                 const newSymbolList = symbolListDataRes.map(item => ({ name: item, value: item }))
+                // const newSymbolList = symbolListDataRes.map(item => ({ name: item.split("USDT")[0], value: item }))
+
                 setSymbolListData(newSymbolList)
             }
             else {
@@ -516,30 +572,177 @@ function EditMulTreeItem({
         }
     }
 
-    // const handleGetAllBot = async () => {
-    //     try {
-    //         const res = await getAllBot()
-    //         const { status, message, data: botListDataRes } = res.data
 
-    //         if (status === 200) {
-    //             const newSymbolList = botListDataRes.map(item => ({ name: item.botName, value: item._id }))
-    //             setBotListData(newSymbolList)
-    //         }
-    //         else {
-    //             dispatch(addMessageToast({
-    //                 status,
-    //                 message
-    //             }))
-    //         }
-    //     }
-    //     catch (err) {
-    //         dispatch(addMessageToast({
-    //             status: 500,
-    //             message: "Get All Bot Error",
-    //         }))
-    //     }
-    // }
 
+    const handleRenderContentRadio = () => {
+        switch (copyType) {
+            case "Symbol":
+                return <div>
+                    <Autocomplete
+                        multiple
+                        limitTags={1}
+                        value={symbolListSelected}
+                        disableCloseOnSelect
+                        options={symbolListData}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setSymbolListSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setSymbolListSelected(symbolListData)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setSymbolListSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || symbolListSelected.findIndex(item => item.value === option.value) > -1}
+                                    />
+                                    {option.name.split("USDT")[0]}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+                    </Autocomplete>
+                    {!symbolListSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                </div>
+            case "Bot":
+                return <div>
+                    <Autocomplete
+                        multiple
+                        limitTags={1}
+                        value={botLisSelected}
+                        disableCloseOnSelect
+                        options={botListInput}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setBotLisSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected(botListInput)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || botLisSelected.findIndex(item => item.value === option.value) > -1}
+                                    />
+                                    {option.name}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+                    </Autocomplete>
+                    {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                </div>
+            case "BotVip":
+                return roleNameMainVIP && <div>
+                    <Autocomplete
+                        multiple
+                        limitTags={1}
+                        value={botLisSelected}
+                        disableCloseOnSelect
+                        options={botListInputVIP}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setBotLisSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected(botListInputVIP)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBotLisSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || botLisSelected.findIndex(item => item.value === option.value) > -1}
+                                    />
+                                    {option.name}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+                    </Autocomplete>
+                    {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
+                </div>
+        }
+    }
     const handleElementWhenChangeRatio = () => {
         switch (radioValue) {
             case "Update":
@@ -665,123 +868,10 @@ function EditMulTreeItem({
                             >
                                 <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
                                 <FormControlLabel value="Bot" control={<Radio />} label="Bot" />
+                                {roleNameMainVIP && <FormControlLabel value="BotVip" control={<Radio />} label="Bot VIP" style={{ color: "var(--blueLightColor)" }} />}
                             </RadioGroup>
                         </FormControl>
-                        {
-                            copyType === "Symbol"
-                                ? (
-                                    <div>
-                                        <Autocomplete
-                                            multiple
-                                            limitTags={1}
-                                            value={symbolListSelected}
-                                            disableCloseOnSelect
-                                            options={symbolListData}
-                                            size="small"
-                                            getOptionLabel={(option) => option.name}
-                                            onChange={(e, value) => {
-                                                setSymbolListSelected(value)
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} placeholder="Select..." />
-                                            )}
-                                            renderOption={(props, option, { selected, index }) => (
-                                                <>
-                                                    {index === 0 && (
-                                                        <>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setSymbolListSelected(symbolListData)
-                                                                }}
-                                                            >
-                                                                Select All
-                                                            </Button>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setSymbolListSelected([])
-                                                                }}
-                                                            >
-                                                                Deselect All
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                    <li {...props}>
-                                                        <Checkbox
-                                                            checked={selected || symbolListSelected.findIndex(item => item.value === option.value) > -1}
-                                                        />
-                                                        {option.name}
-                                                    </li>
-                                                </>
-                                            )}
-                                            renderTags={(value) => {
-                                                return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
-                                            }}
-                                        >
-                                        </Autocomplete>
-                                        {!symbolListSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
-                                    </div>
-                                )
-                                : (
-                                    <div>
-                                        <Autocomplete
-                                            multiple
-                                            limitTags={1}
-                                            value={botLisSelected}
-                                            disableCloseOnSelect
-                                            options={botListInput}
-                                            size="small"
-                                            getOptionLabel={(option) => option.name}
-                                            onChange={(e, value) => {
-                                                setBotLisSelected(value)
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField {...params} placeholder="Select..." />
-                                            )}
-                                            renderOption={(props, option, { selected, index }) => (
-                                                <>
-                                                    {index === 0 && (
-                                                        <>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setBotLisSelected(botListInput)
-                                                                }}
-                                                            >
-                                                                Select All
-                                                            </Button>
-                                                            <Button
-                                                                color="inherit"
-                                                                style={{ width: '50%' }}
-                                                                onClick={() => {
-                                                                    setBotLisSelected([])
-                                                                }}
-                                                            >
-                                                                Deselect All
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                    <li {...props}>
-                                                        <Checkbox
-                                                            checked={selected || botLisSelected.findIndex(item => item.value === option.value) > -1}
-                                                        />
-                                                        {option.name}
-                                                    </li>
-                                                </>
-                                            )}
-                                            renderTags={(value) => {
-                                                return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
-                                            }}
-                                        >
-                                        </Autocomplete>
-                                        {!botLisSelected.length && <p className="formControlErrorLabel">The {copyType} field is required.</p>}
-                                    </div>
-                                )
-                        }
+                        {handleRenderContentRadio()}
                     </div>
                 )
             default:
@@ -799,7 +889,11 @@ function EditMulTreeItem({
     }
 
     useEffect(() => {
-        radioValue === "Copy" && handleGetSymbolList()
+        if (radioValue === "Copy") {
+            handleGetSymbolList()
+            handleVerifyLogin()
+            handleGetAllBot()
+        }
         // handleGetAllBot()
     }, [radioValue]);
 

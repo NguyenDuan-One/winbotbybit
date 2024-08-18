@@ -10,6 +10,7 @@ const roleRouter = require('./role.route');
 const groupRouter = require('./group.route');
 const positionRouter = require('./position.route');
 const spotRouter = require('./spot.route');
+const marginRouter = require('./margin.route');
 
 router.use('/auth', authRouter);
 router.use('/user', userRouter);
@@ -17,6 +18,7 @@ router.use('/bot', botRouter);
 router.use('/botType', botTypeRouter);
 router.use('/dataCoinByBit', dataCoinByBitRouter);
 router.use('/spot', spotRouter);
+router.use('/margin', marginRouter);
 router.use('/role', roleRouter);
 router.use('/group', groupRouter);
 router.use('/position', positionRouter);

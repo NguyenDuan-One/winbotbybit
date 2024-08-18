@@ -1,8 +1,9 @@
 import api from "../utils/api"
 
 // GET
-export const getAllStrategiesSpot = async () => {
-    return await api.get("/spot/getAllStrategiesSpot")
+
+export const getAllStrategiesSpot = async (botListInput) => {
+    return await api.post("/spot/getAllStrategiesSpot", { botListInput })
 }
 export const getAllSymbolSpot = async () => {
     return await api.get("/spot/getAllSymbolSpot")
@@ -31,31 +32,37 @@ export const createStrategiesSpot = async (data) => {
 export const updateStrategiesSpotByID = async ({ id, data }) => {
     return await api.put(`/spot/updateStrategiesSpotByID/${id}`, data)
 }
-export const updateStrategiesMultiple = async (data) => {
-    return await api.post("/spot/updateStrategiesMultiple", data)
+export const updateStrategiesMultipleSpot = async (data) => {
+    return await api.post("/spot/updateStrategiesMultipleSpot", data)
+}
+export const addToBookmarkSpot = async ({ symbolID }) => {
+    return await api.put(`/spot/addToBookmarkSpot/${symbolID}`)
+}
+export const removeToBookmarkSpot = async ({ symbolID }) => {
+    return await api.put(`/spot/removeToBookmarkSpot/${symbolID}`)
 }
 
 // DELETE
-export const deleteStrategies = async (id) => {
-    return await api.delete(`/spot/deleteStrategies/${id}`)
+export const deleteStrategiesSpot = async (id) => {
+    return await api.delete(`/spot/deleteStrategiesSpot/${id}`)
 }
-export const deleteStrategiesItem = async (data) => {
-    return await api.post("/spot/deleteStrategiesItem", data)
+export const deleteStrategiesItemSpot = async (data) => {
+    return await api.post("/spot/deleteStrategiesItemSpot", data)
 }
-export const deleteStrategiesMultiple = async (data) => {
-    return await api.post("/spot/deleteStrategiesMultiple", data)
+export const deleteStrategiesMultipleSpot = async (data) => {
+    return await api.post("/spot/deleteStrategiesMultipleSpot", data)
 }
 
 // OTHER
 export const syncSymbolSpot = async () => {
     return await api.get("/spot/syncSymbolSpot")
 }
-export const copyMultipleStrategiesToSymbol = async (newData) => {
-    return await api.post(`/spot/copyMultipleStrategiesToSymbol`, newData)
+export const copyMultipleStrategiesToSymbolSpot = async (newData) => {
+    return await api.post(`/spot/copyMultipleStrategiesToSymbolSpot`, newData)
 }
-export const copyMultipleStrategiesToBot = async (newData) => {
-    return await api.post(`/spot/copyMultipleStrategiesToBot`, newData)
+export const copyMultipleStrategiesToBotSpot = async (newData) => {
+    return await api.post(`/spot/copyMultipleStrategiesToBotSpot`, newData)
 }
 export const balanceWallet = async (data) => {
-    return await api.post("/spot/balanceWallet",data)
+    return await api.post("/spot/balanceWallet", data)
 }

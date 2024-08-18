@@ -28,6 +28,12 @@
 
     &Data {
         margin-top: 16px;
+
+        .bookmarkAll {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
     }
 
 
@@ -93,7 +99,7 @@
             justify-content: space-between;
 
             &Item {
-                flex:1
+                flex: 1
             }
         }
 

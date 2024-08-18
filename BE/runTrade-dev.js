@@ -547,7 +547,7 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
                         listCancel[curOrderLinkId] = cur
                     }
                     else {
-                        console.log(changeColorConsole.yellowBright(`[V] Cancel order ( ${cur.botName} - ${cur.side} -  ${cur.symbol} - ${candleTemp} ) has been filled `));
+                        console.log(`[V] Cancel order ( ${cur.botName} - ${cur.side} -  ${cur.symbol} - ${candleTemp} ) has been filled `);
                         delete listOCByCandleBot[candleTemp][botIDTemp].listOC[strategyIDTemp]
                     }
                     return pre
@@ -1117,7 +1117,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }
 
                                                 cancelAll({ strategyID, botID })
-                                                
+
                                                 delete listOCByCandleBot[strategy.Candlestick][botID].listOC[strategyID]
 
 
@@ -1198,10 +1198,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             const symbol = dataMain.symbol
                                             const side = dataMain.side
                                             const openTrade = +dataMain.entryPrice  //Gia khop lenh
-
-                                            const size = Math.abs(dataMain.size)
-
-                                            missTPDataBySymbol[botSymbolMissID].sizeTotal = size
 
                                             const missSize = size - missTPDataBySymbol[botSymbolMissID].size
 
@@ -1334,7 +1330,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 })
                                             }
 
-                                        }, 2500)
+                                        }, 2000)
                                     }
                                     else {
                                         missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)

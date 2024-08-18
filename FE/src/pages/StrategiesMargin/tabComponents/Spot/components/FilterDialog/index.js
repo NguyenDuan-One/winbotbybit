@@ -3,6 +3,7 @@ import { NumericFormat } from 'react-number-format';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useEffect, useState } from "react";
+
 import { Checkbox, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 import DialogCustom from '../../../../../../components/DialogCustom';
 import { handleCheckAllCheckBox } from '../../../../../../functions';
@@ -12,7 +13,8 @@ function FilterDialog({
     filterQuantityRef,
     dataCheckTreeDefaultRef,
     setDataCheckTree,
-    resetAfterSuccess
+    resetAfterSuccess,
+    botListInput
 }) {
 
     const compareFilterListDefault = [
@@ -23,6 +25,25 @@ function FilterDialog({
         "<=",
     ]
 
+    const candlestickValueList = [
+        {
+            name: "1m",
+            value: "1m"
+        },
+        {
+            name: "3m",
+            value: "3m"
+        },
+        {
+            name: "5m",
+            value: "5m"
+        },
+        {
+            name: "15m",
+            value: "15m"
+        },
+
+    ]
 
     const positionValueList = [
         {
@@ -34,6 +55,7 @@ function FilterDialog({
             value: "Short"
         }
     ]
+
     const fieldFilterList = [
 
         {
@@ -45,6 +67,7 @@ function FilterDialog({
             value: "PositionSide",
             compareFilterList: ["="],
         },
+
         {
             data: {
                 compare: "=",
@@ -68,7 +91,7 @@ function FilterDialog({
                 compare: "=",
                 value: ""
             },
-            name: "Auto amount",
+            name: "Auto Amount",
             value: "AmountAutoPercent",
             compareFilterList: compareFilterListDefault,
 
@@ -111,7 +134,6 @@ function FilterDialog({
             value: "AmountExpire",
             compareFilterList: compareFilterListDefault,
         },
-
         {
             data: {
                 compare: "=",
@@ -120,7 +142,6 @@ function FilterDialog({
             name: "Active",
             value: "IsActive",
             compareFilterList: ["="],
-
         },
         {
             data: {
@@ -130,7 +151,6 @@ function FilterDialog({
             name: "Adaptive",
             value: "Adaptive",
             compareFilterList: ["="],
-
         },
         {
             data: {
@@ -141,7 +161,6 @@ function FilterDialog({
             value: "Reverse",
             compareFilterList: ["="],
         },
-
         {
             data: {
                 compare: "=",
@@ -151,6 +170,15 @@ function FilterDialog({
             value: "volume24h",
             compareFilterList: compareFilterListDefault,
         },
+        {
+            data: {
+                compare: "=",
+                value: botListInput[0].name
+            },
+            name: "Bot",
+            value: "Bot",
+            compareFilterList: ["="],
+        },
     ]
 
     const [filterDataRowList, setFilterDataRowList] = useState([]);
@@ -158,7 +186,7 @@ function FilterDialog({
     const addFilterRow = () => {
         setFilterDataRowList(filterRowList => [
             ...filterRowList,
-            fieldFilterList[2]
+            fieldFilterList[fieldFilterList.length - 2]
         ])
     }
 
@@ -189,9 +217,11 @@ function FilterDialog({
     const handleCompare = (value1, compareValue, value2, filterValue) => {
 
         if (filterValue !== "PositionSide" &&
+            filterValue !== "Candlestick" &&
             filterValue !== "IsActive" &&
+            filterValue !== "Adaptive" &&
             filterValue !== "Reverse" &&
-            filterValue !== "Adaptive"
+            filterValue !== "Bot"
         ) {
             value1 = +value1
             value2 = +value2
@@ -244,21 +274,46 @@ function FilterDialog({
                         ))
                     }
                 </Select>
+            case "Candlestick":
+                return <Select
+                    value={item.data.value}
+                    defaultValue=""
+                    size="small"
+                    style={{
+                        width: "100%"
+                    }}
+                >
+                    {
+                        candlestickValueList.map(item => (
+                            <MenuItem value={item.value} key={item.value}
+                                onClick={() => { handleChangeValue(item.value, indexRow) }}
+
+                            >{item.name}</MenuItem>
+                        ))
+                    }
+                </Select>
             case "IsActive":
-                return <Checkbox
-                    checked={item.data.value}
-                    onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
-                />
+            case "Reverse":
             case "Adaptive":
                 return <Checkbox
                     checked={item.data.value}
                     onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
                 />
-            case "Reverse":
-                return <Checkbox
-                    checked={item.data.value}
-                    onChange={(e) => { handleChangeValue(e.target.checked, indexRow) }}
-                />
+            case "Bot":
+                return <Select
+                    value={item.data.value}
+                    size="small"
+                    style={{
+                        width: "100%"
+                    }}
+                    onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
+                >
+                    {
+                        botListInput.map(item => (
+                            <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                        ))
+                    }
+                </Select>
             default:
                 // return <TextField
                 //     type='number'
@@ -286,6 +341,7 @@ function FilterDialog({
                         padding: "0 12px",
                         borderRadius: "6px"
                     }}
+
                 >
                 </NumericFormat>
         }
@@ -326,7 +382,14 @@ function FilterDialog({
                 //     return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value))
                 // }
                 // return true
-                return filterDataRowList.every(filterRow => handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value, filterRow.value))
+                return filterDataRowList.every(filterRow => {
+
+                    if (filterRow.value !== "Bot") {
+
+                        return handleCompare(item[filterRow.value], filterRow.data.compare, filterRow.data.value, filterRow.value)
+                    }
+                    return handleCompare(item.botID._id, filterRow.data.compare, filterRow.data.value, filterRow.value)
+                })
             }
             )
         }

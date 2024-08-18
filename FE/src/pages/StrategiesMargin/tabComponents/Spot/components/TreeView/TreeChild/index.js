@@ -2,16 +2,16 @@ import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import styles from "./TreeChild.module.scss"
-import { useDispatch } from 'react-redux';
-import { memo, useCallback, useState } from 'react';
 import { TableRow, TableCell, Switch } from '@mui/material';
-import UpdateStrategy from '../../UpdateStrategy';
 import clsx from 'clsx';
+import { useState, useCallback, memo } from 'react';
+import { useDispatch } from 'react-redux';
 import DialogCustom from '../../../../../../../components/DialogCustom';
 import { handleCheckAllCheckBox, formatNumberString } from '../../../../../../../functions';
-import { deleteStrategiesItem, updateStrategiesByID } from '../../../../../../../services/dataCoinByBitService';
 import { addMessageToast } from '../../../../../../../store/slices/Toast';
-import { updateStrategiesSpotByID } from '../../../../../../../services/spotService';
+import UpdateStrategy from '../../UpdateStrategy';
+import { updateStrategiesSpotByID,deleteStrategiesItemSpot } from '../../../../../../../services/spotService';
+
 
 function TreeChild({
     treeData,
@@ -87,7 +87,7 @@ function TreeChild({
 
     const handleDeleteStrategiesItem = async ({ id, parentID }) => {
         try {
-            const res = await deleteStrategiesItem({
+            const res = await deleteStrategiesItemSpot({
                 id: id,
                 parentID,
             })
