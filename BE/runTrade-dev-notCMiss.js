@@ -526,19 +526,29 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
         const list = Object.values(item.listOC || {})
 
         if (list.length > 0) {
-            console.log(`[...] Total OC Be Cancelled: ${list.length}`);
+            console.log(`[...] Total OC Can Be Cancelled: ${list.length}`);
             let index = 0;
             const listCancel = {}
             while (index < list.length) {
                 const batch = list.slice(index, index + batchSize);
 
                 const newList = batch.reduce((pre, cur) => {
-                    if (!allStrategiesByBotIDAndStrategiesID?.[cur.botID]?.[cur.strategyID]?.OC?.orderFilled) {
+                    const curOrderLinkId = cur.orderLinkId
+
+                    const botIDTemp = cur.botID
+                    const strategyIDTemp = cur.strategyID
+                    const candleTemp = cur.candle
+
+                    if (!allStrategiesByBotIDAndStrategiesID?.[botIDTemp]?.[strategyIDTemp]?.OC?.orderFilled) {
                         pre.push({
                             symbol: cur.symbol,
-                            orderLinkId: cur.orderLinkId,
+                            orderLinkId: curOrderLinkId,
                         })
-                        listCancel[cur.orderLinkId] = cur
+                        listCancel[curOrderLinkId] = cur
+                    }
+                    else {
+                        console.log(changeColorConsole.yellowBright(`[V] Cancel order ( ${cur.botName} - ${cur.side} -  ${cur.symbol} - ${candleTemp} ) has been filled `));
+                        delete listOCByCandleBot[candleTemp][botIDTemp].listOC[strategyIDTemp]
                     }
                     return pre
                 }, [])
@@ -546,26 +556,32 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
                 console.log(`[...] Canceling ${newList.length} OC`);
 
                 const res = await client.batchCancelOrders("linear", newList)
-                if (res) {
-                    const listSuccess = res.result.list || []
+                const listSuccess = res.result.list || []
+                const listSuccessCode = res.retExtInfo.list || []
 
-                    listSuccess.forEach(item => {
-                        const data = listCancel[item.orderLinkId]
 
-                        if (data) {
-                            const botIDTemp = data.botID
-                            const strategyIDTemp = data.strategyID
+                listSuccess.forEach((item, index) => {
+                    const data = listCancel[item.orderLinkId]
+                    const codeData = listSuccessCode[index]
+                    const botIDTemp = data.botID
+                    const strategyIDTemp = data.strategyID
+                    const candleTemp = data.candle
 
-                            cancelAll({
-                                botID: botIDTemp,
-                                strategyID: strategyIDTemp,
-                            })
+                    if (codeData.code == 0) {
+                        console.log(`[V] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) successful `);
+                        cancelAll({
+                            botID: botIDTemp,
+                            strategyID: strategyIDTemp,
+                        })
+                    }
+                    else {
+                        allStrategiesByBotIDAndStrategiesID[botIDTemp][strategyIDTemp].OC.orderID = ""
+                        console.log(changeColorConsole.yellowBright(`[!] Cancel order ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) failed `, codeData.msg));
+                    }
+                    delete listOCByCandleBot[candleTemp][botIDTemp].listOC[strategyIDTemp]
+                })
 
-                            delete listOCByCandleBot[data.candle][botIDTemp].listOC[strategyIDTemp]
-                        }
-                    })
-                }
-                await delay(1200)
+                await delay(1000)
                 index += batchSize
             }
         }
@@ -1101,6 +1117,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }
 
                                                 cancelAll({ strategyID, botID })
+                                                
+                                                delete listOCByCandleBot[strategy.Candlestick][botID].listOC[strategyID]
+
 
                                                 sendMessageWithRetry({
                                                     messageText: `${teleText} \n${textWinLose}`,
@@ -1462,7 +1481,7 @@ const handleSocketListKline = async (listKlineInput) => {
             const coinCurrent = +dataMain.close
 
             if (symbol === "BTCUSDT" && candle == 1) {
-                const BTCPricePercent = Math.abs((+dataMain.close - +dataMain.open)) / (+dataMain.open) * 100
+                const BTCPricePercent = Math.abs(coinCurrent - coinOpen) / coinOpen * 100
 
                 if (BTCPricePercent >= 0.7) {
                     const newCheckBTC07Price = Math.round(BTCPricePercent)
@@ -1471,14 +1490,14 @@ const handleSocketListKline = async (listKlineInput) => {
                         sendAllBotTelegram(BTCPricePercent.toFixed(2))
                     }
                     if (BTCPricePercent >= 1) {
-                        const newNangOCValue = Math.ceil(BTCPricePercent) * 5
+                        const newNangOCValue = Math.round(BTCPricePercent) * 5
 
                         if (newNangOCValue !== nangOCValue) {
                             nangOCValue = newNangOCValue
                             checkOrderOCAll = false
                         }
                     }
-                    else if (BTCPricePercent >= 0.7) {
+                    else if (BTCPricePercent >= 0.7 && BTCPricePercent < 0.8) {
                         const newNangOCValue = 1
 
                         if (newNangOCValue !== nangOCValue) {
@@ -2259,27 +2278,7 @@ const Main = async () => {
 }
 
 try {
-    // Main()
-
-    const client = new RestClientV5({
-        testnet: false,
-        key: '5rIH1WMsT7f4GJLi59',
-        secret: "QENQ6ecdubSRUNhoIz0ydib1KkRJPAjTI1VW",
-        syncTimeBeforePrivateRequests: true,
-
-    });
-     client.batchCancelOrders("linear", [
-        {
-            symbol: "sdsd",
-            orderLinkId: "dffgd"
-        }
-    ]).then(res=>{
-
-        console.log(res.retExtInfo.list);
-        console.log(res.result.list);
-    })
-
-
+    Main()
 
     setTimeout(() => {
         cron.schedule(`*/3 * * * * *`, () => {
