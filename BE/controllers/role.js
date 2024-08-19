@@ -86,7 +86,9 @@ const RoleController = {
         try {
             const result = await RoleModel.updateMany(
                 {},
-                { "$addToSet": { roleList: "StrategiesMargin" } },
+                { "$addToSet": { roleList: [
+                    "Spot","Margin","Scanner"
+                ] } },
             );
 
             if (result.modifiedCount > 0) {

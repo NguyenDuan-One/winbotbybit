@@ -1,7 +1,9 @@
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import StarIcon from '@mui/icons-material/Star';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import { MenuItem, Select, TextField, Avatar, FormLabel, FormControl, Tooltip, Switch } from '@mui/material';
+import { MenuItem, Select, TextField, Avatar, FormLabel, FormControl, Tooltip, Switch, Checkbox } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { useEffect, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
@@ -57,8 +59,27 @@ function Scanner() {
             field: 'stt',
             headerName: '#',
             maxWidth: 30,
-            type: "actions",
-            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+            renderCell: (params) => {
+                const bookmarkList = params.row['bookmarkList']
+                
+                return <Checkbox
+                    // checked={bookmarkList.includes(userData._id)}
+                    style={{
+                        padding: " 0 6px",
+                    }}
+                    sx={{
+                        color: "#b5b5b5",
+                        '&.Mui-checked': {
+                            color: "var(--yellowColor)",
+                        },
+                    }}
+                    icon={<StarBorderIcon />}
+                    checkedIcon={<StarIcon />}
+                    onClick={e => {
+
+                    }}
+                />
+            }
         },
         {
             field: 'IsActive',

@@ -13,6 +13,9 @@ import BotType from "../pages/BotType"
 import User from "../pages/User"
 import Dashboard from "../pages/Dashboard"
 import StrategiesMargin from "../pages/StrategiesMargin"
+import Spot from "../pages/StrategiesMargin/tabComponents/Spot"
+import Margin from "../pages/StrategiesMargin/tabComponents/Margin"
+import Scanner from "../pages/StrategiesMargin/tabComponents/Scanner"
 
 
 const routeList = [
@@ -22,7 +25,7 @@ const routeList = [
         children: [
             {
                 path: "",
-                element: <Dashboard/>,
+                element: <Dashboard />,
             },
             {
                 path: "Users",
@@ -48,9 +51,30 @@ const routeList = [
                 path: "Strategies",
                 element: <Strategies />,
             },
+
             {
-                path: "StrategiesMargin",
-                element: <StrategiesMargin />,
+                path: "Spot",
+                element:
+                    <>
+                        <StrategiesMargin />
+                        <Spot />
+                    </>
+            },
+            {
+                path: "Margin",
+                element:
+                    <>
+                        <StrategiesMargin />
+                        <Margin />
+                    </>
+            },
+            {
+                path: "Scanner",
+                element:
+                    <>
+                        <StrategiesMargin />
+                        <Scanner />
+                    </>
             },
             {
                 path: "Coin",
@@ -68,7 +92,7 @@ const routeList = [
                 path: "MyProfile",
                 element: <MyProfile />,
             },
-            
+
         ]
     },
     {

@@ -871,6 +871,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                 // })
 
                 const wsConfigOrder = {
+                    testnet: false,
                     key: ApiKey,
                     secret: SecretKey,
                     market: 'v5',
@@ -2817,6 +2818,7 @@ socketRealtime.on('bot-api', async (data) => {
         const SecretKeyBot = botApiData.SecretKey
 
         const wsConfigOrder = {
+            testnet: false,
             key: ApiKeyBot,
             secret: SecretKeyBot,
             market: 'v5',
@@ -2834,6 +2836,7 @@ socketRealtime.on('bot-api', async (data) => {
         }
 
         const wsConfigOrderNew = {
+            testnet: false,
             key: newApiData.ApiKey,
             secret: newApiData.SecretKey,
             market: 'v5',
@@ -2937,6 +2940,7 @@ socketRealtime.on('bot-delete', async (data) => {
     const SecretKeyBot = botApiData.SecretKey
 
     const wsConfigOrder = {
+        testnet: false,
         key: ApiKeyBot,
         secret: SecretKeyBot,
         market: 'v5',

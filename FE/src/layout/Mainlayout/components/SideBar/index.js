@@ -47,7 +47,7 @@ function SideBar({
             icon: <LocalMallIcon className={styles.icon} />
         },
         {
-            linK: "/StrategiesMargin",
+            linK: "/Spot",
             name: "Strategies Margin",
             icon: <ShoppingCartIcon className={styles.icon} />
         },
