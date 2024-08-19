@@ -1538,7 +1538,7 @@ const handleSocketListKline = async (listKlineInput) => {
 
                                 trichMauOCListObject[symbolCandleID].curTime = new Date()
 
-                                if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime >= 250) {
+                                if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime >= 150) {
 
 
                                     const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
