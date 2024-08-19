@@ -58,12 +58,13 @@ function Scanner() {
         {
             field: 'stt',
             headerName: '#',
+            type:"actions",
             maxWidth: 30,
             renderCell: (params) => {
                 const bookmarkList = params.row['bookmarkList']
                 
                 return <Checkbox
-                    // checked={bookmarkList.includes(userData._id)}
+                    checked={bookmarkList.includes(userData._id)}
                     style={{
                         padding: " 0 6px",
                     }}

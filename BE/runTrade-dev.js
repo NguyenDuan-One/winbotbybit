@@ -2278,7 +2278,7 @@ try {
     Main()
 
     setTimeout(() => {
-        cron.schedule(`*/3 * * * * *`, () => {
+        cron.schedule('*/15 * * * *', () => {
             getMoneyFuture(botApiList)
         });
     }, 1000)
