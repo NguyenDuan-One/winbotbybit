@@ -75,18 +75,11 @@ const dataCoinByBitController = {
             let ListCoin1m = []
 
             let wsConfig = {
-                // key: API_KEY,
-                // secret: PRIVATE_KEY,
                 market: 'v5',
-                recvWindow: 60000,
-
+                recvWindow: 100000
             }
             let wsInfo = {
-                // key: API_KEY,
-                // secret: PRIVATE_KEY,
                 testnet: false,
-                recv_window: 60000,
-                enable_time_sync: true
             }
             let wsSymbol = new WebsocketClient(wsConfig);
             let CoinInfo = new RestClientV5(wsInfo);
@@ -181,19 +174,19 @@ const dataCoinByBitController = {
             ]);
 
 
-            const result = await SpotModel.populate(resultFilter, {
+            const handleResult = await SpotModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
-            const handleResult = result.reduce((result, child) => {
-                if (child.children.some(childData => childData.botID.Status === "Running")) {
-                    result.push({
-                        ...child,
-                        children: child.children.filter(item => item.botID.Status === "Running")
-                    })
-                }
-                return result
-            }, []) || []
+            // const handleResult = result.reduce((result, child) => {
+            //     if (child.children.some(childData => childData.botID.Status === "Running")) {
+            //         result.push({
+            //             ...child,
+            //             children: child.children.filter(item => item.botID.Status === "Running")
+            //         })
+            //     }
+            //     return result
+            // }, []) || []
 
 
             res.customResponse(res.statusCode, "Get All Strategies Successful", handleResult);
@@ -212,20 +205,7 @@ const dataCoinByBitController = {
             res.status(500).json({ message: err.message });
         }
     },
-    getAllSymbolWith24: async (req, res) => {
-        try {
-            const result = await SpotModel.find();
 
-            res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => ({
-                _id: item._id,
-                symbol: item.value,
-                volume24h: item.volume24h,
-            })))
-
-        } catch (err) {
-            res.status(500).json({ message: err.message });
-        }
-    },
     getTotalFutureByBot: async (req, res) => {
         try {
 
@@ -905,10 +885,10 @@ const dataCoinByBitController = {
     transferFunds: async (amount, FromWallet, ToWallet) => {
 
         const client = new RestClientV5({
+            testnet: false,
             key: API_KEY,
             secret: SECRET_KEY,
-            recv_window: 60000,
-            enable_time_sync: true
+            syncTimeBeforePrivateRequests: true,
         });
 
         let myUUID = uuidv4();
@@ -951,8 +931,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
-                    recv_window: 60000,
-                    enable_time_sync: true
+                    syncTimeBeforePrivateRequests: true,
                 });
 
                 let myUUID = uuidv4();
@@ -1010,8 +989,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
-                    recv_window: 60000,
-                    enable_time_sync: true
+                    syncTimeBeforePrivateRequests: true,
                 });
 
                 // get field totalWalletBalance
@@ -1048,8 +1026,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
-                    recv_window: 60000,
-                    enable_time_sync: true
+                    syncTimeBeforePrivateRequests: true,
                 });
 
                 await client.getAllCoinsBalance({
@@ -1089,8 +1066,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: API_KEY,
                     secret: SECRET_KEY,
-                    recv_window: 60000,
-                    enable_time_sync: true
+                    syncTimeBeforePrivateRequests: true,
                 });
 
                 // get field totalWalletBalance
@@ -1138,8 +1114,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: API_KEY,
                     secret: SECRET_KEY,
-                    recv_window: 60000,
-                    enable_time_sync: true
+                    syncTimeBeforePrivateRequests: true,
                 });
 
                 // get field totalWalletBalance
@@ -1186,8 +1161,7 @@ const dataCoinByBitController = {
                     testnet: false,
                     key: API_KEY,
                     secret: SECRET_KEY,
-                    recv_window: 60000,
-                    enable_time_sync: true
+                    syncTimeBeforePrivateRequests: true,
                 });
 
                 let myUUID = uuidv4();

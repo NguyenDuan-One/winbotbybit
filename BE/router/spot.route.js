@@ -6,7 +6,6 @@ const spotController = require('../controllers/spot');
 
 router.post('/getAllStrategiesSpot', MiddlewareController.verifyToken, spotController.getAllStrategiesSpot);
 router.get('/getAllSymbolSpot', MiddlewareController.verifyToken, spotController.getAllSymbolSpot);
-router.get('/getAllSymbolWith24', MiddlewareController.verifyToken, spotController.getAllSymbolWith24);
 router.get('/getFutureAvailable/:id', MiddlewareController.verifyToken, spotController.getFutureAvailable)
 router.get('/getTotalFutureByBot/:id', MiddlewareController.verifyToken, spotController.getTotalFutureByBot)
 router.get('/getSpotTotal/:id', MiddlewareController.verifyToken, spotController.getSpotTotal)

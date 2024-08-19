@@ -1,11 +1,11 @@
-import { TextField } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import styles from './CoinContent.module.scss'
 import { useEffect, useRef, useState } from 'react';
 import DataGridCustom from '../../../components/DataGridCustom';
-import { getAllSymbolWith24 } from '../../../services/dataCoinByBitService';
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../../store/slices/Toast';
 import { formatNumberString } from '../../../functions';
+import { getAllCoin, syncCoin } from '../../../services/coinService';
 
 function CoinContent() {
     const tableColumns = [
@@ -22,8 +22,8 @@ function CoinContent() {
             flex: 1,
         },
         {
-            field: 'Amount24',
-            headerName: 'Amount24',
+            field: 'volume24h',
+            headerName: 'Volume24h',
             type: "number",
             flex: 1,
             renderCell: (params) => formatNumberString(params.value)
@@ -38,7 +38,7 @@ function CoinContent() {
 
     const handleGetSymbolList = async () => {
         try {
-            const res = await getAllSymbolWith24()
+            const res = await getAllCoin()
             const { status, message, data: symbolListDataRes } = res.data
 
             const newSymbolList = symbolListDataRes.map(item => (
@@ -46,8 +46,7 @@ function CoinContent() {
                     id: item._id,
                     Coin: item.symbol.split("USDT")[0],
                     Symbol: item.symbol,
-                    Amount24: item.volume24h,
-                    // Amount24: formatNumberString(item.volume24h),
+                    volume24h: item.volume24h,
                 }))
             tableRowsDefault.current = newSymbolList
             setTableRows(newSymbolList)
@@ -56,7 +55,27 @@ function CoinContent() {
         catch (err) {
             dispatch(addMessageToast({
                 status: 500,
-                message: "Get All Symbol Error",
+                message: err.message,
+            }))
+        }
+    }
+    const handleSyncCoin = async () => {
+        try {
+            const res = await syncCoin()
+            const { status, message } = res.data
+
+            if (status === 200) {
+                handleGetSymbolList()
+            }
+            dispatch(addMessageToast({
+                status,
+                message,
+            }))
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: err.message,
             }))
         }
     }
@@ -67,21 +86,26 @@ function CoinContent() {
     }, []);
     return (
         <div className={styles.coinContent}>
-            <TextField
-                placeholder='Coin Name...'
-                size='small'
-                className={styles.coinInput}
-                onChange={(e) => {
-                    setTableRows(() => {
-                        const key = e.target.value
-                        if (key) {
-                            const newList = tableRowsDefault.current.filter(item => item.Symbol.toUpperCase().includes(key.toUpperCase()?.trim()))
-                            return newList.length > 0 ? newList : []
-                        }
-                        return tableRowsDefault.current
-                    })
-                }}
-            />
+            <div style={{ display: "flex", "justifyContent": "space-between", alignItems: "center" }}>
+                <TextField
+                    placeholder='Coin Name...'
+                    size='small'
+                    className={styles.coinInput}
+                    onChange={(e) => {
+                        setTableRows(() => {
+                            const key = e.target.value
+                            if (key) {
+                                const newList = tableRowsDefault.current.filter(item => item.Symbol.toUpperCase().includes(key.toUpperCase()?.trim()))
+                                return newList.length > 0 ? newList : []
+                            }
+                            return tableRowsDefault.current
+                        })
+                    }}
+                />
+                <Button
+                    variant='contained'
+                    onClick={handleSyncCoin}>Sync</Button>
+            </div>
             <DataGridCustom
                 tableColumns={tableColumns}
                 tableRows={tableRows}

@@ -1,5 +1,5 @@
 const { RestClientV5, WebsocketClient } = require('bybit-api');
-const StrategiesModel = require('../models/strategies.model')
+const ScannerModel = require('../models/scanner.model')
 const BotModel = require('../models/bot.model')
 const { v4: uuidv4 } = require('uuid');
 const { default: mongoose } = require('mongoose');
@@ -7,53 +7,6 @@ const { default: mongoose } = require('mongoose');
 const dataCoinByBitController = {
     // SOCKET
 
-    checkConditionStrategies: (strategiesData) => {
-        return strategiesData.botID?.Status === "Running" && strategiesData.botID.ApiKey
-    },
-    getAllStrategiesNewUpdate: async (TimeTemp) => {
-
-        const resultFilter = await StrategiesModel.aggregate([
-            {
-                $match: {
-                    children: {
-                        $elemMatch: {
-                            TimeTemp: TimeTemp
-                        }
-                    }
-                }
-            },
-            {
-                $project: {
-                    label: 1,
-                    value: 1,
-                    volume24h: 1,
-                    children: {
-                        $filter: {
-                            input: "$children",
-                            as: "child",
-                            cond: {
-                                $and: [
-                                    { $eq: ["$$child.TimeTemp", TimeTemp] }
-                                ]
-                            }
-                        }
-                    }
-                }
-            }
-        ]);
-        const result = await StrategiesModel.populate(resultFilter, {
-            path: 'children.botID',
-        })
-
-
-        const newDataSocketWithBotData = result.flatMap((data) => data.children.map(child => {
-            child.symbol = data.value
-            child.value = `${data._id}-${child._id}`
-            return child
-        })) || []
-
-        return newDataSocketWithBotData
-    },
     sendDataRealtime: ({
         type,
         data
@@ -62,13 +15,7 @@ const dataCoinByBitController = {
         socketServer.emit(type, data)
         // socketServer.to("room2").emit(type, data)
     },
-    // GET
-    closeAllBotForUpCode: async (req, res) => {
-        dataCoinByBitController.sendDataRealtime({
-            type: "close-upcode"
-        })
-        res.customResponse(200, "Send Successful", "");
-    },
+
     getSymbolFromCloud: async (userID) => {
         try {
 
@@ -109,44 +56,94 @@ const dataCoinByBitController = {
             return []
         }
     },
-
-    getAllStrategies: async (req, res) => {
+    syncSymbolScanner: async (req, res) => {
         try {
             const userID = req.user._id
+
+            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud(userID);
+
+            if (listSymbolObject?.length) {
+
+
+                const existingDocs = await ScannerModel.find({ value: { $in: listSymbolObject.map(item => item.symbol) } });
+
+                const existingValues = existingDocs.map(doc => doc.value);
+
+                const valuesToAdd = listSymbolObject.filter(value => !existingValues.includes(value.symbol));
+
+                const newSymbolList = []
+                const newSymbolNameList = []
+
+                valuesToAdd.forEach(value => {
+                    newSymbolList.push({
+                        label: value.symbol,
+                        value: value.symbol,
+                        volume24h: value.volume24h,
+                        children: []
+                    });
+                    newSymbolNameList.push(value.symbol);
+                })
+
+                const insertSymbolNew = ScannerModel.insertMany(newSymbolList)
+
+                const bulkOperations = listSymbolObject.map(data => ({
+                    updateOne: {
+                        filter: { "label": data.symbol },
+                        update: {
+                            $set: {
+                                "volume24h": data.volume24h
+                            }
+                        }
+                    }
+                }));
+
+                const insertVol24 = ScannerModel.bulkWrite(bulkOperations);
+
+                await Promise.allSettled([insertSymbolNew, insertVol24])
+
+                if (newSymbolList.length > 0) {
+
+                    const newSymbolResult = await ScannerModel.find({
+                        value: { $in: newSymbolNameList }
+                    }).select("value")
+
+                    dataCoinByBitController.sendDataRealtime({
+                        type: "sync-symbol",
+                        data: newSymbolResult
+                    })
+                    res.customResponse(200, "Have New Sync Successful", newSymbolList)
+
+                }
+                else {
+                    res.customResponse(200, "Sync Successful", [])
+                }
+            }
+            else {
+                res.customResponse(400, "Sync Failed", []);
+
+            }
+
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
+
+    getAllConfigScanner: async (req, res) => {
+        try {
+            const userID = req.user._id
+
             const { botListInput } = req.body
 
             const botList = botListInput.map(item => new mongoose.Types.ObjectId(item));
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await ScannerModel.aggregate([
                 {
                     $match: {
-                        "children.botID": { $in: botList }
+                        "botID": { $in: botList }
                     }
                 },
                 {
                     $addFields: {
-                        children: {
-                            $filter: {
-                                input: "$children",
-                                as: "child",
-                                cond: {
-                                    $in: ["$$child.botID", botList]
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    $addFields: {
-                        childrenSorted: {
-                            $function: {
-                                body: function (children) {
-                                    return children.sort((a, b) => a.OrderChange - b.OrderChange);
-                                },
-                                args: ["$children"],
-                                lang: "js"
-                            }
-                        },
                         hasUserID: {
                             $cond: {
                                 if: { $in: [userID, { $ifNull: ["$bookmarkList", []] }] },
@@ -159,211 +156,73 @@ const dataCoinByBitController = {
                 {
                     $sort: {
                         hasUserID: -1,
-                        label: 1
                     }
                 },
-                {
-                    $project: {
-                        label: 1,
-                        value: 1,
-                        volume24h: 1,
-                        bookmarkList: 1,
-                        children: "$childrenSorted"
-                    }
-                }
             ]);
 
 
-            const handleResult = await StrategiesModel.populate(resultFilter, {
+            const handleResult = await ScannerModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
-            // const handleResult = result.reduce((result, child) => {
-            //     if (child.children.some(childData => childData.botID?.Status === "Running")) {
-            //         result.push({
-            //             ...child,
-            //             children: child.children.filter(item => item.botID?.Status === "Running")
-            //         })
-            //     }
-            //     return result
-            // }, []) || []
-
-
-            res.customResponse(res.statusCode, "Get All Strategies Successful", handleResult);
-
-        } catch (err) {
-            res.status(500).json({ message: err.message });
-        }
-    },
-    getAllSymbol: async (req, res) => {
-        try {
-            const result = await StrategiesModel.find().sort({ "label": 1 });
-
-            res.customResponse(res.statusCode, "Get All Symbol Successful", result.map(item => item.value));
+            res.customResponse(200, "Get All Config Successful", handleResult);
 
         } catch (err) {
             res.status(500).json({ message: err.message });
         }
     },
 
-    getTotalFutureByBot: async (req, res) => {
-        try {
-
-            const userID = req.params.id;
-
-            const botListId = await BotModel.find({
-                userID,
-                ApiKey: { $exists: true, $ne: null },
-                SecretKey: { $exists: true, $ne: null }
-            })
-                .select({ telegramToken: 0 }) // Loại bỏ trường telegramToken trong kết quả trả về
-                .sort({ Created: -1 });
-
-            const resultAll = await Promise.allSettled(botListId.map(async botData => dataCoinByBitController.getFutureBE(botData._id)))
-
-
-            if (resultAll.some(item => item?.value?.totalWalletBalance)) {
-                res.customResponse(200, "Get Total Future Successful", resultAll.reduce((pre, cur) => {
-                    return pre + (+cur?.value?.totalWalletBalance || 0)
-                }, 0))
-            }
-            else {
-                res.customResponse(400, "Get Total Future Failed", "");
-            }
-
-        }
-
-        catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    },
-    getTotalFutureSpot: async (req, res) => {
-        try {
-
-            const userID = req.params.id;
-
-            const botListId = await BotModel.find({
-                userID,
-                ApiKey: { $exists: true, $ne: null },
-                SecretKey: { $exists: true, $ne: null }
-            })
-                .select({ telegramToken: 0 }) // Loại bỏ trường telegramToken trong kết quả trả về
-                .sort({ Created: -1 });
-
-            const resultAll = await Promise.allSettled(botListId.map(async botData => dataCoinByBitController.getFutureSpotBE(botData._id)))
-
-            if (resultAll.some(item => item?.value?.future && item?.value?.spotTotal)) {
-                res.customResponse(200, "Get Total Future-Spot Successful", resultAll.reduce((pre, cur) => {
-                    return pre + (+cur?.value?.future || 0) + (+cur?.value?.spotTotal || 0)
-                }, 0))
-            }
-            else {
-                res.customResponse(400, "Get Total Future-Spot Failed", "");
-            }
-
-        }
-
-        catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    },
     // CREATE
-    createStrategies: async (req, res) => {
+    createConfigScanner: async (req, res) => {
 
         try {
             const userID = req.user._id
 
-            const { data, botListId, Symbol } = req.body
+            const { data: newData, botListId, Blacklist, OnlyPairs } = req.body
 
             let result
 
             const TimeTemp = new Date().toString()
 
-            const newData = {
-                ...data,
-                EntryTrailing: data.EntryTrailing || 40
-            }
-
             if (newData.PositionSide === "Both") {
-                result = await StrategiesModel.updateMany(
-                    { "value": { "$in": Symbol } },
-                    {
-                        "$push": {
-                            "children": [
-                                ...botListId.map(botID => ({ ...newData, PositionSide: "Long", botID, userID, TimeTemp })),
-                                ...botListId.map(botID => ({ ...newData, PositionSide: "Short", botID, userID, TimeTemp }))
-                            ]
-                        }
-                    },
-                    { new: true }
+                result = await ScannerModel.insertMany(
+                    [
+                        ...botListId.map(botID => ({ ...newData, PositionSide: "Long", botID, userID, TimeTemp, Blacklist, OnlyPairs })),
+                        ...botListId.map(botID => ({ ...newData, PositionSide: "Short", botID, userID, TimeTemp, Blacklist, OnlyPairs }))
+                    ]
                 )
             }
             else {
-                result = await StrategiesModel.updateMany(
-                    { "value": { "$in": Symbol } },
-                    { "$push": { "children": botListId.map(botID => ({ ...newData, botID, userID, TimeTemp })) } },
-                    { new: true }
+                result = await ScannerModel.insertMany(
+                    botListId.map(botID => ({ ...newData, botID, userID, TimeTemp, Blacklist, OnlyPairs }))
                 );
             }
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await ScannerModel.aggregate([
                 {
                     $match: {
-                        children: {
-                            $elemMatch: {
-                                IsActive: true,
-                                userID: new mongoose.Types.ObjectId(userID),
-                                TimeTemp: TimeTemp
-                            }
-                        }
+                        IsActive: true,
+                        userID: new mongoose.Types.ObjectId(userID),
+                        TimeTemp: TimeTemp
                     }
                 },
-                {
-                    $project: {
-                        label: 1,
-                        value: 1,
-                        volume24h: 1,
-                        children: {
-                            $filter: {
-                                input: "$children",
-                                as: "child",
-                                cond: {
-                                    $and: [
-                                        { $eq: ["$$child.IsActive", true] },
-                                        { $eq: ["$$child.userID", new mongoose.Types.ObjectId(userID)] },
-                                        { $eq: ["$$child.TimeTemp", TimeTemp] }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
             ]);
 
-
-            const resultGet = await StrategiesModel.populate(resultFilter, {
+            const handleResult = await ScannerModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
-            const handleResult = resultGet.flatMap((data) => data.children.map(child => {
-                child.symbol = data.value
-                child.value = `${data._id}-${child._id}`
-                return child
-            })) || []
-
-
-            if (result.acknowledged && result.matchedCount !== 0) {
+            if (result) {
 
                 handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
                     type: "add",
                     data: handleResult
                 })
-                res.customResponse(200, "Add New Strategies Successful", []);
+                res.customResponse(200, "Add New Config Successful", []);
             }
             else {
-                res.customResponse(400, "Add New Strategies Failed", "");
+                res.customResponse(400, "Add New Config Failed", "");
             }
-
         }
 
         catch (error) {
@@ -373,14 +232,14 @@ const dataCoinByBitController = {
     },
 
     // UPDATE
-    updateStrategiesByID: async (req, res) => {
+    updateStrategiesSpotByID: async (req, res) => {
         try {
 
             const strategiesID = req.params.id;
 
             const { parentID, newData, symbol } = req.body
 
-            const result = await StrategiesModel.updateOne(
+            const result = await ScannerModel.updateOne(
                 { "children._id": strategiesID, _id: parentID },
                 { $set: { "children.$": newData } }
             )
@@ -409,7 +268,7 @@ const dataCoinByBitController = {
         }
     },
 
-    updateStrategiesMultiple: async (req, res) => {
+    updateStrategiesMultipleSpot: async (req, res) => {
         try {
 
             const dataList = req.body
@@ -430,7 +289,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await ScannerModel.bulkWrite(bulkOperations);
 
             if (bulkResult.modifiedCount === dataList.length) {
                 const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
@@ -453,14 +312,14 @@ const dataCoinByBitController = {
         }
     },
 
-    addToBookmark: async (req, res) => {
+    addToBookmarkSpot: async (req, res) => {
         try {
 
             const symbolID = req.params.id;
             const userID = req.user._id;
 
 
-            const result = await StrategiesModel.updateOne(
+            const result = await ScannerModel.updateOne(
                 { "_id": symbolID },
                 { $addToSet: { bookmarkList: userID } }
             )
@@ -477,14 +336,14 @@ const dataCoinByBitController = {
             res.status(500).json({ message: "Add Bookmark Error" });
         }
     },
-    removeToBookmark: async (req, res) => {
+    removeToBookmarkSpot: async (req, res) => {
         try {
 
             const symbolID = req.params.id;
             const userID = req.user._id;
 
 
-            const result = await StrategiesModel.updateOne(
+            const result = await ScannerModel.updateOne(
                 { "_id": symbolID },
                 { $pull: { bookmarkList: userID } }
             )
@@ -503,12 +362,12 @@ const dataCoinByBitController = {
     },
 
     // DELETE
-    deleteStrategies: async (req, res) => {
+    deleteStrategiesSpot: async (req, res) => {
         try {
 
             const strategiesID = req.params.id;
 
-            const resultGet = await StrategiesModel.findOne(
+            const resultGet = await ScannerModel.findOne(
                 { _id: strategiesID },
             ).populate("children.botID")
 
@@ -519,7 +378,7 @@ const dataCoinByBitController = {
             }) || []
 
 
-            const result = await StrategiesModel.updateOne(
+            const result = await ScannerModel.updateOne(
                 { _id: strategiesID },
                 {
                     "children": []
@@ -547,12 +406,12 @@ const dataCoinByBitController = {
         }
     },
 
-    deleteStrategiesItem: async (req, res) => {
+    deleteStrategiesItemSpot: async (req, res) => {
         try {
 
             const { id, parentID } = req.body;
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await ScannerModel.aggregate([
                 {
                     $match: {
                         "_id": new mongoose.Types.ObjectId(parentID),
@@ -574,7 +433,7 @@ const dataCoinByBitController = {
                 }
             ]);
 
-            const resultGet = await StrategiesModel.populate(resultFilter, {
+            const resultGet = await ScannerModel.populate(resultFilter, {
                 path: 'children.botID',
             })
             const newDataSocketWithBotData = resultGet[0].children.map(child => {
@@ -585,7 +444,7 @@ const dataCoinByBitController = {
 
 
 
-            const result = await StrategiesModel.updateOne(
+            const result = await ScannerModel.updateOne(
                 { _id: parentID },
                 { $pull: { children: { _id: id } } }
             );
@@ -610,7 +469,7 @@ const dataCoinByBitController = {
         }
     },
 
-    deleteStrategiesMultiple: async (req, res) => {
+    deleteStrategiesMultipleSpot: async (req, res) => {
         try {
 
             const strategiesIDList = req.body
@@ -618,7 +477,7 @@ const dataCoinByBitController = {
             const parentIDs = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.parentID));
             const ids = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.id));
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await ScannerModel.aggregate([
                 {
                     $match: {
                         "_id": { $in: parentIDs }
@@ -642,7 +501,7 @@ const dataCoinByBitController = {
                 }
             ]);
 
-            const resultGet = await StrategiesModel.populate(resultFilter, {
+            const resultGet = await ScannerModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -661,7 +520,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await ScannerModel.bulkWrite(bulkOperations);
 
             // if (result.acknowledged && result.deletedCount !== 0) {
             if (bulkResult.modifiedCount === strategiesIDList.length) {
@@ -684,7 +543,7 @@ const dataCoinByBitController = {
 
     // OTHER
 
-    copyMultipleStrategiesToSymbol: async (req, res) => {
+    copyMultipleStrategiesToSymbolSpot: async (req, res) => {
 
         try {
             const { symbolListData, symbolList } = req.body
@@ -731,7 +590,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await ScannerModel.bulkWrite(bulkOperations);
 
 
             if (bulkResult.modifiedCount === symbolList.length) {
@@ -759,7 +618,7 @@ const dataCoinByBitController = {
 
     },
 
-    copyMultipleStrategiesToBot: async (req, res) => {
+    copyMultipleStrategiesToBotSpot: async (req, res) => {
 
         try {
             const { symbolListData, symbolList } = req.body
@@ -783,7 +642,7 @@ const dataCoinByBitController = {
                 }
             }));
 
-            const bulkResult = await StrategiesModel.bulkWrite(bulkOperations);
+            const bulkResult = await ScannerModel.bulkWrite(bulkOperations);
 
 
             if (bulkResult.modifiedCount === symbolListData.length) {
@@ -810,77 +669,7 @@ const dataCoinByBitController = {
 
     },
 
-    syncSymbol: async (req, res) => {
-        try {
-            const userID = req.user._id
 
-            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud(userID);
-
-            if (listSymbolObject?.length) {
-
-
-                const existingDocs = await StrategiesModel.find({ value: { $in: listSymbolObject.map(item => item.symbol) } });
-
-                const existingValues = existingDocs.map(doc => doc.value);
-
-                const valuesToAdd = listSymbolObject.filter(value => !existingValues.includes(value.symbol));
-
-                const newSymbolList = []
-                const newSymbolNameList = []
-
-                valuesToAdd.forEach(value => {
-                    newSymbolList.push({
-                        label: value.symbol,
-                        value: value.symbol,
-                        volume24h: value.volume24h,
-                        children: []
-                    });
-                    newSymbolNameList.push(value.symbol);
-                })
-
-                const insertSymbolNew = StrategiesModel.insertMany(newSymbolList)
-
-                const bulkOperations = listSymbolObject.map(data => ({
-                    updateOne: {
-                        filter: { "label": data.symbol },
-                        update: {
-                            $set: {
-                                "volume24h": data.volume24h
-                            }
-                        }
-                    }
-                }));
-
-                const insertVol24 = StrategiesModel.bulkWrite(bulkOperations);
-
-                await Promise.allSettled([insertSymbolNew, insertVol24])
-
-                if (newSymbolList.length > 0) {
-
-                    const newSymbolResult = await StrategiesModel.find({
-                        value: { $in: newSymbolNameList }
-                    }).select("value")
-
-                    dataCoinByBitController.sendDataRealtime({
-                        type: "sync-symbol",
-                        data: newSymbolResult
-                    })
-                    res.customResponse(200, "Have New Sync Successful", newSymbolList)
-
-                }
-                else {
-                    res.customResponse(200, "Sync Successful", [])
-                }
-            }
-            else {
-                res.customResponse(400, "Sync Failed", []);
-
-            }
-
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    },
 
     transferFunds: async (amount, FromWallet, ToWallet) => {
 
@@ -932,6 +721,7 @@ const dataCoinByBitController = {
                     key: resultApiKey.API_KEY,
                     secret: resultApiKey.SECRET_KEY,
                     syncTimeBeforePrivateRequests: true,
+
                 });
 
                 let myUUID = uuidv4();
@@ -1206,7 +996,7 @@ const dataCoinByBitController = {
         try {
             require("../models/bot.model")
 
-            const resultFilter = await StrategiesModel.aggregate([
+            const resultFilter = await ScannerModel.aggregate([
                 {
                     $match: { "children.IsActive": true }
                 },
@@ -1225,7 +1015,7 @@ const dataCoinByBitController = {
                     }
                 }
             ]);
-            const result = await StrategiesModel.populate(resultFilter, {
+            const result = await ScannerModel.populate(resultFilter, {
                 path: 'children.botID',
             })
 
@@ -1258,7 +1048,7 @@ const dataCoinByBitController = {
     },
     getAllSymbolBE: async (req, res) => {
         try {
-            const result = await StrategiesModel.find().select("value");
+            const result = await ScannerModel.find().select("value");
             return result || []
 
         } catch (err) {

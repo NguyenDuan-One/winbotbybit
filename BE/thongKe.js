@@ -28,13 +28,11 @@ let botListTelegram = {}
 
 let wsConfig = {
     market: 'v5',
-    recvWindow: 60000,
+    recvWindow: 100000
 }
 let wsSymbol = new WebsocketClient(wsConfig);
 let wsInfo = {
     testnet: false,
-    recv_window: 60000,
-    enable_time_sync: true
 }
 let CoinInfo = new RestClientV5(wsInfo);
 

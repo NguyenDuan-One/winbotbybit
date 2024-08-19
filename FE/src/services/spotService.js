@@ -8,9 +8,7 @@ export const getAllStrategiesSpot = async (botListInput) => {
 export const getAllSymbolSpot = async () => {
     return await api.get("/spot/getAllSymbolSpot")
 }
-export const getAllSymbolWith24 = async () => {
-    return await api.get("/spot/getAllSymbolWith24")
-}
+
 export const getFutureAvailable = async (botID) => {
     return await api.get(`/spot/getFutureAvailable/${botID}`)
 }

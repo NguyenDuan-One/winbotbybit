@@ -10,9 +10,7 @@ export const getAllStrategies = async (botListInput) => {
 export const getAllSymbol = async () => {
     return await api.get("/dataCoinByBit/getAllSymbol")
 }
-export const getAllSymbolWith24 = async () => {
-    return await api.get("/dataCoinByBit/getAllSymbolWith24")
-}
+
 export const getFutureAvailable = async (botID) => {
     return await api.get(`/dataCoinByBit/getFutureAvailable/${botID}`)
 }

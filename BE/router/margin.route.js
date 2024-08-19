@@ -6,7 +6,6 @@ const marginController = require('../controllers/margin');
 
 router.post('/getAllStrategiesSpot', MiddlewareController.verifyToken, marginController.getAllStrategiesSpot);
 router.get('/getAllSymbolSpot', MiddlewareController.verifyToken, marginController.getAllSymbolSpot);
-router.get('/getAllSymbolWith24', MiddlewareController.verifyToken, marginController.getAllSymbolWith24);
 router.get('/getFutureAvailable/:id', MiddlewareController.verifyToken, marginController.getFutureAvailable)
 router.get('/getTotalFutureByBot/:id', MiddlewareController.verifyToken, marginController.getTotalFutureByBot)
 router.get('/getSpotTotal/:id', MiddlewareController.verifyToken, marginController.getSpotTotal)

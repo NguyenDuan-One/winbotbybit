@@ -36,8 +36,7 @@ const PositionController = {
                         testnet: false,
                         key: dataBotItem.ApiKey,
                         secret: dataBotItem.SecretKey,
-                        recv_window: 60000,
-                        enable_time_sync: true
+                        syncTimeBeforePrivateRequests: true,
                     });
 
                     return client.getPositionInfo({
@@ -148,8 +147,6 @@ const PositionController = {
 
             const client = new RestClientV5({
                 testnet: false,
-                recv_window: 60000,
-                enable_time_sync: true
             });
 
             await client.getKline({
@@ -176,8 +173,7 @@ const PositionController = {
             testnet: false,
             key: positionData.botData.ApiKey,
             secret: positionData.botData.SecretKey,
-            recv_window: 60000,
-            enable_time_sync: true
+            syncTimeBeforePrivateRequests: true,
         });
         client
             .submitOrder({
@@ -211,8 +207,7 @@ const PositionController = {
             testnet: false,
             key: positionData.botData.ApiKey,
             secret: positionData.botData.SecretKey,
-            recv_window: 60000,
-            enable_time_sync: true
+            syncTimeBeforePrivateRequests: true,
         });
         client
             .submitOrder({
@@ -226,7 +221,6 @@ const PositionController = {
                 reduceOnly: true
             })
             .then((response) => {
-
                 if (response.retCode == 0) {
 
                     PositionController.updatePositionBE({
@@ -248,7 +242,7 @@ const PositionController = {
 
                 }
                 else {
-                    res.customResponse(400, "Close Limit Failed");
+                    res.customResponse(400, response.retMsg);
                 }
             })
             .catch((error) => {

@@ -11,6 +11,8 @@ const groupRouter = require('./group.route');
 const positionRouter = require('./position.route');
 const spotRouter = require('./spot.route');
 const marginRouter = require('./margin.route');
+const scannerRouter = require('./scanner.route');
+const coinRouter = require('./coin.route');
 
 router.use('/auth', authRouter);
 router.use('/user', userRouter);
@@ -22,6 +24,8 @@ router.use('/margin', marginRouter);
 router.use('/role', roleRouter);
 router.use('/group', groupRouter);
 router.use('/position', positionRouter);
+router.use('/scanner', scannerRouter);
+router.use('/coin', coinRouter);
 
 // Sử dụng các route khác tương tự
 

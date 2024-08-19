@@ -11,11 +11,12 @@ function DataGridCustom({
     tableRows = [],
     tableColumns = [],
     checkboxSelection = true,
-    hideFooter = true,
+    hideFooter = false,
     setDataTableChange,
     disableMultipleRowSelection = false,
     disabledListRow = [],
-    columnVisibilityModel = {}
+    columnVisibilityModel = {},
+    centerCell = false
 }, ref) {
 
 
@@ -29,7 +30,7 @@ function DataGridCustom({
             onRowSelectionModelChange={data => { setDataTableChange(data) }}
             pageSizeOptions={[10, 25, 50]}
             initialState={{
-                pagination: { paginationModel: { pageSize: 10 } },
+                pagination: !hideFooter ? { paginationModel: { pageSize: 10 } } : {},
                 columns: { columnVisibilityModel }
             }}
             sx={{
@@ -47,7 +48,17 @@ function DataGridCustom({
                 },
                 ".MuiDataGrid-main": {
                     overflow: "auto"
+                },
+                ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
+                {
+                    justifyContent: centerCell && "center !important",
+                    textAlign: centerCell && "center !important",
                 }
+                // ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
+                // {
+                //     justifyContent:"center !important",
+                //     textAlign:"center !important", 
+                // }
                 // "& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-columnHeaderTitleContainer": {
                 //     display: "none"
                 // }
