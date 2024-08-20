@@ -18,6 +18,18 @@ export const updateStrategiesMultipleScanner = async (data) => {
 export const deleteStrategiesMultipleScanner = async (data) => {
     return await api.post("/scanner/deleteStrategiesMultipleScanner", data)
 }
+export const deleteStrategiesByIDScanner = async (data) => {
+    return await api.post("/scanner/deleteStrategiesByIDScanner", data)
+}
+export const copyMultipleStrategiesToBotScanner = async (data) => {
+    return await api.post("/scanner/copyMultipleStrategiesToBotScanner", data)
+}
+export const handleBookmarkScanner = async (data) => {
+    return await api.post("/scanner/handleBookmarkScanner", data)
+}
+export const updateConfigByID = async (data) => {
+    return await api.post("/scanner/updateConfigByID", data)
+}
 
 
 // OTHER

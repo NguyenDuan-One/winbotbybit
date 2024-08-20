@@ -372,6 +372,7 @@ function TreeParent({
                     submitBtnText='Confirm'
                     position='center'
                     submitBtnColor='error'
+                    backdrop
                     onSubmit={handleDeleteStrategies}
                 >
                     <p>Are you remove this symbol?</p>

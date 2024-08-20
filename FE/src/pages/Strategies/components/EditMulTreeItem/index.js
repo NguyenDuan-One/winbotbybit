@@ -365,9 +365,7 @@ function EditMulTreeItem({
                 status: status,
                 message: message,
             }))
-            if (status === 200) {
-                dataChange = true
-            }
+            dataChange = true
 
         }
         catch (err) {
@@ -451,9 +449,7 @@ function EditMulTreeItem({
                 status: status,
                 message: message,
             }))
-            if (status === 200) {
-                dataChange = true
-            }
+            dataChange = true
 
         }
         catch (err) {

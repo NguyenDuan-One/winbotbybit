@@ -1475,6 +1475,7 @@ const handleSocketListKline = async (listKlineInput) => {
             const dataMain = dataCoin.data[0]
             const coinOpen = +dataMain.open
             const coinCurrent = +dataMain.close
+            const dataConfirm = dataMain.confirm
 
             if (symbol === "BTCUSDT" && candle == 1) {
                 const BTCPricePercent = Math.abs(coinCurrent - coinOpen) / coinOpen * 100
@@ -1531,7 +1532,7 @@ const handleSocketListKline = async (listKlineInput) => {
 
                         const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
-                        if (dataMain.confirm == false && strategy.IsActive && !updatingAllMain) {
+                        if (dataConfirm == false && strategy.IsActive && !updatingAllMain) {
                             if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
 
 
@@ -1911,23 +1912,21 @@ const handleSocketListKline = async (listKlineInput) => {
 
                         }
                         // Coin CLosed
-                        else if (dataMain.confirm == true) {
-
-                            const coinClose = +dataMain.close
+                        else if (dataConfirm == true) {
 
                             // TP chưa khớp -> Dịch TP mới
 
                             if (allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP.orderID) {
 
-                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose = coinClose
+                                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.coinClose = coinCurrent
 
                                 let newPriceCompare = 0
                                 const oldPriceCompare = allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare
                                 if (strategy.PositionSide === "Long") {
-                                    newPriceCompare = oldPriceCompare - Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
+                                    newPriceCompare = oldPriceCompare - Math.abs(oldPriceCompare - coinCurrent) * (strategy.ReduceTakeProfit / 100)
                                 }
                                 else {
-                                    newPriceCompare = oldPriceCompare + Math.abs(oldPriceCompare - coinClose) * (strategy.ReduceTakeProfit / 100)
+                                    newPriceCompare = oldPriceCompare + Math.abs(oldPriceCompare - coinCurrent) * (strategy.ReduceTakeProfit / 100)
                                 }
 
                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = newPriceCompare
@@ -1940,7 +1939,7 @@ const handleSocketListKline = async (listKlineInput) => {
                                     strategy,
                                     candle: strategy.Candlestick,
                                     side,
-                                    coinOpen: coinClose,
+                                    coinOpen: coinCurrent,
                                     botName,
                                     botID
                                 });
@@ -2010,13 +2009,11 @@ const handleSocketListKline = async (listKlineInput) => {
             }
 
             // Coin CLosed
-            if (dataMain.confirm == true) {
-
-                const coinClose = +dataMain.close
+            if (dataConfirm == true) {
 
                 listPricePreOne[symbolCandleID] = {
-                    open: +dataMain.open,
-                    close: coinClose,
+                    open: coinOpen,
+                    close: coinCurrent,
                     high: +dataMain.high,
                     low: +dataMain.low,
                 }

@@ -19,9 +19,10 @@ import { getAllBotActiveByUserID } from '../../../../services/botService';
 import { getTotalFutureByBot } from '../../../../services/dataCoinByBitService';
 import { addMessageToast } from '../../../../store/slices/Toast';
 import { setTotalFuture } from '../../../../store/slices/TotalFuture';
-import { getAllConfigScanner } from '../../../../services/scannerService';
+import { deleteStrategiesByIDScanner, getAllConfigScanner, handleBookmarkScanner, updateStrategiesMultipleScanner } from '../../../../services/scannerService';
 import DataGridCustom from '../../../../components/DataGridCustom';
 import DialogCustom from '../../../../components/DialogCustom';
+import UpdateStrategy from './components/UpdateStrategy';
 
 
 function Scanner() {
@@ -87,17 +88,20 @@ function Scanner() {
                     icon={<StarBorderIcon />}
                     checkedIcon={<StarIcon />}
                     onClick={e => {
-
+                        bookmarkCheckRef.current = e.target.checked
+                        handleFilterAll()
                     }}
                 />
             },
             type: "actions",
             maxWidth: 30,
             renderCell: (params) => {
-                const bookmarkList = params.row['bookmarkList']
+                const data = params.row
+                const IsBookmark = data['IsBookmark']
+                const configID = data['_id']
 
                 return <Checkbox
-                    checked={bookmarkList.includes(userData._id)}
+                    defaultChecked={IsBookmark}
                     style={{
                         padding: " 0 6px",
                     }}
@@ -109,8 +113,24 @@ function Scanner() {
                     }}
                     icon={<StarBorderIcon />}
                     checkedIcon={<StarIcon />}
-                    onClick={e => {
+                    onClick={async e => {
+                        try {
+                            const res = await handleBookmarkScanner({
+                                configID, IsBookmark: e.target.checked
+                            }
+                            )
+                            const { data: resData, status, message } = res.data
 
+                            dispatch(addMessageToast({
+                                status,
+                                message,
+                            }))
+                        } catch (error) {
+                            dispatch(addMessageToast({
+                                status: 500,
+                                message: error.message,
+                            }))
+                        }
                     }}
                 />
             }
@@ -121,6 +141,8 @@ function Scanner() {
             maxWidth: 120,
             headerName: 'Active',
             renderCell: params => {
+                const data = params.row
+                const configID = data['_id']
                 return (
                     <div style={{
                         display: "flex",
@@ -130,25 +152,87 @@ function Scanner() {
                     }}>
                         <Switch
                             size='small'
-                            checked={params.row['IsActive']}
+                            defaultChecked={params.row['IsActive']}
+                            onChange={async e => {
+                                try {
+                                    const newIsActive = e.target.checked
+                                    const res = await updateStrategiesMultipleScanner([
+                                        {
+                                            id: configID,
+                                            UpdatedFields: {
+                                                ...data,
+                                                IsActive: newIsActive
+                                            }
+                                        }
+                                    ])
+                                    const { data: resData, status, message } = res.data
+
+                                    dispatch(addMessageToast({
+                                        status,
+                                        message,
+                                    }))
+
+                                    if (status === 200) {
+                                        setDataCheckTree(dataCheckTree => dataCheckTree.map(item => {
+                                            if (item._id === configID) {
+                                                return {
+                                                    ...data,
+                                                    IsActive: newIsActive
+                                                }
+                                            }
+                                            return item
+                                        }))
+                                        dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(item => {
+                                            if (item._id === configID) {
+                                                return {
+                                                    ...data,
+                                                    IsActive: newIsActive
+                                                }
+                                            }
+                                            return item
+                                        })
+                                    }
+                                } catch (error) {
+                                    dispatch(addMessageToast({
+                                        status: 500,
+                                        message: error.message,
+                                    }))
+                                }
+                            }}
+
                         />
-                        <DeleteOutlineIcon className={styles.icon} style={{ margin: "0 3px 0 2px", }} />
-                        <EditIcon className={styles.icon} />
+                        <DeleteOutlineIcon
+                            className={styles.icon}
+                            style={{ margin: "0 3px 0 2px", }}
+                            onClick={async () => {
+                                setOpenConfirmDeleteConfig(configID)
+                            }}
+                        />
+                        <EditIcon className={styles.icon}
+                            onClick={() => {
+                                setOpenUpdateStrategy({
+                                    data,
+                                    dataChange: false,
+                                    isOpen: true,
+                                })
+                            }}
+                        />
                     </div>
                 )
 
             },
 
         },
+
         {
-            field: 'BotName',
-            headerName: 'Bot',
+            field: 'Label',
+            headerName: 'Label',
             minWidth: 130,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
-            field: 'Label',
-            headerName: 'Label',
+            field: 'BotName',
+            headerName: 'Bot',
             minWidth: 130,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
@@ -284,6 +368,14 @@ function Scanner() {
     const [showOnlyPairsList, setShowOnlyPairsList] = useState(false)
     const [showBlackList, setShowBlackList] = useState(false)
 
+    const [openConfirmDeleteConfig, setOpenConfirmDeleteConfig] = useState(false)
+    const [openUpdateStrategy, setOpenUpdateStrategy] = useState(
+        {
+            isOpen: false,
+            dataChange: false,
+            data: ""
+        }
+    );
     const [botList, setBotList] = useState([{
         name: "All",
         value: "All"
@@ -382,7 +474,7 @@ function Scanner() {
                 return ({
                     id,
                     ...item,
-                    BotName:item.botID.botName
+                    BotName: item.botID.botName
                 })
             })
 
@@ -433,7 +525,7 @@ function Scanner() {
             const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
             const checkMarket = marketSelectedRef.current === "All" || marketSelectedRef.current === item.Market;
             const checkSearch = searchDebounce === "" || item.Label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
-            const checkBookmark = bookmarkCheckRef.current ? item.bookmarkList?.includes(userData._id) : true
+            const checkBookmark = bookmarkCheckRef.current ? item.IsBookmark : true
 
             return checkBotType && checkBot && checkPosition && checkMarket && checkSearch && checkBookmark;
         });
@@ -454,13 +546,13 @@ function Scanner() {
         setSearchKey("")
     }
 
-    const searchDebounce = useDebounce(searchKey)
+    const searchDebounce = useDebounce(searchKey, 200)
 
     const handleDataCheckTreeSelected = useMemo(() => {
         return dataCheckTreeSelected.map(id => {
             return JSON.stringify(dataCheckTreeDefaultObject.current[id])
         })
-    }, [dataCheckTreeSelected,dataCheckTree,dataCheckTreeDefaultRef.current])
+    }, [dataCheckTreeSelected, dataCheckTree, dataCheckTreeDefaultRef.current])
 
     useEffect(() => {
         handleFilterAll()
@@ -498,7 +590,7 @@ function Scanner() {
                     <TextField
                         value={searchKey}
                         size="small"
-                        placeholder="Search"
+                        placeholder="Label"
                         onChange={(e) => {
                             setSearchKey(e.target.value)
                         }}
@@ -693,7 +785,19 @@ function Scanner() {
                     onClose={(data) => {
                         setOpenCreateStrategy(data)
                     }}
-                    symbolValueInput={openCreateStrategy.symbolValueInput}
+                />
+
+            }
+            {openUpdateStrategy.isOpen &&
+
+                <UpdateStrategy
+                    botListInput={botList.slice(1)}
+                    onClose={(data) => {
+                        setOpenUpdateStrategy(data)
+                    }}
+                    dataInput={openUpdateStrategy.data}
+                    setDataCheckTree={setDataCheckTree}
+                    dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                 />
 
             }
@@ -781,6 +885,49 @@ function Scanner() {
                             </TableBody>
                         </Table>
 
+                    </DialogCustom>
+                )
+            }
+
+            {
+                openConfirmDeleteConfig && (
+                    <DialogCustom
+                        dialogTitle='The action requires confirmation'
+                        reserveBtn
+                        open={true}
+                        onClose={() => {
+                            setOpenConfirmDeleteConfig(false)
+                        }}
+                        submitBtnText='Confirm'
+                        position='center'
+                        submitBtnColor='error'
+                        backdrop
+                        onSubmit={async () => {
+                            const configID = openConfirmDeleteConfig
+                            try {
+                                const res = await deleteStrategiesByIDScanner({ configID })
+                                const { data: resData, status, message } = res.data
+
+                                dispatch(addMessageToast({
+                                    status,
+                                    message,
+                                }))
+
+                                if (status === 200) {
+                                    setDataCheckTree(dataCheckTree => dataCheckTree.filter(item => item._id !== configID))
+                                    dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.filter(item => item._id !== configID)
+                                    delete dataCheckTreeDefaultObject.current[configID]
+                                    setOpenConfirmDeleteConfig(false)
+                                }
+                            } catch (error) {
+                                dispatch(addMessageToast({
+                                    status: 500,
+                                    message: error.message,
+                                }))
+                            }
+                        }}
+                    >
+                        <p>Are you remove this config?</p>
                     </DialogCustom>
                 )
             }

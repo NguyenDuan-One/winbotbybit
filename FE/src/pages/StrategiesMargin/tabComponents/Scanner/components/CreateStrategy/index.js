@@ -332,9 +332,9 @@ function CreateStrategy({
                                 )}
                                 <li {...props}>
                                     <Checkbox
-                                        checked={selected || onlyPairsSelected.findIndex(item => item.value === option.value) > -1}
+                                        checked={selected || onlyPairsSelected.findIndex(item => item === option.value) > -1}
                                     />
-                                    {option.name}
+                                    {option.name.split("USDT")[0]}
                                 </li>
                             </>
                         )}
@@ -390,9 +390,9 @@ function CreateStrategy({
                                 )}
                                 <li {...props}>
                                     <Checkbox
-                                        checked={selected || blackListSelected.findIndex(item => item.value === option.value) > -1}
+                                        checked={selected || blackListSelected.findIndex(item => item === option.value) > -1}
                                     />
-                                    {option.name}
+                                    {option.name.split("USDT")[0]}
                                 </li>
                             </>
                         )}

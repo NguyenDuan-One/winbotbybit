@@ -24,7 +24,7 @@ const strategiesSchema = new mongoose.Schema({
   },
   // Other
   value: String,
-  bookmarkList: [String],
+  IsBookmark: Boolean,
 })
 
 

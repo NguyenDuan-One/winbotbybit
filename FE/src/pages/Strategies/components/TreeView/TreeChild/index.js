@@ -291,6 +291,7 @@ function TreeChild({
                     submitBtnText='Confirm'
                     position='center'
                     submitBtnColor='error'
+                    backdrop
                     onSubmit={() => {
                         handleDeleteStrategiesItem({
                             id: openDeleteTreeItem.data.id,

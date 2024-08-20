@@ -53,6 +53,10 @@ function DataGridCustom({
                 {
                     justifyContent: centerCell && "center !important",
                     textAlign: centerCell && "center !important",
+                },
+                " .MuiDataGrid-cell":
+                {
+                    marginLeft: "1px"
                 }
                 // ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
                 // {

@@ -1,120 +1,357 @@
-
-import { FormControl, FormLabel, TextField, Switch, InputAdornment } from "@mui/material";
-import clsx from "clsx";
-import { useRef } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
-import DialogCustom from "../../../../../../components/DialogCustom";
-import { addMessageToast } from "../../../../../../store/slices/Toast";
-import styles from "../CreateStrategy/CreateStrategy.module.scss"
-import { updateStrategiesSpotByID } from "../../../../../../services/spotService";
+import CloudSyncIcon from '@mui/icons-material/CloudSync';
+import { FormControl, FormLabel, Autocomplete, TextField, Button, Checkbox, MenuItem, Switch, InputAdornment, CircularProgress } from "@mui/material"
+import clsx from "clsx"
+import { useState, useRef, useEffect } from "react"
+import { useForm } from "react-hook-form"
+import { useDispatch } from "react-redux"
+import DialogCustom from "../../../../../../components/DialogCustom"
+import { addMessageToast } from "../../../../../../store/slices/Toast"
+import styles from "./CreateStrategy.module.scss"
+import { getAllCoin, syncCoin } from "../../../../../../services/coinService"
+import { createConfigScanner, updateConfigByID } from '../../../../../../services/scannerService';
 
 function UpdateStrategy({
     onClose,
-    treeNodeValue,
-    symbolValue,
-    handleUpdateDataAfterSuccess
+    dataInput,
+    setDataCheckTree,
+    dataCheckTreeDefaultRef
 }) {
-    const formControlMinValue= .1
+
+    const formControlMinValue = .1
+
+
+    const marketList = [
+        {
+            name: "Margin",
+            value: "Margin",
+        },
+        {
+            name: "Spot",
+            value: "Spot",
+        },
+    ]
+    const positionSideList = [
+        {
+            name: "Both",
+            value: "Both",
+        },
+        {
+            name: "Long",
+            value: "Long",
+        },
+        {
+            name: "Short",
+            value: "Short",
+        },
+    ]
+
+
 
     const {
         register,
         handleSubmit,
-        formState: { errors }
+        reset,
+        formState: { errors, isSubmitted }
     } = useForm();
+
+    const [onlyPairsSelected, setOnlyPairsSelected] = useState(dataInput.OnlyPairs || [])
+    const [blackListSelected, setBlackListSelected] = useState(dataInput.Blacklist || [])
+    const [botList, setBotList] = useState([])
+    const [loadingSyncCoin, setLoadingSyncCoin] = useState(false);
+
+    const dataChangeRef = useRef(false)
+
+    const [symbolGroupDataList, setSymbolGroupDataList] = useState({
+        label: "Symbol",
+        list: []
+    });
+
+    const symbolListRef = useRef()
 
     const dispatch = useDispatch()
 
-    const formDataChangeRef = useRef(false)
+    const handleGetSymbolList = async () => {
+        try {
+            const res = await getAllCoin()
+            const { status, message, data: symbolListDataRes } = res.data
 
-    const handleSubmitUpdate = async data => {
-        let dataChange = false
-        if (formDataChangeRef.current) {
+            const newSymbolList = symbolListDataRes.map(item => ({ name: item.symbol, value: item.symbol }))
 
-            const { parentID, ...dataTreeNode } = treeNodeValue
+            symbolListRef.current = newSymbolList
 
-            const newData = {
-                ...dataTreeNode,
-                ...data
-            }
+            setSymbolGroupDataList({
+                label: "Symbol",
+                list: newSymbolList
+            })
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Get All Symbol Error",
+            }))
+        }
+    }
 
+
+
+    const handleSyncSymbol = async () => {
+        if (!loadingSyncCoin) {
             try {
-                const res = await updateStrategiesSpotByID({
-                    id: newData._id,
-                    data: {
-                        parentID,
-                        newData,
-                        symbol:symbolValue
-                    }
-                })
-                const { status, message } = res.data
+                setLoadingSyncCoin(true)
+                const res = await syncCoin()
+                const { status, message, data: resData } = res.data
 
                 dispatch(addMessageToast({
                     status: status,
                     message: message,
                 }))
-                if (status === 200) {
-                    dataChange = true
-                    handleUpdateDataAfterSuccess(newData)
-                }
 
+                handleGetSymbolList()
+                setLoadingSyncCoin(false)
             }
             catch (err) {
+                setLoadingSyncCoin(false)
                 dispatch(addMessageToast({
                     status: 500,
-                    message: "Edit Error",
+                    message: "Sync Error",
                 }))
             }
         }
-        closeDialog(dataChange)
-
     }
 
-    const closeDialog = (dataChange = false) => {
+    const handleSubmitCreate = async data => {
+
+        const configID = dataInput._id
+        const newData = {
+            ...dataInput,
+            ...data,
+            Blacklist: blackListSelected.map(item=>item.value),
+            OnlyPairs: onlyPairsSelected.map(item=>item.value)
+        }
+        try {
+            const res = await updateConfigByID({
+                newData,
+                configID
+            })
+            const { status, message, data: symbolListDataRes } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message
+            }))
+
+            if (status === 200) {
+                reset()
+                dataChangeRef.current = true
+                console.log(newData);
+                
+
+                setDataCheckTree(dataCheckTree => dataCheckTree.map(item => {
+                    if (item._id === configID) {
+                        return newData
+                    }
+                    return item
+                }))
+                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(item => {
+                    if (item._id === configID) {
+                        return newData
+                    }
+                    return item
+                })
+            }
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Add New Error",
+            }))
+        }
+        closeDialog()
+    }
+
+
+    const closeDialog = () => {
         onClose({
             isOpen: false,
-            dataChange
+            dataChange: dataChangeRef.current
         })
+        reset()
     }
+
+    useEffect(() => {
+        handleGetSymbolList()
+    }, []);
 
 
     return (
         <DialogCustom
-            dialogTitle="Update Strategy"
+            dialogTitle="Update Config"
             open={true}
             onClose={() => { closeDialog() }}
-            onSubmit={handleSubmit(handleSubmitUpdate)}
+            onSubmit={handleSubmit(handleSubmitCreate)}
             maxWidth="sm"
+            submitBtnText='Update'
         >
 
-<form className={styles.dialogForm} onChange={e => {
-                formDataChangeRef.current = true
-            }}>
+            <form className={styles.dialogForm}>
 
-                <FormControl
-                    className={clsx(styles.formControl, styles.formMainDataItem)}
-                >
+                <FormControl className={styles.formControl}>
+
                     <FormLabel className={styles.label}>Bot</FormLabel>
                     <TextField
                         variant="outlined"
-                        value={treeNodeValue.botID?.botName}
+                        value={dataInput.botID?.botName}
                         size="medium"
                         disabled
                     >
                     </TextField>
+
                 </FormControl>
 
                 <FormControl
                     className={clsx(styles.formControl, styles.formMainDataItem)}
                 >
-                    <FormLabel className={styles.label}>Symbol</FormLabel>
+                    <FormLabel className={styles.label}>Label</FormLabel>
                     <TextField
+                        defaultValue={dataInput.Label}
                         variant="outlined"
-                        value={symbolValue}
-                        size="medium"
-                        disabled
+                        size="small"
+                        {...register("Label",)}
                     >
                     </TextField>
+                    {errors.Label?.type === 'required' && <p className="formControlErrorLabel">The Label field is required.</p>}
+                </FormControl>
+
+                <FormControl className={styles.formControl}>
+                    <div style={{ display: "flex", "justifyContent": "space-between", alignItems: "center" }}>
+                        <FormLabel className={styles.label}>Only pairs</FormLabel>
+                        <span style={{ marginRight: "6px" }}>
+                            {
+                                !loadingSyncCoin ?
+                                    <CloudSyncIcon
+                                        style={{
+                                            cursor: "pointer",
+                                            color: "#959595"
+                                        }}
+                                        onClick={handleSyncSymbol} />
+                                    :
+                                    <CircularProgress style={{ width: "16px", height: "16px" }} />
+                            }
+                        </span>
+                    </div>
+                    <Autocomplete
+                        multiple
+                        limitTags={2}
+                        value={onlyPairsSelected}
+                        disableCloseOnSelect
+                        options={symbolGroupDataList.list}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setOnlyPairsSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setOnlyPairsSelected(symbolGroupDataList.list)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setOnlyPairsSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || onlyPairsSelected.findIndex(item => item === option.value) > -1}
+                                    />
+                                    {option.name.split("USDT")[0]}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+
+
+                    </Autocomplete>
+                    {isSubmitted && !onlyPairsSelected.length && <p className="formControlErrorLabel">The Only pairs field is required.</p>}
+
+                </FormControl>
+                <FormControl className={styles.formControl}>
+                    <FormLabel className={styles.label}>Blacklist</FormLabel>
+                    <Autocomplete
+                        multiple
+                        limitTags={2}
+                        value={blackListSelected}
+                        disableCloseOnSelect
+                        options={symbolGroupDataList.list}
+                        size="small"
+                        getOptionLabel={(option) => option.name}
+                        onChange={(e, value) => {
+                            setBlackListSelected(value)
+                        }}
+                        renderInput={(params) => (
+                            <TextField {...params} placeholder="Select..." />
+                        )}
+                        renderOption={(props, option, { selected, index }) => (
+                            <>
+                                {index === 0 && (
+                                    <>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBlackListSelected(symbolGroupDataList.list)
+                                            }}
+                                        >
+                                            Select All
+                                        </Button>
+                                        <Button
+                                            color="inherit"
+                                            style={{ width: '50%' }}
+                                            onClick={() => {
+                                                setBlackListSelected([])
+                                            }}
+                                        >
+                                            Deselect All
+                                        </Button>
+                                    </>
+                                )}
+                                <li {...props}>
+                                    <Checkbox
+                                        checked={selected || blackListSelected.findIndex(item => item === option.value) > -1}
+                                    />
+                                    {option.name.split("USDT")[0]}
+                                </li>
+                            </>
+                        )}
+                        renderTags={(value) => {
+                            return <p style={{ marginLeft: "6px" }}>{value.length} items selected</p>
+                        }}
+                    >
+
+
+                    </Autocomplete>
+                    {/* {isSubmitted && !blackListSelected.length && <p className="formControlErrorLabel">The Blacklist field is required.</p>} */}
+
                 </FormControl>
 
                 <div className={styles.formMainData}>
@@ -122,20 +359,36 @@ function UpdateStrategy({
                         className={clsx(styles.formControl, styles.formMainDataItem)}
                     >
                         <TextField
-                            label="PositionSide"
+                            label="Market"
                             variant="outlined"
-                            value={treeNodeValue.PositionSide}
+                            value={dataInput.Market}
                             size="medium"
                             disabled
-                        />
+                        >
+                            
+                        </TextField>
                     </FormControl>
+                    <FormControl
+                        className={clsx(styles.formControl, styles.formMainDataItem)}
+                    >
+                        <TextField
+                            label="Position side"
+                            variant="outlined"
+                            value={dataInput.PositionSide}
+                            size="medium"
+                            disabled
+                        >
+                            
+                        </TextField>
+                    </FormControl>
+
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
                             label="OC"
                             variant="outlined"
-                            defaultValue={treeNodeValue.OrderChange}
+                            defaultValue={dataInput.OrderChange}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -151,9 +404,29 @@ function UpdateStrategy({
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
+                            label="Elastic"
+                            variant="outlined"
+                            defaultValue={dataInput.Elastic}
+                            size="medium"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="end">
+                                    %
+                                </InputAdornment>
+                            }}
+                            {...register("Elastic", { required: true, min: formControlMinValue })}
+                        />
+                        {errors.Elastic?.type === 'required' && <p className="formControlErrorLabel">The Elastic field is required.</p>}
+                        {errors.Elastic?.type === "min" && <p className="formControlErrorLabel">The Elastic must bigger 0.1.</p>}
+
+                    </FormControl>
+
+
+                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <TextField
+                            type='number'
                             label="Amount"
                             variant="outlined"
-                            defaultValue={treeNodeValue.Amount}
+                            defaultValue={dataInput.Amount}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -170,19 +443,19 @@ function UpdateStrategy({
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Auto amount percent"
+                            label="Numbs"
                             variant="outlined"
-                            defaultValue={treeNodeValue.AmountAutoPercent}
+                            defaultValue={dataInput.Numbs}
                             size="medium"
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">
-                                    %
-                                </InputAdornment>
-                            }}
-                            {...register("AmountAutoPercent", { required: true, min: formControlMinValue })}
+                            // InputProps={{
+                            //     endAdornment: <InputAdornment position="end">
+                            //         %
+                            //     </InputAdornment>
+                            // }}
+                            {...register("Numbs", { required: true, min: formControlMinValue })}
                         />
-                        {errors.AmountAutoPercent?.type === 'required' && <p className="formControlErrorLabel">The AutoPercent field is required.</p>}
-                        {errors.AmountAutoPercent?.type === "min" && <p className="formControlErrorLabel">The AutoPercent must bigger 0.1.</p>}
+                        {errors.Numbs?.type === 'required' && <p className="formControlErrorLabel">The Numbs field is required.</p>}
+                        {errors.Numbs?.type === "min" && <p className="formControlErrorLabel">The Numbs must bigger 0.1.</p>}
 
                     </FormControl>
 
@@ -191,7 +464,7 @@ function UpdateStrategy({
                             type='number'
                             label="Expire"
                             variant="outlined"
-                            defaultValue={treeNodeValue.Expire}
+                            defaultValue={dataInput.Expire}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -210,7 +483,7 @@ function UpdateStrategy({
                             type='number'
                             label="Limit"
                             variant="outlined"
-                            defaultValue={treeNodeValue.Limit}
+                            defaultValue={dataInput.Limit}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
@@ -224,92 +497,34 @@ function UpdateStrategy({
 
                     </FormControl>
 
-                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
-                        <TextField
-                            type='number'
-                            label="Amount increase OC"
-                            variant="outlined"
-                            defaultValue={treeNodeValue.AmountIncreaseOC}
-                            size="medium"
-                            InputProps={{
-                                endAdornment: <InputAdornment position="end">
-                                    %
-                                </InputAdornment>
-                            }}
-                            {...register("AmountIncreaseOC", { required: true, min: formControlMinValue })}
-                        />
-                        {errors.AmountIncreaseOC?.type === 'required' && <p className="formControlErrorLabel">The IncreaseOC field is required.</p>}
-                        {errors.AmountIncreaseOC?.type === "min" && <p className="formControlErrorLabel">The IncreaseOC must bigger 0.1.</p>}
 
-                    </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
                         <TextField
                             type='number'
-                            label="Amount expire"
+                            label="Turnover"
                             variant="outlined"
-                            defaultValue={treeNodeValue.AmountExpire}
+                            defaultValue={dataInput.Turnover}
                             size="medium"
                             InputProps={{
                                 endAdornment: <InputAdornment position="end">
-                                    min
+                                    USDT
                                 </InputAdornment>
                             }}
-                            {...register("AmountExpire", { required: true, min: formControlMinValue })}
+                            {...register("Turnover", { required: true, min: formControlMinValue })}
                         />
-                        {errors.AmountExpire?.type === 'required' && <p className="formControlErrorLabel">The Amount expire field is required.</p>}
-                        {errors.AmountExpire?.type === "min" && <p className="formControlErrorLabel">The Amount expire must bigger 0.1.</p>}
+                        {errors.Turnover?.type === 'required' && <p className="formControlErrorLabel">The Turnover field is required.</p>}
+                        {errors.Turnover?.type === "min" && <p className="formControlErrorLabel">The Turnover must bigger 0.1.</p>}
 
                     </FormControl>
+                    <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
 
-
-                    <div style={{
-                        width: "100%",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        margin: "0 12px"
-                    }}>
-                        <FormControl className={clsx(styles.formControl)}>
-
-                            <FormLabel className={styles.label}>IsActive</FormLabel>
-                            <Switch
-                                defaultChecked={treeNodeValue.IsActive}
-                                title="IsActive"
-                                {...register("IsActive")}
-                            />
-                        </FormControl>
-
-                        <FormControl className={clsx(styles.formControl)}>
-                            <FormLabel className={styles.label}>Adaptive</FormLabel>
-                            <Switch
-                                defaultChecked={treeNodeValue.Adaptive}
-                                title="Adaptive"
-                                {...register("Adaptive")}
-
-                            />
-                        </FormControl>
-
-                        <FormControl className={clsx(styles.formControl)}>
-                            <FormLabel className={styles.label}>Reverse</FormLabel>
-                            <Switch
-                                defaultChecked={treeNodeValue.Reverse}
-                                title="Reverse"
-                                {...register("Reverse")}
-
-                            />
-                        </FormControl>
-
-                        <FormControl className={clsx(styles.formControl)}>
-                            <FormLabel className={styles.label}>Remember</FormLabel>
-                            <Switch
-                                defaultChecked={treeNodeValue.Remember}
-                                title="Remember"
-                                {...register("Remember")}
-
-                            />
-                        </FormControl>
-                    </div>
-
+                        <FormLabel className={styles.label}>IsActive</FormLabel>
+                        <Switch
+                            defaultChecked={dataInput.IsActive}
+                            {...register("IsActive")}
+                        />
+                    </FormControl>
                 </div>
 
 
