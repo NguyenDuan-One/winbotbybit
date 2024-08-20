@@ -271,6 +271,7 @@ function Position() {
                     }
                 )).filter(item => (item.Pnl) != 0) : []
                 setPositionData(data)
+                setBotSelected("All")
                 positionDataDefault.current = data
             }
 
