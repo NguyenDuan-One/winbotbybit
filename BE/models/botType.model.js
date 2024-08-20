@@ -1,7 +1,11 @@
 const mongoose = require('../index');
 
 const botTypeSchema = new mongoose.Schema({
-  name: String,
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   note: String,
 });
 

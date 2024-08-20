@@ -84,10 +84,10 @@ function MyProfile() {
                                     <p>{userData?.groupID?.name}</p>
                                 </div>
 
-                                <div className={styles.overviewInfoListItem}>
+                                {/* <div className={styles.overviewInfoListItem}>
                                     <p className={styles.label}>Bot Types</p>
                                     <p>BybitV3</p>
-                                </div>
+                                </div> */}
                             </div>
 
                         </div>

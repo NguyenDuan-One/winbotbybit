@@ -29,16 +29,16 @@ function Strategies() {
     const SCROLL_INDEX = 5
     const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
-    const botTypeList = [
-        {
-            name: "All",
-            value: "All"
-        },
-        {
-            name: "BybitV3",
-            value: "BybitV3"
-        }
-    ]
+    // const botTypeList = [
+    //     {
+    //         name: "All",
+    //         value: "All"
+    //     },
+    //     {
+    //         name: "BybitV3",
+    //         value: "BybitV3"
+    //     }
+    // ]
 
     const positionSideList = [
         {
@@ -140,7 +140,7 @@ function Strategies() {
 
     const handleGetAllBotByUserID = () => {
 
-        getAllBotActiveByUserID(userData._id)
+        getAllBotActiveByUserID(userData._id,"ByBitV3")
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -417,7 +417,7 @@ function Strategies() {
                 </div>
 
                 <div className={styles.strategiesHeader}>
-                    <FormControl className={styles.strategiesHeaderItem}>
+                    {/* <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
                             value={botTypeSelectedRef.current}
@@ -434,7 +434,7 @@ function Strategies() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
 
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>

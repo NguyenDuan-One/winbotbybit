@@ -21,6 +21,11 @@ const botSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: 'User',
   },
+  BotTypeID: {
+    type: mongoose.Types.ObjectId,
+    ref: 'BotType',
+  },
+  
 
 });
 

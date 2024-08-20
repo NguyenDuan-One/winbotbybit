@@ -30,16 +30,16 @@ function Scanner() {
     const userData = useSelector(state => state.userDataSlice.userData)
 
 
-    const botTypeList = [
-        {
-            name: "All",
-            value: "All"
-        },
-        {
-            name: "BybitV3",
-            value: "BybitV3"
-        }
-    ]
+    // const botTypeList = [
+    //     {
+    //         name: "All",
+    //         value: "All"
+    //     },
+    //     {
+    //         name: "BybitV3",
+    //         value: "BybitV3"
+    //     }
+    // ]
 
     const positionSideList = [
         {
@@ -116,8 +116,9 @@ function Scanner() {
                     checkedIcon={<StarIcon />}
                     onClick={async e => {
                         try {
+                            const newIsBookmark =  e.target.checked
                             const res = await handleBookmarkScanner({
-                                configID, IsBookmark: e.target.checked
+                                configID, IsBookmark: newIsBookmark
                             }
                             )
                             const { data: resData, status, message } = res.data
@@ -126,6 +127,20 @@ function Scanner() {
                                 status,
                                 message,
                             }))
+                            if (status === 200) {
+                              
+                                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(item => {
+                                    console.log(item._id === configID);
+
+                                    if (item._id === configID) {
+                                        return {
+                                            ...data,
+                                            IsBookmark: newIsBookmark
+                                        }
+                                    }
+                                    return item
+                                })
+                            }
                         } catch (error) {
                             dispatch(addMessageToast({
                                 status: 500,
@@ -148,7 +163,7 @@ function Scanner() {
                     <div style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "#3277d5",
+                        color: "#1976d2",
                         marginLeft: "-10px "
                     }}>
                         <Switch
@@ -174,15 +189,7 @@ function Scanner() {
                                     }))
 
                                     if (status === 200) {
-                                        setDataCheckTree(dataCheckTree => dataCheckTree.map(item => {
-                                            if (item._id === configID) {
-                                                return {
-                                                    ...data,
-                                                    IsActive: newIsActive
-                                                }
-                                            }
-                                            return item
-                                        }))
+                                      
                                         dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(item => {
                                             if (item._id === configID) {
                                                 return {
@@ -403,7 +410,7 @@ function Scanner() {
 
     const handleGetAllBotByUserID = () => {
 
-        getAllBotActiveByUserID(userData._id)
+        getAllBotActiveByUserID(userData._id, "ByBit-V1")
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -612,7 +619,7 @@ function Scanner() {
                 </div>
 
                 <div className={styles.strategiesHeader}>
-                    <FormControl className={styles.strategiesHeaderItem}>
+                    {/* <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
                             value={botTypeSelectedRef.current}
@@ -629,7 +636,7 @@ function Scanner() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
 
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>
@@ -694,7 +701,7 @@ function Scanner() {
             </div>
             <div className={styles.strategiesData}>
                 {
-                    (dataCheckTree.length > 0 && !loadingDataCheckTree)
+                    (!loadingDataCheckTree)
                         ?
                         <DataGridCustom
                             setDataTableChange={setDataCheckTreeSelected}
@@ -709,7 +716,7 @@ function Scanner() {
                             margin: "16px 0 6px",
                             fontWeight: 500,
                             opacity: ".6"
-                        }}>{loadingDataCheckTree ? "Loading..." : "No data"}</p>
+                        }}>Loading...</p>
                 }
             </div>
 

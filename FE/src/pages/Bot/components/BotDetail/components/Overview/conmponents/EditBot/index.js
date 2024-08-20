@@ -42,7 +42,8 @@ function EditBot({
                         telegramID,
                         telegramToken,
                         type: checkTeleInfor ? "telegram" : "",
-                        checkBot: botData.Status === "Running" && botData.ApiKey
+                        checkBot: botData.Status === "Running" && botData.ApiKey,
+                        botType: botData.botType
                     }
                 })
                 const { status, message } = res.data

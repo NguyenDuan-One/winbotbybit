@@ -43,12 +43,12 @@ function SideBar({
         },
         {
             linK: "/Strategies",
-            name: "Strategies",
+            name: "Strategies V3",
             icon: <LocalMallIcon className={styles.icon} />
         },
         {
             linK: "/Spot",
-            name: "Strategies Margin",
+            name: "Strategies V1",
             icon: <ShoppingCartIcon className={styles.icon} />
         },
         {

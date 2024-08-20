@@ -1,6 +1,5 @@
 const { RestClientV5 } = require('bybit-api');
 const PositionModel = require('../models/position.model');
-const BotModel = require('../models/bot.model');
 
 const PositionController = {
 

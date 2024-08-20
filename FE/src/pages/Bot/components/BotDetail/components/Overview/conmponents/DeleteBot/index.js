@@ -7,7 +7,8 @@ import { addMessageToast } from "../../../../../../../../store/slices/Toast";
 
 function DeleteBot({
     open,
-    onClose
+    onClose,
+    botType
 }, ref) {
 
     const { botID } = useParams()
@@ -19,7 +20,7 @@ function DeleteBot({
 
     const handleSubmitDeleteBot = async () => {
         try {
-            const res = await deleteBot(botID)
+            const res = await deleteBot(botID,botType)
             const { status, message } = res.data
 
             dispatch(addMessageToast({

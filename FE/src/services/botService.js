@@ -3,14 +3,14 @@ import api from "../utils/api"
 export const getAllBot = async () => {
     return await api.get("/bot/getAllBot")
 }
-export const getAllBotActive = async () => {
-    return await api.get("/bot/getAllBotActive")
+export const getAllBotActive = async (botType) => {
+    return await api.get(`/bot/getAllBotActive?botType=${botType}`)
 }
 export const getAllBotByUserID = async (userID) => {
     return await api.get(`/bot/getAllBotByUserID/${userID}`)
 }
-export const getAllBotActiveByUserID = async (userID) => {
-    return await api.get(`/bot/getAllBotActiveByUserID/${userID}`)
+export const getAllBotActiveByUserID = async (userID,botType) => {
+    return await api.get(`/bot/getAllBotActiveByUserID/${userID}?botType=${botType}`)
 }
 export const getAllBotOnlyApiKeyByUserID = async (userID) => {
     return await api.get(`/bot/getAllBotOnlyApiKeyByUserID/${userID}`)
@@ -27,10 +27,10 @@ export const createBot = async (data) => {
 export const updateBot = async ({ id, data }) => {
     return await api.put(`/bot/${id}`, data)
 }
-export const deleteBot = async (botID) => {
-    return await api.delete(`/bot/${botID}`)
+export const deleteBot = async (botID,botType) => {
+    return await api.delete(`/bot/${botID}?botType=${botType}`)
 }
 
-export const deleteMultipleBot = async (botIDList) => {
-    return await api.post(`/bot/deleteMultipleBot`,botIDList)
+export const deleteMultipleBot = async (botIDList,botType) => {
+    return await api.post(`/bot/deleteMultipleBot?botType=${botType}`,botIDList)
 }

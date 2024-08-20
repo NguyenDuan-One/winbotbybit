@@ -9,7 +9,7 @@ import styles from "./Bot.module.scss"
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import DialogCustom from '../../components/DialogCustom';
-import EditBotType from './components/EditBotType';
+// import EditBotType from './components/EditBotType';
 import AddBotType from './components/AddBotType';
 import { deleteMultipleBotType, getAllBotType } from '../../services/botTypeService';
 
@@ -25,40 +25,40 @@ function BotType() {
             type: "actions",
             renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
         },
-        {
-            field: 'Action',
-            headerName: 'Action',
-            type: "actions",
-            maxWidth: 120,
-            minWidth: 100,
-            renderCell: (params) => {
-                const rowData = params.row; // Dữ liệu của hàng hiện tại
-                const dataRowOther = {
-                    name: rowData['name'],
-                    note: rowData['note'],
-                    botTypeID: rowData.id,
-                }
-                return (
-                    <EditIcon
-                        className={styles.icon}
-                        onClick={e => {
-                            e.stopPropagation()
-                            setOpenEditBot({
-                                dataChange: "",
-                                isOpen: true,
-                                dataInput: {
-                                    botTypeID: dataRowOther.botTypeID,
-                                    name: dataRowOther.name,
-                                    note: dataRowOther.note,
-                                }
-                            })
-                        }}
-                    />
-                )
+        // {
+        //     field: 'Action',
+        //     headerName: 'Action',
+        //     type: "actions",
+        //     maxWidth: 120,
+        //     minWidth: 100,
+        //     renderCell: (params) => {
+        //         const rowData = params.row; // Dữ liệu của hàng hiện tại
+        //         const dataRowOther = {
+        //             name: rowData['name'],
+        //             note: rowData['note'],
+        //             botTypeID: rowData.id,
+        //         }
+        //         return (
+        //             <EditIcon
+        //                 className={styles.icon}
+        //                 onClick={e => {
+        //                     e.stopPropagation()
+        //                     setOpenEditBot({
+        //                         dataChange: "",
+        //                         isOpen: true,
+        //                         dataInput: {
+        //                             botTypeID: dataRowOther.botTypeID,
+        //                             name: dataRowOther.name,
+        //                             note: dataRowOther.note,
+        //                         }
+        //                     })
+        //                 }}
+        //             />
+        //         )
 
-            },
+        //     },
 
-        },
+        // },
         {
             field: 'name',
             headerName: 'Name',
@@ -218,7 +218,7 @@ function BotType() {
                     }}
                 />
             }
-            {
+            {/* {
                 openEditBot.isOpen && (
                     <EditBotType
                         onClose={(data) => {
@@ -227,7 +227,7 @@ function BotType() {
                         dataInput={openEditBot.dataInput}
                     />
                 )
-            }
+            } */}
         </div >
 
     );

@@ -15,16 +15,16 @@ function Position() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
 
-    const botTypeList = [
-        {
-            name: "All",
-            value: "All"
-        },
-        {
-            name: "BybitV3",
-            value: "BybitV3"
-        }
-    ]
+    // const botTypeList = [
+    //     {
+    //         name: "All",
+    //         value: "All"
+    //     },
+    //     {
+    //         name: "BybitV3",
+    //         value: "BybitV3"
+    //     }
+    // ]
 
     const tableColumns = [
         {
@@ -307,7 +307,7 @@ function Position() {
             <div className={styles.position}>
 
                 <div className={styles.positionHeader}>
-                    <FormControl className={styles.positionHeaderItem}>
+                    {/* <FormControl className={styles.positionHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
                             value={botTypeSelected}
@@ -319,7 +319,7 @@ function Position() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
 
                     <FormControl className={styles.positionHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>
