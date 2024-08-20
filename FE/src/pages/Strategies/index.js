@@ -328,6 +328,7 @@ function Strategies() {
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
         candlestickSelectedRef.current = "All"
+        bookmarkCheckRef.current = false
         setSearchKey("")
     }
 

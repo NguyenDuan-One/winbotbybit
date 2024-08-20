@@ -76,6 +76,7 @@ function Scanner() {
             field: 'stt',
             renderHeader: header => {
                 return <Checkbox
+                    checked={bookmarkCheckRef.current}
                     style={{
                         padding: " 0 ",
                     }}
@@ -543,6 +544,7 @@ function Scanner() {
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
         marketSelectedRef.current = "All"
+        bookmarkCheckRef.current = false
         setSearchKey("")
     }
 
