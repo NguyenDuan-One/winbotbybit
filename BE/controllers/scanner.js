@@ -162,7 +162,7 @@ const dataCoinByBitController = {
 
 
             const handleResult = await ScannerModel.populate(resultFilter, {
-                path: 'children.botID',
+                path: 'botID',
             })
 
             res.customResponse(200, "Get All Config Successful", handleResult);
@@ -268,7 +268,7 @@ const dataCoinByBitController = {
         }
     },
 
-    updateStrategiesMultipleSpot: async (req, res) => {
+    updateStrategiesMultipleScanner: async (req, res) => {
         try {
 
             const dataList = req.body
@@ -277,13 +277,11 @@ const dataCoinByBitController = {
 
             const bulkOperations = dataList.map(data => ({
                 updateOne: {
-                    filter: { "children._id": data.id, _id: data.parentID },
+                    filter: { _id: data.id },
                     update: {
                         $set: {
-                            "children.$": {
-                                ...data.UpdatedFields,
-                                TimeTemp
-                            }
+                            ...data.UpdatedFields,
+                            TimeTemp
                         }
                     }
                 }
@@ -292,23 +290,23 @@ const dataCoinByBitController = {
             const bulkResult = await ScannerModel.bulkWrite(bulkOperations);
 
             if (bulkResult.modifiedCount === dataList.length) {
-                const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
+                // const newDataSocketWithBotData = await dataCoinByBitController.getAllStrategiesNewUpdate(TimeTemp)
 
-                newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                    type: "update",
-                    data: newDataSocketWithBotData
-                })
-                res.customResponse(200, "Update Mul-Strategies Successful", "");
+                // newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                //     type: "update",
+                //     data: newDataSocketWithBotData
+                // })
+                res.customResponse(200, "Update Mul-Config Successful", "");
             }
             else {
-                res.customResponse(400, `Update Mul-Strategies Failed (${dataList.length - bulkResult.modifiedCount}) `);
+                res.customResponse(400, `Update Mul-Config Failed (${dataList.length - bulkResult.modifiedCount}) `);
 
             }
 
 
         } catch (error) {
             // Xử lý lỗi nếu có
-            res.status(500).json({ message: "Update Mul-Strategies Error" });
+            res.status(500).json({ message: "Update Mul-Config Error" });
         }
     },
 
@@ -469,75 +467,27 @@ const dataCoinByBitController = {
         }
     },
 
-    deleteStrategiesMultipleSpot: async (req, res) => {
+    deleteStrategiesMultipleScanner: async (req, res) => {
         try {
 
             const strategiesIDList = req.body
 
-            const parentIDs = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.parentID));
-            const ids = strategiesIDList.map(item => new mongoose.Types.ObjectId(item.id));
-
-            const resultFilter = await ScannerModel.aggregate([
+            const result = await ScannerModel.deleteMany(
                 {
-                    $match: {
-                        "_id": { $in: parentIDs }
-                    }
-                },
-                {
-                    $project: {
-                        label: 1,
-                        value: 1,
-                        volume24h: 1,
-                        children: {
-                            $filter: {
-                                input: "$children",
-                                as: "child",
-                                cond: {
-                                    $in: ["$$child._id", ids]
-                                }
-                            }
-                        }
-                    }
+                    "_id": { $in: strategiesIDList.map(item => new mongoose.Types.ObjectId(item.id)) }
                 }
-            ]);
-
-            const resultGet = await ScannerModel.populate(resultFilter, {
-                path: 'children.botID',
-            })
-
-            const handleResult = resultGet.flatMap((data) => data.children.map(child => {
-                child.symbol = data.value
-                child.value = `${data._id}-${child._id}`
-                return child
-            })) || []
-
-
-
-            const bulkOperations = strategiesIDList.map(data => ({
-                updateOne: {
-                    filter: { _id: data.parentID },
-                    update: { $pull: { children: { _id: data.id } } }
-                }
-            }));
-
-            const bulkResult = await ScannerModel.bulkWrite(bulkOperations);
+            )
 
             // if (result.acknowledged && result.deletedCount !== 0) {
-            if (bulkResult.modifiedCount === strategiesIDList.length) {
-
-                handleResult.length > 0 && dataCoinByBitController.sendDataRealtime({
-                    type: "delete",
-                    data: handleResult
-                })
-                res.customResponse(200, "Delete Strategies Successful");
-
+            if (result.deletedCount !== 0) {
+                res.customResponse(200, "Delete Config Successful");
             }
             else {
-                res.customResponse(400, `Delete Strategies Failed ${strategiesIDList.length - bulkResult.modifiedCount} `);
+                res.customResponse(400, `Delete Config Failed `);
             }
 
         } catch (error) {
-            res.status(500).json({ message: "Delete Strategies Error" });
+            res.status(500).json({ message: "Delete Config Error" });
         }
     },
 

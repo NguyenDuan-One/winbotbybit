@@ -11,6 +11,13 @@ export const getAllConfigScanner = async (botListInput) => {
 export const createConfigScanner = async (data) => {
     return await api.post("/scanner/createConfigScanner", data)
 }
+export const updateStrategiesMultipleScanner = async (data) => {
+    return await api.post("/scanner/updateStrategiesMultipleScanner", data)
+}
+
+export const deleteStrategiesMultipleScanner = async (data) => {
+    return await api.post("/scanner/deleteStrategiesMultipleScanner", data)
+}
 
 
 // OTHER

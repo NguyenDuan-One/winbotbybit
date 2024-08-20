@@ -403,7 +403,7 @@ function CreateStrategy({
 
 
                     </Autocomplete>
-                    {isSubmitted && !blackListSelected.length && <p className="formControlErrorLabel">The Blacklist field is required.</p>}
+                    {/* {isSubmitted && !blackListSelected.length && <p className="formControlErrorLabel">The Blacklist field is required.</p>} */}
 
                 </FormControl>
 
