@@ -154,7 +154,7 @@ function Scanner() {
         {
             field: 'IsActive',
             type: "actions",
-            maxWidth: 120,
+            minWidth: 100,
             headerName: 'Active',
             renderCell: params => {
                 const data = params.row
@@ -211,7 +211,7 @@ function Scanner() {
                         />
                         <DeleteOutlineIcon
                             className={styles.icon}
-                            style={{ margin: "0 3px 0 2px", }}
+                            style={{ margin: "0 4px", }}
                             onClick={async () => {
                                 setOpenConfirmDeleteConfig(configID)
                             }}
@@ -708,7 +708,7 @@ function Scanner() {
                             tableRows={dataCheckTree}
                             tableColumns={tableColumns}
                             hideFooter
-                            centerCell
+                            // centerCell = {window.innerWidth > 740}
                         />
                         :
                         <p style={{
