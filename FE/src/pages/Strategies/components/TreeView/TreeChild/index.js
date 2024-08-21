@@ -234,9 +234,7 @@ function TreeChild({
                                             }
                                         })
                                     }}
-                                    style={{
-                                        marginRight: "6px"
-                                    }}
+                                    
                                 />
                             )
                         }
@@ -255,7 +253,11 @@ function TreeChild({
                                         symbolValue: treeData.value
                                     }
                                 })
-                            }} />
+                            }} 
+                            style={{
+                                marginLeft: "3px"
+                            }}
+                            />
                     </div>
                 </TableCell>
                 <TableCell

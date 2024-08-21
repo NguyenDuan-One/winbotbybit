@@ -2183,7 +2183,6 @@ const Main = async () => {
     const allStrategiesActiveObject = result[0]
     allSymbol = result[1]
 
-
     allStrategiesActiveObject.forEach(strategyItem => {
         if (checkConditionBot(strategyItem)) {
 

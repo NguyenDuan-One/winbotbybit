@@ -52,7 +52,7 @@ function Bot() {
         {
             field: 'stt',
             headerName: '#',
-            maxWidth: 50,
+            maxWidth: 30,
             type: "actions",
             renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
         },
@@ -111,6 +111,7 @@ function Bot() {
                         />
                         <DeleteOutlineIcon
                             className={styles.icon}
+                            style={{ marginLeft: "3px" }}
                             onClick={async () => {
                                 setOpenDeleteBot(rowData)
                             }}
@@ -279,7 +280,7 @@ function Bot() {
                     }
                     return bot
                 })
-                
+
             }
         }
         catch (err) {
@@ -361,8 +362,7 @@ function Bot() {
                 status: status,
                 message: message,
             }))
-            if(status === 200)
-            {
+            if (status === 200) {
                 setBotList(botList.filter(bot => botID !== bot._id))
                 botListDefaultRef.current = botListDefaultRef.current.filter(bot => botID !== bot._id)
                 setOpenDeleteBot("")
@@ -531,7 +531,7 @@ function Bot() {
                         tableRows={botList}
                         tableColumns={tableColumns}
                         disableMultipleRowSelection
-                        checkboxSelection= {false}
+                        checkboxSelection={false}
                     />
                 </div>
             </div>

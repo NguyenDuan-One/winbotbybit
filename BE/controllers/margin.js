@@ -85,10 +85,10 @@ const dataCoinByBitController = {
             let CoinInfo = new RestClientV5(wsInfo);
 
             let data = []
-            await CoinInfo.getTickers({ category: 'linear' })
+            await CoinInfo.getInstrumentsInfo({ category: 'spot' })
                 .then((rescoin) => {
                     rescoin.result.list.forEach((e) => {
-                        if (e.symbol.indexOf("USDT") > 0) {
+                        if (e.marginTrading != "none" && e.symbol.includes("USDT")) {
                             data.push({
                                 symbol: e.symbol,
                                 volume24h: e.turnover24h,
