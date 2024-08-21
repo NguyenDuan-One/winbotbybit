@@ -254,7 +254,6 @@ function Position() {
             const res = await updatePL(botListInput.slice(1))
             const { status, message, data: resData } = res.data
             
-            
             if (status === 200) {
                 const data = resData.length > 0 ? resData?.map(item => (
                     {

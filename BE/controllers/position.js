@@ -185,7 +185,7 @@ const PositionController = {
                                     Quantity: viTheListItem.size,
                                     Time: positionData?.Time,
                                     TimeUpdated: positionData?.TimeUpdated,
-                                    Miss: positionData?.Miss || true,
+                                    Miss: positionData?._id ? positionData.Miss : true,
                                     botID: dataBotItem?.value,
                                     botName: dataBotItem?.name,
                                     botData: dataBotItem
