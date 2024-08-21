@@ -171,28 +171,49 @@ const PositionController = {
 
                         const viTheList = response.result.list;
 
+
                         if (viTheList?.length > 0) {
-                            newData = newData.concat(viTheList.map(viTheListItem => {
+
+                            newData = await Promise.all((viTheList.map(async viTheListItem => {
 
                                 const Symbol = viTheListItem.symbol
                                 const positionData = dataPositionObject[Symbol]
-                                const data = {
-                                    _id: positionData?._id || `${dataBotItem?.value} - ${Symbol}`,
+                                let data = {
                                     Pnl: viTheListItem.unrealisedPnl,
                                     Side: viTheListItem.side,
                                     Price: +viTheListItem.avgPrice,
                                     Symbol,
                                     Quantity: viTheListItem.size,
-                                    Time: positionData?.Time,
-                                    TimeUpdated: positionData?.TimeUpdated,
-                                    Miss: positionData?._id ? positionData.Miss : true,
+
                                     botID: dataBotItem?.value,
                                     botName: dataBotItem?.name,
                                     botData: dataBotItem
                                 }
+                                if (positionData?._id) {
+                                    data = {
+                                        ...data,
+                                        _id: positionData?._id,
+                                        Time: positionData?.Time,
+                                        TimeUpdated: positionData?.TimeUpdated,
+                                        Miss: positionData.Miss,
+                                    }
+                                }
+                                else {
+                                    const resNew = await PositionController.createPositionBE(data)
+
+                                    data = {
+                                        ...data,
+                                        _id: resNew?.id,
+                                        Time: new Date(),
+                                        TimeUpdated: new Date(),
+                                        Miss: true,
+                                    }
+                                }
+
                                 delete dataPositionObject[Symbol]
                                 return data
-                            }))
+                            })))
+
                         }
                         else {
                             return await PositionModel.deleteMany({ botID: dataBotItem.value })
