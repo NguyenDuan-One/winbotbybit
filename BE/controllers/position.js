@@ -191,7 +191,7 @@ const PositionController = {
                     res.customResponse(200, "Close Market Successful");
                 }
                 else {
-                    res.customResponse(400, "Close Market Failed");
+                    res.customResponse(400, response.retMsg);
                 }
             })
             .catch((error) => {
