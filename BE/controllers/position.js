@@ -147,8 +147,6 @@ const PositionController = {
             if (botListID.length > 0) {
                 let newData = []
 
-                console.log("botListID",botListID);
-                
                 await Promise.allSettled(botListID.map(dataBotItem => {
 
                     const client = new RestClientV5({
@@ -172,7 +170,6 @@ const PositionController = {
                         }, {})
 
                         const viTheList = response.result.list;
-                        console.log("viTheList",viTheList);
 
                         if (viTheList?.length > 0) {
                             newData = newData.concat(viTheList.map(viTheListItem => {
@@ -180,7 +177,7 @@ const PositionController = {
                                 const Symbol = viTheListItem.symbol
                                 const positionData = dataPositionObject[Symbol]
                                 const data = {
-                                    _id: positionData?._id || Symbol,
+                                    _id: positionData?._id || `${dataBotItem?.value} - ${Symbol}`,
                                     Pnl: viTheListItem.unrealisedPnl,
                                     Side: viTheListItem.side,
                                     Price: +viTheListItem.avgPrice,
@@ -209,8 +206,6 @@ const PositionController = {
                         return [];
                     });
                 }));
-
-                console.log("newData",newData);
 
                 res.customResponse(200, "Refresh Position Successful", newData);
             }
