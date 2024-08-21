@@ -203,7 +203,7 @@ const PositionController = {
 
                                     data = {
                                         ...data,
-                                        _id: resNew?.id,
+                                        _id: resNew?.id || `${dataBotItem?.value}-${Symbol}`,
                                         Time: new Date(),
                                         TimeUpdated: new Date(),
                                         Miss: true,
