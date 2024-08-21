@@ -10,7 +10,7 @@ import DialogCustom from '../../../../../../../components/DialogCustom';
 import { handleCheckAllCheckBox, formatNumberString } from '../../../../../../../functions';
 import { addMessageToast } from '../../../../../../../store/slices/Toast';
 import UpdateStrategy from '../../UpdateStrategy';
-import { updateStrategiesSpotByID,deleteStrategiesItemSpot } from '../../../../../../../services/spotService';
+import { updateStrategiesSpotByID, deleteStrategiesItemSpot } from '../../../../../../../services/spotService';
 
 
 function TreeChild({
@@ -278,8 +278,8 @@ function TreeChild({
                 <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.Limit)}</TableCell>
                 <TableCell className={styles.tableBodyCell}>{treeNode.AmountIncreaseOC}</TableCell>
                 <TableCell className={styles.tableBodyCell}>{treeNode.AmountExpire}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.Adaptive && <CheckIcon/>}</TableCell>
-                <TableCell className={styles.tableBodyCell}>{treeNode.Reverse && <CheckIcon/>}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.Adaptive && <CheckIcon />}</TableCell>
+                <TableCell className={styles.tableBodyCell}>{treeNode.Reverse && <CheckIcon />}</TableCell>
                 <TableCell className={styles.tableBodyCell}>{formatNumberString(treeNode.volume24h)}</TableCell>
             </TableRow >
             {
@@ -292,6 +292,7 @@ function TreeChild({
                     onClose={closeDeleteDialog}
                     submitBtnText='Confirm'
                     position='center'
+                    backdrop
                     submitBtnColor='error'
                     onSubmit={() => {
                         handleDeleteStrategiesItem({

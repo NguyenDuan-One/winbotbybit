@@ -11,7 +11,8 @@ import { updateBot } from "../../../../../../../../services/botService";
 function AddApi({
     open,
     onClose,
-    checkBot
+    checkBot,
+    botType
 }, ref) {
 
     const { botID } = useParams()
@@ -35,7 +36,8 @@ function AddApi({
                     ApiKey: data.ApiKey?.trim(),
                     SecretKey: data.SecretKey?.trim(),
                     type: "Api",
-                    checkBot
+                    checkBot,
+                    botType
                 },
                 id: botID
             })

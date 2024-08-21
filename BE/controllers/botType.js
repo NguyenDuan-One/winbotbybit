@@ -4,14 +4,14 @@ const BotTypeModel = require('../models/botType.model');
 const BotTypeController = {
     getAll: async (req, res) => {
         try {
-            const data = await BotTypeModel.find()
+            const data = await BotTypeModel.find().sort({ name: -1 })
             res.customResponse(res.statusCode, "Get All Successful", data);
 
         } catch (err) {
             res.status(500).json({ message: err.message });
         }
     },
-  
+
     create: async (req, res) => {
         try {
 
@@ -45,7 +45,7 @@ const BotTypeController = {
             res.status(500).json({ message: "Update Error" });
         }
     },
-   
+
     deleteMultiple: async (req, res) => {
         try {
             const groupIDList = req.body

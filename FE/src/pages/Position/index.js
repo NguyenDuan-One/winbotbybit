@@ -15,16 +15,16 @@ function Position() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
 
-    const botTypeList = [
-        {
-            name: "All",
-            value: "All"
-        },
-        {
-            name: "BybitV3",
-            value: "BybitV3"
-        }
-    ]
+    // const botTypeList = [
+    //     {
+    //         name: "All",
+    //         value: "All"
+    //     },
+    //     {
+    //         name: "BybitV3",
+    //         value: "BybitV3"
+    //     }
+    // ]
 
     const tableColumns = [
         {
@@ -253,13 +253,15 @@ function Position() {
         try {
             const res = await updatePL(botListInput.slice(1))
             const { status, message, data: resData } = res.data
+            
+            
             if (status === 200) {
                 const data = resData.length > 0 ? resData?.map(item => (
                     {
                         id: item._id,
-                        BotName: item.botID.botName,
-                        botID: item.botID._id,
-                        botData: item.botID,
+                        BotName: item.botName,
+                        botID: item.botID,
+                        botData: item.botData,
                         Symbol: item.Symbol,
                         Side: item.Side,
                         Price: item.Price,
@@ -282,6 +284,7 @@ function Position() {
 
         }
         catch (err) {
+            
             dispatch(addMessageToast({
                 status: 500,
                 message: "Refresh Position Error",
@@ -307,7 +310,7 @@ function Position() {
             <div className={styles.position}>
 
                 <div className={styles.positionHeader}>
-                    <FormControl className={styles.positionHeaderItem}>
+                    {/* <FormControl className={styles.positionHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
                             value={botTypeSelected}
@@ -319,7 +322,7 @@ function Position() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
 
                     <FormControl className={styles.positionHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>

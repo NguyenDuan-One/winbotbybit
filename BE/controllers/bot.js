@@ -4,6 +4,8 @@ const UserModel = require('../models/user.model');
 const StrategiesModel = require('../models/strategies.model');
 const { default: mongoose } = require('mongoose');
 
+// ByBitV3
+
 const BotController = {
     // SOCKET
 
@@ -83,11 +85,13 @@ const BotController = {
     getAllBotActiveByUserID: async (req, res) => {
         try {
             const userID = req.params.id;
+            const botType = req.query.botType
 
             // ref: .populate({ path: "coinID", models: "Coin" })
             const data = await BotModel.find({
                 userID,
                 "Status": "Running",
+                "botType": botType,
                 ApiKey: { $exists: true, $ne: null },
                 SecretKey: { $exists: true, $ne: null }
             }, { telegramToken: 0 }).sort({ Created: -1 }).populate("userID", "userName roleName");
@@ -99,11 +103,14 @@ const BotController = {
     },
 
     getAllBotActive: async (req, res) => {
+        const botType = req.query.botType
+
         try {
             // ref: .populate({ path: "coinID", models: "Coin" })
             const data = await BotModel.find(
                 {
                     Status: "Running",
+                    "botType": botType,
                     ApiKey: { $exists: true, $ne: null },
                     SecretKey: { $exists: true, $ne: null }
                 }
@@ -121,6 +128,7 @@ const BotController = {
             // ref: .populate({ path: "coinID", models: "Coin" })
             const data = await BotModel.find({
                 userID,
+                "botType": "ByBitV3",
                 ApiKey: { $exists: true, $ne: null },
                 SecretKey: { $exists: true, $ne: null }
             }, { telegramToken: 0 }).sort({ Created: -1 })
@@ -180,8 +188,7 @@ const BotController = {
 
             const botID = req.params.id;
 
-
-            const { type, checkBot, ...data } = req.body;
+            const { type, checkBot, botType, ...data } = req.body;
 
             let dataCheckBotApi = false
 
@@ -197,67 +204,71 @@ const BotController = {
                 const result = await BotModel.updateOne({ _id: botID }, { $set: data })
 
                 if (result.acknowledged && result.matchedCount !== 0) {
-                    if (type === "Active") {
-                        if (checkBot) {
-                            const IsActive = data.Status === "Running" ? true : false;
+                    switch (botType) {
+                        case "ByBitV3":
+                            if (checkBot) {
+                                if (type === "Active") {
+                                    const IsActive = data.Status === "Running" ? true : false;
 
-                            const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                                botID,
-                                IsActive
-                            })
+                                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                                        botID,
+                                        IsActive
+                                    })
 
-                            newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                                type: "bot-update",
-                                data: {
-                                    newData: newDataSocketWithBotData,
-                                    botIDMain: botID,
-                                    botActive: IsActive
+                                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                                        type: "bot-update",
+                                        data: {
+                                            newData: newDataSocketWithBotData,
+                                            botIDMain: botID,
+                                            botActive: IsActive
+                                        }
+                                    })
+
                                 }
-                            })
+                                else if (type === "Api") {
+                                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                                        botID,
+                                        IsActive: "not-modified"
+                                    })
 
-                        }
-                    }
-                    else if (type === "Api") {
-                        if (checkBot) {
-                            const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                                botID,
-                                IsActive: "not-modified"
-                            })
-
-                            newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                                type: "bot-api",
-                                data: {
-                                    newData: newDataSocketWithBotData,
-                                    botID,
-                                    newApiData: {
-                                        ApiKey: data.ApiKey,
-                                        SecretKey: data.SecretKey
-                                    }
+                                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                                        type: "bot-api",
+                                        data: {
+                                            newData: newDataSocketWithBotData,
+                                            botID,
+                                            newApiData: {
+                                                ApiKey: data.ApiKey,
+                                                SecretKey: data.SecretKey
+                                            }
+                                        }
+                                    })
                                 }
-                            })
-                        }
-                    }
-                    else if (type === "telegram") {
-                        if (checkBot) {
-                            const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                                botID,
-                                IsActive: "not-modified"
-                            })
+                                else if (type === "telegram") {
+                                    const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                                        botID,
+                                        IsActive: "not-modified"
+                                    })
 
-                            newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                                type: "bot-telegram",
-                                data: {
-                                    newData: newDataSocketWithBotData,
-                                    botID,
-                                    newApiData: {
-                                        telegramTokenOld: data.telegramTokenOld,
-                                        telegramID: data.telegramID,
-                                        telegramToken: data.telegramToken,
-                                    }
+                                    newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                                        type: "bot-telegram",
+                                        data: {
+                                            newData: newDataSocketWithBotData,
+                                            botID,
+                                            newApiData: {
+                                                telegramTokenOld: data.telegramTokenOld,
+                                                telegramID: data.telegramID,
+                                                telegramToken: data.telegramToken,
+                                            }
+                                        }
+                                    })
                                 }
-                            })
-                        }
+                            }
+                            break;
+
+                        default:
+                            break;
                     }
+
                     res.customResponse(200, "Update Bot Successful", "");
                 }
                 else {
@@ -277,23 +288,34 @@ const BotController = {
     deleteBot: async (req, res) => {
         try {
             const botID = req.params.id;
+            const botType = req.query.botType
 
-            const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                botID,
-                IsActive: true
-            })
+            let newDataSocketWithBotData = []
 
+            switch (botType) {
+                case "ByBitV3":
+                    newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                        botID,
+                        IsActive: true
+                    })
+                    break
+            }
             const result = await BotModel.deleteOne({ _id: botID })
 
             if (result.deletedCount !== 0) {
 
-                newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                    type: "bot-delete",
-                    data: {
-                        newData: newDataSocketWithBotData,
-                        botID,
-                    }
-                })
+                switch (botType) {
+                    case "ByBitV3":
+
+                        newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                            type: "bot-delete",
+                            data: {
+                                newData: newDataSocketWithBotData,
+                                botID,
+                            }
+                        })
+                        break
+                }
                 res.customResponse(200, "Delete Bot Successful");
             }
             else {
@@ -307,13 +329,20 @@ const BotController = {
     deleteMultipleBot: async (req, res) => {
         try {
             const botIDList = req.body
+            const botType = req.query.botType
 
             const botID = botIDList[0]
-            
-            const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                botID,
-                IsActive: true
-            })
+
+            let newDataSocketWithBotData = []
+
+            switch (botType) {
+                case "ByBitV3":
+                    newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                        botID,
+                        IsActive: true
+                    })
+                    break
+            }
 
             const result = await BotModel.deleteMany({ _id: { $in: botIDList } })
 
@@ -326,13 +355,19 @@ const BotController = {
 
             if (resultAll.some(item => item.deletedCount !== 0)) {
 
-                newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                    type: "bot-delete",
-                    data: {
-                        newData: newDataSocketWithBotData,
-                        botID,
-                    }
-                })
+                switch (botType) {
+                    case "ByBitV3":
+                        
+                        newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                            type: "bot-delete",
+                            data: {
+                                newData: newDataSocketWithBotData,
+                                botID,
+                            }
+                        })
+                        break
+                }
+
                 res.customResponse(200, "Delete Bot Successful");
             }
             else {
@@ -352,6 +387,7 @@ const BotController = {
             const data = await BotModel.find(
                 {
                     Status: "Running",
+                    "botType": "ByBitV3",
                     ApiKey: { $exists: true, $ne: null },
                     SecretKey: { $exists: true, $ne: null }
                 }

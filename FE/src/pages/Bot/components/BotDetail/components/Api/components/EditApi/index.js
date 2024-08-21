@@ -10,7 +10,8 @@ import { updateBot } from "../../../../../../../../services/botService";
 function EditApi({
     open,
     botData,
-    onClose
+    onClose,
+    botType
 }, ref) {
 
     const {
@@ -36,7 +37,8 @@ function EditApi({
                     data: {
                         ...data,
                         type: "Api",
-                        checkBot: botData.Status === "Running"
+                        checkBot: botData.Status === "Running",
+                        botType
                     }
                 }
             )

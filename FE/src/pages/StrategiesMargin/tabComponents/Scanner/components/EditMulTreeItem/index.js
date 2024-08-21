@@ -8,7 +8,9 @@ import { verifyTokenVIP } from '../../../../../../services/authService';
 import { getAllBotActive } from '../../../../../../services/botService';
 import { getUserByID } from '../../../../../../services/userService';
 import { addMessageToast } from '../../../../../../store/slices/Toast';
-import { updateStrategiesMultipleSpot, getAllSymbolSpot, deleteStrategiesMultipleSpot, copyMultipleStrategiesToSymbolSpot, copyMultipleStrategiesToBotSpot } from '../../../../../../services/spotService';
+import { getAllSymbolSpot, copyMultipleStrategiesToSymbolSpot, copyMultipleStrategiesToBotSpot } from '../../../../../../services/spotService';
+import { copyMultipleStrategiesToBotScanner, deleteStrategiesMultipleScanner, updateStrategiesMultipleScanner } from '../../../../../../services/scannerService';
+import { NumericFormat } from 'react-number-format';
 
 function EditMulTreeItem({
     onClose,
@@ -52,21 +54,28 @@ function EditMulTreeItem({
                 compare: "=",
                 value: ""
             },
-            name: "Auto Amount",
-            value: "AmountAutoPercent",
+            name: "Elastic",
+            value: "Elastic",
             compareFilterList: compareFilterListDefault,
 
         },
-
         {
             data: {
                 compare: "=",
                 value: ""
             },
-            name: "Expire",
-            value: "Expire",
+            name: "Turnover",
+            value: "Turnover",
             compareFilterList: compareFilterListDefault,
-
+        },
+        {
+            data: {
+                compare: "=",
+                value: ""
+            },
+            name: "Numbs",
+            value: "Numbs",
+            compareFilterList: compareFilterListDefault,
         },
         {
             data: {
@@ -82,18 +91,10 @@ function EditMulTreeItem({
                 compare: "=",
                 value: ""
             },
-            name: "Auto OC",
-            value: "AmountIncreaseOC",
+            name: "Expire",
+            value: "Expire",
             compareFilterList: compareFilterListDefault,
-        },
-        {
-            data: {
-                compare: "=",
-                value: ""
-            },
-            name: "Amount exp",
-            value: "AmountExpire",
-            compareFilterList: compareFilterListDefault,
+
         },
         {
             data: {
@@ -107,29 +108,19 @@ function EditMulTreeItem({
         {
             data: {
                 compare: "=",
-                value: false
+                value: ""
             },
-            name: "Adaptive",
-            value: "Adaptive",
+            name: "Label",
+            value: "Label",
             compareFilterList: ["="],
         },
-        {
-            data: {
-                compare: "=",
-                value: false
-            },
-            name: "Reverse",
-            value: "Reverse",
-            compareFilterList: ["="],
-        },
-
     ]
 
     const dispatch = useDispatch()
 
 
 
-    const [copyType, setCopyType] = useState("Symbol");
+    const [copyType, setCopyType] = useState("Bot");
     const [symbolListData, setSymbolListData] = useState([]);
     const [symbolListSelected, setSymbolListSelected] = useState([]);
 
@@ -165,7 +156,7 @@ function EditMulTreeItem({
     }
     const handleGetAllBot = async () => {
         try {
-            const res = await getAllBotActive()
+            const res = await getAllBotActive("ByBit-V1")
             const { data: resUserData } = res.data
             setBotListInputVIP(resUserData.map(item => ({
                 name: item.botName,
@@ -217,17 +208,14 @@ function EditMulTreeItem({
     const handleFiledValueElement = (item, indexRow) => {
         switch (item.name) {
             case "Active":
-            case "Adaptive":
-            case "Reverse":
                 return <Checkbox
                     checked={item.data.value}
                     onChange={(e) => {
                         handleChangeValue(e.target.checked, indexRow)
                     }}
                 />
-            default:
+            case "Label":
                 return <TextField
-                    type='number'
                     value={item.data.value}
                     onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
                     size="small"
@@ -236,6 +224,35 @@ function EditMulTreeItem({
                     }}
                 >
                 </TextField>
+            default:
+                // return <TextField
+                //     type='number'
+                //     value={item.data.value}
+                //     onChange={(e) => { handleChangeValue(e.target.value, indexRow) }}
+                //     size="small"
+                //     style={{
+                //         width: "100%"
+                //     }}
+                // >
+                // </TextField>
+                return <NumericFormat
+                    thousandSeparator
+                    value={item.data.value}
+                    type='text'
+                    onChange={(e) => {
+                        const value = Number.parseFloat(e.target.value.replace(/,/g, ''))
+                        handleChangeValue(value, indexRow)
+                    }}
+                    style={{
+                        width: "100%",
+                        height: "40px",
+                        outline: "none",
+                        border: "1px solid #c4c4c4",
+                        padding: "0 12px",
+                        borderRadius: "6px"
+                    }}
+                >
+                </NumericFormat>
         }
     }
 
@@ -305,9 +322,8 @@ function EditMulTreeItem({
             const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => (
                 {
                     id: dataCheckTreeItem._id,
-                    parentID: dataCheckTreeItem.parentID,
                     UpdatedFields: filterDataRowList.map(filterRow => {
-                        let valueHandle = handleCompare(dataCheckTreeItem[filterRow.value], filterRow.data.compare, filterRow.data.value)
+                        let valueHandle = filterRow.value != "Label" ? handleCompare(dataCheckTreeItem[filterRow.value], filterRow.data.compare, filterRow.data.value) : filterRow.data.value
                         if (typeof (valueHandle) === "number") {
                             valueHandle = parseFloat(valueHandle.toFixed(4))
                             if (valueHandle < 0.1) {
@@ -328,7 +344,7 @@ function EditMulTreeItem({
             if (checkValueMin) {
                 setLoadingSubmit(true)
 
-                const res = await updateStrategiesMultipleSpot(newData)
+                const res = await updateStrategiesMultipleScanner(newData)
 
                 const { status, message } = res.data
 
@@ -366,10 +382,9 @@ function EditMulTreeItem({
         try {
             const newData = handleDataCheckTreeSelected.map((dataCheckTreeItem) => ({
                 id: dataCheckTreeItem._id,
-                parentID: dataCheckTreeItem.parentID,
             }))
 
-            const res = await deleteStrategiesMultipleSpot(newData)
+            const res = await deleteStrategiesMultipleScanner(newData)
 
             const { status, message } = res.data
 
@@ -377,9 +392,7 @@ function EditMulTreeItem({
                 status: status,
                 message: message,
             }))
-            if (status === 200) {
-                dataChange = true
-            }
+            dataChange = true
 
         }
         catch (err) {
@@ -412,7 +425,7 @@ function EditMulTreeItem({
                     })
                 }
                 else {
-                    res = await copyMultipleStrategiesToBotSpot({
+                    res = await copyMultipleStrategiesToBotScanner({
                         symbolListData: handleDataCheckTreeSelected,
                         symbolList: botLisSelected.map(item => item.value)
                     })
@@ -455,7 +468,7 @@ function EditMulTreeItem({
                 }
             ))
 
-            const res = await updateStrategiesMultipleSpot(newData)
+            const res = await updateStrategiesMultipleScanner(newData)
 
             const { status, message } = res.data
 
@@ -463,9 +476,7 @@ function EditMulTreeItem({
                 status: status,
                 message: message,
             }))
-            if (status === 200) {
-                dataChange = true
-            }
+            dataChange = true
 
         }
         catch (err) {
@@ -494,7 +505,7 @@ function EditMulTreeItem({
                 }
             ))
 
-            const res = await updateStrategiesMultipleSpot(newData)
+            const res = await updateStrategiesMultipleScanner(newData)
 
             const { status, message } = res.data
 
@@ -859,14 +870,14 @@ function EditMulTreeItem({
                     <div>
                         <FormControl style={{ marginBottom: "6px" }} >
                             <RadioGroup
-                                defaultValue="Symbol"
+                                defaultValue="Bot"
                                 onChange={handleChangeRatioCopy}
                                 style={{
                                     display: "flex",
                                     flexDirection: "row"
                                 }}
                             >
-                                <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
+                                {/* <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" /> */}
                                 <FormControlLabel value="Bot" control={<Radio />} label="Bot" />
                                 {roleNameMainVIP && <FormControlLabel value="BotVip" control={<Radio />} label="Bot VIP" style={{ color: "var(--blueLightColor)" }} />}
                             </RadioGroup>
@@ -890,7 +901,7 @@ function EditMulTreeItem({
 
     useEffect(() => {
         if (radioValue === "Copy") {
-            handleGetSymbolList()
+            // handleGetSymbolList()
             handleVerifyLogin()
             handleGetAllBot()
         }

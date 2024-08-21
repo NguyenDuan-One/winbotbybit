@@ -31,16 +31,16 @@ function Margin() {
     const SCROLL_INDEX = 5
     const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
-    const botTypeList = [
-        {
-            name: "All",
-            value: "All"
-        },
-        {
-            name: "BybitV3",
-            value: "BybitV3"
-        }
-    ]
+    // const botTypeList = [
+    //     {
+    //         name: "All",
+    //         value: "All"
+    //     },
+    //     {
+    //         name: "BybitV3",
+    //         value: "BybitV3"
+    //     }
+    // ]
 
     const positionSideList = [
         {
@@ -113,7 +113,7 @@ function Margin() {
 
     const handleGetAllBotByUserID = () => {
 
-        getAllBotActiveByUserID(userData._id)
+        getAllBotActiveByUserID(userData._id,"ByBit-V1")
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -301,6 +301,7 @@ function Margin() {
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
         candlestickSelectedRef.current = "All"
+        bookmarkCheckRef.current = false
         setSearchKey("")
     }
 
@@ -389,7 +390,7 @@ function Margin() {
                 </div>
 
                 <div className={styles.strategiesHeader}>
-                    <FormControl className={styles.strategiesHeaderItem}>
+                    {/* <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
                             value={botTypeSelectedRef.current}
@@ -406,7 +407,7 @@ function Margin() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
 
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>

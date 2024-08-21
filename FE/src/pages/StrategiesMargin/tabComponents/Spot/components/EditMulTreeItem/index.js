@@ -165,7 +165,7 @@ function EditMulTreeItem({
     }
     const handleGetAllBot = async () => {
         try {
-            const res = await getAllBotActive()
+            const res = await getAllBotActive("ByBit-V1")
             const { data: resUserData } = res.data
             setBotListInputVIP(resUserData.map(item => ({
                 name: item.botName,

@@ -371,6 +371,7 @@ function TreeParent({
                     onClose={closeDeleteDialog}
                     submitBtnText='Confirm'
                     position='center'
+                    backdrop
                     submitBtnColor='error'
                     onSubmit={handleDeleteStrategies}
                 >

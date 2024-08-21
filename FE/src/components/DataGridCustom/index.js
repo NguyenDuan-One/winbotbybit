@@ -12,7 +12,7 @@ function DataGridCustom({
     tableColumns = [],
     checkboxSelection = true,
     hideFooter = false,
-    setDataTableChange,
+    setDataTableChange = ()=>{},
     disableMultipleRowSelection = false,
     disabledListRow = [],
     columnVisibilityModel = {},
@@ -49,11 +49,15 @@ function DataGridCustom({
                 ".MuiDataGrid-main": {
                     overflow: "auto"
                 },
-                ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
-                {
-                    justifyContent: centerCell && "center !important",
-                    textAlign: centerCell && "center !important",
-                }
+                // ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
+                // {
+                //     justifyContent: centerCell && "center !important",
+                //     textAlign: centerCell && "center !important",
+                // },
+                // " .MuiDataGrid-cell":
+                // {
+                //     marginLeft: "1px"
+                // }
                 // ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
                 // {
                 //     justifyContent:"center !important",

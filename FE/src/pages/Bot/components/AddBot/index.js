@@ -7,19 +7,14 @@ import { createBot } from "../../../../services/botService";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../store/slices/Toast";
 
-const botTypeList = [
-    {
-        name: "BybitV3",
-        value: "BybitV3"
-    }
-]
-
 function AddBot({
     open,
     onClose,
-    roleName
+    roleName,
+    botTypeList
 }, ref) {
 
+    
     const {
         register,
         handleSubmit,
@@ -91,16 +86,16 @@ function AddBot({
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>Bot Type</FormLabel>
                     <Select
-                        defaultValue={botTypeList[0].value}
                         size="small"
                         {...register("botType", { required: true })}
                     >
                         {
                             botTypeList.map(item => (
-                                <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                <MenuItem value={item} key={item}>{item}</MenuItem>
                             ))
                         }
                     </Select>
+                    {errors.botType && <p className="formControlErrorLabel">The Bot Type field is required.</p>}
                 </FormControl>
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>Note</FormLabel>

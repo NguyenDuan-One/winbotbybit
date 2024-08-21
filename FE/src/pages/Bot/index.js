@@ -1,31 +1,21 @@
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { Button, FormControl, FormLabel, MenuItem, Select, Switch } from "@mui/material";
+import { Button, MenuItem, Select, Switch } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import { Link } from 'react-router-dom';
 import { useState, memo, useEffect, useRef } from "react";
 import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
 import DataGridCustom from "../../components/DataGridCustom";
 import AddBot from "./components/AddBot";
-import { deleteMultipleBot, getAllBot, getAllBotBySameGroup, getAllBotByUserID, updateBot } from "../../services/botService";
+import { deleteBot, deleteMultipleBot, getAllBot, getAllBotBySameGroup, getAllBotByUserID, updateBot } from "../../services/botService";
 import styles from "./Bot.module.scss"
 import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import DialogCustom from '../../components/DialogCustom';
 import { getTotalFutureSpot } from '../../services/dataCoinByBitService';
 import { formatNumber } from '../../functions';
+import { getAllBotType } from '../../services/botTypeService';
 
 function Bot() {
-
-    const botTypeList = [
-        {
-            name: "All",
-            value: "All"
-        },
-        {
-            name: "BybitV3",
-            value: "BybitV3"
-        }
-    ]
 
     const statusList = [
         {
@@ -62,7 +52,7 @@ function Bot() {
         {
             field: 'stt',
             headerName: '#',
-            maxWidth: 50,
+            maxWidth: 30,
             type: "actions",
             renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
         },
@@ -75,39 +65,58 @@ function Bot() {
                 const rowData = params.row; // Dữ liệu của hàng hiện tại
                 const botStatus = rowData['Status']
                 const botApiKey = rowData['ApiKey']
+                const botType = rowData['botType']
                 return (
-                    <Switch
-                        disabled={!(botStatus === "Running" || botStatus === "Stopped")}
-                        checked={botStatus === "Running"}
-                        onClick={(e) => {
-                            const check = e.target.checked
-                            if (check) {
-                                handleUpdateBot({
-                                    botID: rowData.id,
-                                    data: {
-                                        Status: "Running",
-                                        type: "Active",
-                                        checkBot: botApiKey
-                                    }
-                                })
-                            }
-                            else {
-                                if (botApiKey) {
-                                    e.preventDefault()
-                                    setConfirmActiveBot(rowData.id)
-                                }
-                                else {
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginLeft: "-10px "
+                    }}>
+                        <Switch
+                            size='small'
+                            disabled={!(botStatus === "Running" || botStatus === "Stopped")}
+                            checked={botStatus === "Running"}
+                            onClick={(e) => {
+                                const check = e.target.checked
+                                if (check) {
                                     handleUpdateBot({
                                         botID: rowData.id,
                                         data: {
-                                            Status: "Stopped",
+                                            Status: "Running",
+                                            type: "Active",
+                                            checkBot: botApiKey,
+                                            botType
                                         }
                                     })
                                 }
-                            }
-
-                        }}
-                    />
+                                else {
+                                    if (botApiKey) {
+                                        e.preventDefault()
+                                        setConfirmActiveBot({
+                                            id: rowData.id,
+                                            botType
+                                        })
+                                    }
+                                    else {
+                                        handleUpdateBot({
+                                            botID: rowData.id,
+                                            data: {
+                                                Status: "Stopped",
+                                                botType
+                                            }
+                                        })
+                                    }
+                                }
+                            }}
+                        />
+                        <DeleteOutlineIcon
+                            className={styles.icon}
+                            style={{ marginLeft: "3px" }}
+                            onClick={async () => {
+                                setOpenDeleteBot(rowData)
+                            }}
+                        />
+                    </div>
                 )
 
             },
@@ -183,6 +192,7 @@ function Bot() {
         renderCell: params => {
             const rowData = params.row;
             const botStatus = rowData['Status']
+            const botType = rowData['botType']
             return (
                 <Button
                     size='small'
@@ -192,7 +202,8 @@ function Bot() {
                         handleUpdateBot({
                             botID: rowData.id,
                             data: {
-                                Status: "Stopped"
+                                Status: "Stopped",
+                                botType
                             }
                         })
                     }}
@@ -209,11 +220,12 @@ function Bot() {
 
     // const [statusChoose, setStatusChoose] = useState(statusList[0].value);
     const [botList, setBotList] = useState([]);
+    const [botTypeList, setBotTypeList] = useState([]);
     const [openAddBot, setOpenAddBot] = useState({
         isOpen: false,
         dataChange: "",
     });
-    const [dataTableChange, setDataTableChange] = useState([]);
+    const [openDeleteBot, setOpenDeleteBot] = useState("");
     const [openEditMultiple, setOpenEditMultiple] = useState(false);
     const [confirmActiveBot, setConfirmActiveBot] = useState(false);
     const [totalFutureSpot, setTotalFutureSpot] = useState(0);
@@ -228,7 +240,6 @@ function Bot() {
     const handleFilterAll = () => {
         checkMyBotRef.current = false
         const newBotList = botListDefaultRef.current.filter(item => {
-            console.log(item);
             const checkBotType = checkBotTypeRef.current !== "All" ? checkBotTypeRef.current === item.botType : true
             const checkBotStatus = checkBotStatusRef.current !== "All" ? checkBotStatusRef.current === item.Status : true
             return checkBotType && checkBotStatus
@@ -249,7 +260,17 @@ function Bot() {
                 message: message,
             }))
             if (status === 200) {
-                const newData = botList.map(bot => {
+                setBotList(botList.map(bot => {
+                    if (botID === bot._id) {
+                        return {
+                            ...bot,
+                            ...data,
+
+                        }
+                    }
+                    return bot
+                }))
+                botListDefaultRef.current = botListDefaultRef.current.map(bot => {
                     if (botID === bot._id) {
                         return {
                             ...bot,
@@ -259,8 +280,7 @@ function Bot() {
                     }
                     return bot
                 })
-                setBotList(newData)
-                botListDefaultRef.current = newData
+
             }
         }
         catch (err) {
@@ -311,17 +331,42 @@ function Bot() {
         }
     }
 
-    const handleDeleteRowSelected = async () => {
+    // const handleDeleteRowSelected = async () => {
+
+    //     try {
+    //         const res = await deleteMultipleBot(dataTableChange, openEditMultiple)
+    //         const { status, message } = res.data
+
+    //         dispatch(addMessageToast({
+    //             status: status,
+    //             message: message,
+    //         }))
+    //         handleGetAllBot()
+    //     }
+    //     catch (err) {
+    //         dispatch(addMessageToast({
+    //             status: 500,
+    //             message: "Delete Bot Error",
+    //         }))
+    //     }
+    //     setOpenEditMultiple(false)
+    // }
+    const handleDeleteBot = async () => {
 
         try {
-            const res = await deleteMultipleBot(dataTableChange)
+            const botID = openDeleteBot._id
+            const res = await deleteBot(botID, openDeleteBot.botType)
             const { status, message } = res.data
 
             dispatch(addMessageToast({
                 status: status,
                 message: message,
             }))
-            handleGetAllBot()
+            if (status === 200) {
+                setBotList(botList.filter(bot => botID !== bot._id))
+                botListDefaultRef.current = botListDefaultRef.current.filter(bot => botID !== bot._id)
+                setOpenDeleteBot("")
+            }
         }
         catch (err) {
             dispatch(addMessageToast({
@@ -350,10 +395,26 @@ function Bot() {
     }
 
 
+    const handleGetAllBotType = async () => {
+        try {
+            const res = await getAllBotType()
+            const { data } = res.data
+
+            setBotTypeList(["All", ...data.map(item => item.name)])
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: "Delete Bot Error",
+            }))
+        }
+    }
+
     useEffect(() => {
         if (userData.userName) {
 
             handleGetAllBot()
+            handleGetAllBotType()
             handleGetTotalFutureSpot()
         }
     }, [userData.userName]);
@@ -389,8 +450,7 @@ function Bot() {
                     >
                         {
                             botTypeList.map(item => (
-
-                                <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                <MenuItem value={item} key={item}>{item}</MenuItem>
                             ))
                         }
                     </Select>
@@ -439,7 +499,7 @@ function Bot() {
                 <div className={styles.botTableContainerTitle}>
                     <b style={{ fontWeight: "bold", fontSize: "1.2rem" }}>Total: {formatNumber(totalFutureSpot)} $</b>
                     <div>
-                        {dataTableChange.length > 0 && (
+                        {/* {dataTableChange.length > 0 && (
                             <Button
                                 size="small"
                                 variant="contained"
@@ -452,7 +512,7 @@ function Bot() {
                             >
                                 Delete
                             </Button>
-                        )}
+                        )} */}
                         <Button
                             size="small"
                             variant="contained"
@@ -467,10 +527,11 @@ function Bot() {
                 </div>
                 <div className={styles.botTableContainerData}>
                     <DataGridCustom
-                        setDataTableChange={setDataTableChange}
+                        // setDataTableChange={setDataTableChange}
                         tableRows={botList}
                         tableColumns={tableColumns}
                         disableMultipleRowSelection
+                        checkboxSelection={false}
                     />
                 </div>
             </div>
@@ -481,30 +542,31 @@ function Bot() {
                     setOpenAddBot(data)
                 }}
                 roleName={roleName}
+                botTypeList={botTypeList.slice(1)}
             />}
 
             {
-                openEditMultiple && (
+                openDeleteBot && (
                     <DialogCustom
                         backdrop
                         open={true}
                         onClose={() => {
-                            setOpenEditMultiple(false)
+                            setOpenDeleteBot("")
                         }}
-                        onSubmit={handleDeleteRowSelected}
+                        onSubmit={handleDeleteBot}
                         dialogTitle="The action requires confirmation"
                         submitBtnColor="error"
                         submitBtnText="Delete"
                         reserveBtn
                         position="center"
                     >
-                        <p style={{ textAlign: "center" }}>Do you want to delete {openEditMultiple} bots?</p>
+                        <p style={{ textAlign: "center" }}>Do you want to delete this bot?</p>
                     </DialogCustom >
                 )
             }
 
             {
-                confirmActiveBot && (
+                confirmActiveBot?.id && (
                     <DialogCustom
                         backdrop
                         open={true}
@@ -513,8 +575,9 @@ function Bot() {
                         }}
                         onSubmit={() => {
                             handleUpdateBot({
-                                botID: confirmActiveBot,
+                                botID: confirmActiveBot.id,
                                 data: {
+                                    botType: confirmActiveBot.botType,
                                     Status: "Stopped",
                                     type: "Active",
                                     checkBot: true

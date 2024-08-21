@@ -85,10 +85,12 @@ const dataCoinByBitController = {
             let CoinInfo = new RestClientV5(wsInfo);
 
             let data = []
-            await CoinInfo.getTickers({ category: 'linear' })
+
+            await CoinInfo.getInstrumentsInfo({ category: 'spot' })
                 .then((rescoin) => {
                     rescoin.result.list.forEach((e) => {
-                        if (e.symbol.indexOf("USDT") > 0) {
+
+                        if (e.symbol.split("USDT")[1] === "" && e.marginTrading !== "utaOnly" && e.marginTrading !== "both") {
                             data.push({
                                 symbol: e.symbol,
                                 volume24h: e.turnover24h,
@@ -99,6 +101,7 @@ const dataCoinByBitController = {
                 .catch((error) => {
                     console.error(error);
                 });
+
             ListCoin1m = data.flatMap((coin) => {
                 return `kline.1.${coin}`
             });
@@ -1251,10 +1254,11 @@ const dataCoinByBitController = {
             return []
         }
     },
-    getAllSymbolBE: async (req, res) => {
+    getAllSymbolSpotBE: async () => {
         try {
-            const result = await SpotModel.find().select("value");
-            return result || []
+            const result = await SpotModel.find().sort({ "label": 1 });
+
+            return result.map(item => item.value)
 
         } catch (err) {
             return []

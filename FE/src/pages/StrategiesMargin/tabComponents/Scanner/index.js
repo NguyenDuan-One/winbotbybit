@@ -1,43 +1,45 @@
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import StarIcon from '@mui/icons-material/Star';
-import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
-import { MenuItem, Select, TextField, Avatar, FormLabel, FormControl, Tooltip, Switch, Checkbox } from '@mui/material';
+import { MenuItem, Select, TextField, Avatar, FormLabel, FormControl, Tooltip, Switch, Checkbox, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
 import { useDispatch, useSelector } from 'react-redux';
 import CreateStrategy from './components/CreateStrategy';
 import EditMulTreeItem from './components/EditMulTreeItem';
 import FilterDialog from './components/FilterDialog';
 import AddBreadcrumbs from '../../../../components/BreadcrumbsCutom';
-import { formatNumberString, handleCheckAllCheckBox } from '../../../../functions';
+import { formatNumberString } from '../../../../functions';
 import useDebounce from '../../../../hooks/useDebounce';
 import { getAllBotActiveByUserID } from '../../../../services/botService';
 import { getTotalFutureByBot } from '../../../../services/dataCoinByBitService';
 import { addMessageToast } from '../../../../store/slices/Toast';
 import { setTotalFuture } from '../../../../store/slices/TotalFuture';
-import { getAllConfigScanner } from '../../../../services/scannerService';
+import { deleteStrategiesByIDScanner, getAllConfigScanner, handleBookmarkScanner, updateStrategiesMultipleScanner } from '../../../../services/scannerService';
 import DataGridCustom from '../../../../components/DataGridCustom';
+import DialogCustom from '../../../../components/DialogCustom';
+import UpdateStrategy from './components/UpdateStrategy';
 
 
 function Scanner() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
 
-    const SCROLL_INDEX_FIRST = window.innerHeight / 30
 
-    const botTypeList = [
-        {
-            name: "All",
-            value: "All"
-        },
-        {
-            name: "BybitV3",
-            value: "BybitV3"
-        }
-    ]
+    // const botTypeList = [
+    //     {
+    //         name: "All",
+    //         value: "All"
+    //     },
+    //     {
+    //         name: "BybitV3",
+    //         value: "BybitV3"
+    //     }
+    // ]
 
     const positionSideList = [
         {
@@ -54,17 +56,53 @@ function Scanner() {
         },
     ]
 
+    const marketList = [
+        {
+            name: "All",
+            value: "All"
+        },
+        {
+            name: "Margin",
+            value: "Margin",
+        },
+        {
+            name: "Spot",
+            value: "Spot",
+        },
+    ]
+
     const tableColumns = [
         {
             field: 'stt',
-            headerName: '#',
-            type:"actions",
+            renderHeader: header => {
+                return <Checkbox
+                    checked={bookmarkCheckRef.current}
+                    style={{
+                        padding: " 0 ",
+                    }}
+                    sx={{
+                        color: "#b5b5b5",
+                        '&.Mui-checked': {
+                            color: "var(--yellowColor)",
+                        },
+                    }}
+                    icon={<StarBorderIcon />}
+                    checkedIcon={<StarIcon />}
+                    onClick={e => {
+                        bookmarkCheckRef.current = e.target.checked
+                        handleFilterAll()
+                    }}
+                />
+            },
+            type: "actions",
             maxWidth: 30,
             renderCell: (params) => {
-                const bookmarkList = params.row['bookmarkList']
-                
+                const data = params.row
+                const IsBookmark = data['IsBookmark']
+                const configID = data['_id']
+
                 return <Checkbox
-                    checked={bookmarkList.includes(userData._id)}
+                    defaultChecked={IsBookmark}
                     style={{
                         padding: " 0 6px",
                     }}
@@ -76,8 +114,39 @@ function Scanner() {
                     }}
                     icon={<StarBorderIcon />}
                     checkedIcon={<StarIcon />}
-                    onClick={e => {
+                    onClick={async e => {
+                        try {
+                            const newIsBookmark =  e.target.checked
+                            const res = await handleBookmarkScanner({
+                                configID, IsBookmark: newIsBookmark
+                            }
+                            )
+                            const { data: resData, status, message } = res.data
 
+                            dispatch(addMessageToast({
+                                status,
+                                message,
+                            }))
+                            if (status === 200) {
+                              
+                                dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(item => {
+                                    console.log(item._id === configID);
+
+                                    if (item._id === configID) {
+                                        return {
+                                            ...data,
+                                            IsBookmark: newIsBookmark
+                                        }
+                                    }
+                                    return item
+                                })
+                            }
+                        } catch (error) {
+                            dispatch(addMessageToast({
+                                status: 500,
+                                message: error.message,
+                            }))
+                        }
                     }}
                 />
             }
@@ -85,13 +154,78 @@ function Scanner() {
         {
             field: 'IsActive',
             type: "actions",
-            maxWidth: 120,
+            minWidth: window.innerWidth <= 740 ? 150 : 130,
             headerName: 'Active',
             renderCell: params => {
+                const data = params.row
+                const configID = data['_id']
                 return (
-                    <Switch
-                        checked={params.row['IsActive']}
-                    />
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "#1976d2",
+                        marginLeft: "-10px "
+                    }}>
+                        <Switch
+                            size='small'
+                            defaultChecked={params.row['IsActive']}
+                            onChange={async e => {
+                                try {
+                                    const newIsActive = e.target.checked
+                                    const res = await updateStrategiesMultipleScanner([
+                                        {
+                                            id: configID,
+                                            UpdatedFields: {
+                                                ...data,
+                                                IsActive: newIsActive
+                                            }
+                                        }
+                                    ])
+                                    const { data: resData, status, message } = res.data
+
+                                    dispatch(addMessageToast({
+                                        status,
+                                        message,
+                                    }))
+
+                                    if (status === 200) {
+                                      
+                                        dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(item => {
+                                            if (item._id === configID) {
+                                                return {
+                                                    ...data,
+                                                    IsActive: newIsActive
+                                                }
+                                            }
+                                            return item
+                                        })
+                                    }
+                                } catch (error) {
+                                    dispatch(addMessageToast({
+                                        status: 500,
+                                        message: error.message,
+                                    }))
+                                }
+                            }}
+
+                        />
+                        <DeleteOutlineIcon
+                            className={styles.icon}
+                            style={{ margin: "0 4px", }}
+                            onClick={async () => {
+                                setOpenConfirmDeleteConfig(configID)
+                            }}
+                        />
+                        <EditIcon className={styles.icon}
+                            onClick={() => {
+                                setOpenUpdateStrategy({
+                                    data,
+                                    dataChange: false,
+                                    isOpen: true,
+                                })
+                            }}
+                        />
+                    </div>
                 )
 
             },
@@ -101,20 +235,25 @@ function Scanner() {
         {
             field: 'Label',
             headerName: 'Label',
-            minWidth: 150,
+            minWidth: 130,
+            flex: window.innerWidth <= 740 ? undefined : 1,
+        },
+        {
+            field: 'BotName',
+            headerName: 'Bot',
+            minWidth:  130,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Market',
             headerName: 'Market',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 130 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
-
         },
         {
             field: 'PositionSide',
             headerName: 'Position',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 140 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 const rowData = params.row
@@ -127,19 +266,19 @@ function Scanner() {
         {
             field: 'OrderChange',
             headerName: 'OC (%)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 120 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Elastic',
             headerName: 'Elastic (%)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 150 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Turnover',
             headerName: 'Turnover ($)',
-            minWidth: 120,
+            minWidth: window.innerWidth <= 740 ? 170 : 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 return <p >{formatNumberString(params.row['Turnover'])}</p>
@@ -148,13 +287,13 @@ function Scanner() {
         {
             field: 'Numbs',
             headerName: 'Numbs',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 130 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Amount',
             headerName: 'Amount ($)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 160 : 130,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 return <p >{formatNumberString(params.row['Amount'])}</p>
@@ -163,7 +302,7 @@ function Scanner() {
         {
             field: 'Limit',
             headerName: 'Limit ($)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 150 : 130,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 return <p >{formatNumberString(params.row['Limit'])}</p>
@@ -172,23 +311,55 @@ function Scanner() {
         {
             field: 'Expire',
             headerName: 'Expire (min)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 160 : 120,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'OnlyPairs',
-            headerName: 'OnlyPairs',
-            minWidth: 150,
+            headerName: 'Only Pairs',
+            minWidth: window.innerWidth <= 740 ? 150 : 110,
             flex: window.innerWidth <= 740 ? undefined : 1,
+            renderCell: params => {
+                const list = params.row["OnlyPairs"]
+                return <div style={{ display: "flex", alignItems: "center",  }}>
+                    <p style={{
+                        marginRight: "6px"
+                    }}>{list.length}</p>
+
+                    {list?.length > 0 && <RemoveRedEyeIcon
+                        className={styles.icon}
+                        style={{ verticalAlign: "middle" }}
+                        onClick={() => {
+                            setShowOnlyPairsList(list)
+                        }}
+                    />
+                    }
+                </div>
+            }
         },
         {
             field: 'Blacklist',
             headerName: 'Blacklist',
-            minWidth: 150,
+            minWidth: window.innerWidth <= 740 ? 150 : 110,
             flex: window.innerWidth <= 740 ? undefined : 1,
+            renderCell: params => {
+                const list = params.row["Blacklist"]
+                return <div style={{ display: "flex", alignItems: "center",  }}>
+                    <p style={{
+                        marginRight: "6px"
+                    }}>{list.length}</p>
+
+                    {list?.length > 0 && <RemoveRedEyeIcon
+                        className={styles.icon}
+                        style={{ verticalAlign: "middle" }}
+                        onClick={() => {
+                            setShowBlackList(list)
+                        }}
+                    />}
+                </div>
+            }
         },
     ]
-
 
 
     const [openFilterDialog, setOpenFilterDialog] = useState(false);
@@ -201,7 +372,17 @@ function Scanner() {
         dataChange: false,
         symbolValueInput: ""
     });
+    const [showOnlyPairsList, setShowOnlyPairsList] = useState(false)
+    const [showBlackList, setShowBlackList] = useState(false)
 
+    const [openConfirmDeleteConfig, setOpenConfirmDeleteConfig] = useState(false)
+    const [openUpdateStrategy, setOpenUpdateStrategy] = useState(
+        {
+            isOpen: false,
+            dataChange: false,
+            data: ""
+        }
+    );
     const [botList, setBotList] = useState([{
         name: "All",
         value: "All"
@@ -209,10 +390,9 @@ function Scanner() {
     const [loadingDataCheckTree, setLoadingDataCheckTree] = useState(false);
     const [dataCheckTreeSelected, setDataCheckTreeSelected] = useState([]);
 
+    const dataCheckTreeDefaultObject = useRef({})
     const dataCheckTreeDefaultRef = useRef([])
     const [dataCheckTree, setDataCheckTree] = useState([]);
-    const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
-    const [dataTreeViewIndex, setDataTreeViewIndex] = useState(SCROLL_INDEX_FIRST);
 
     const [searchKey, setSearchKey] = useState("");
     // Filter
@@ -221,7 +401,7 @@ function Scanner() {
     const botTypeSelectedRef = useRef("All")
     const botSelectedRef = useRef("All")
     const positionSideSelectedRef = useRef("All")
-    const candlestickSelectedRef = useRef("All")
+    const marketSelectedRef = useRef("All")
     const bookmarkCheckRef = useRef(false)
 
     const dispatch = useDispatch()
@@ -229,7 +409,7 @@ function Scanner() {
 
     const handleGetAllBotByUserID = () => {
 
-        getAllBotActiveByUserID(userData._id)
+        getAllBotActiveByUserID(userData._id, "ByBit-V1")
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -288,23 +468,24 @@ function Scanner() {
 
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
-        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
-        handleCheckAllCheckBox(false)
 
         try {
             window.scrollTo(0, 0)
 
             const res = await getAllConfigScanner(botListInput?.map(item => item?.value))
-            const { status, message, data: resData } = res.data
+            const { data: resData } = res.data
 
-            const newData = resData.map(item => ({
-
-                id: item?._id,
-                ...item
-            }))
+            const newData = resData.map(item => {
+                const id = item?._id
+                dataCheckTreeDefaultObject.current[id] = item
+                return ({
+                    id,
+                    ...item,
+                    BotName: item.botID.botName
+                })
+            })
 
             dataCheckTreeDefaultRef.current = newData
-
             !filterStatus ? setDataCheckTree(newData) : handleFilterAll()
         }
         catch (err) {
@@ -344,29 +525,20 @@ function Scanner() {
 
     const handleFilterAll = () => {
         filterQuantityRef.current = []
-        // const listData = dataCheckTreeDefaultRef.current.reduce((acc, data) => {
 
-        //     const filteredChildren = data?.children?.filter(item => {
-        //         const checkBotType = botTypeSelectedRef.current === "All" || botTypeSelectedRef.current === item.botID.botType;
-        //         const checkBot = botSelectedRef.current === "All" || botSelectedRef.current === item.botID._id;
-        //         const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
-        //         const checkCandle = candlestickSelectedRef.current === "All" || candlestickSelectedRef.current === item.Candlestick;
-        //         const checkSearch = searchDebounce === "" || data.label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
-        //         const checkBookmark = bookmarkCheckRef.current ? data.bookmarkList?.includes(userData._id) : true
+        const listData = dataCheckTreeDefaultRef.current.filter(item => {
+            const checkBotType = botTypeSelectedRef.current === "All" || botTypeSelectedRef.current === item.botID.botType;
+            const checkBot = botSelectedRef.current === "All" || botSelectedRef.current === item.botID._id;
+            const checkPosition = positionSideSelectedRef.current === "All" || positionSideSelectedRef.current === item.PositionSide;
+            const checkMarket = marketSelectedRef.current === "All" || marketSelectedRef.current === item.Market;
+            const checkSearch = searchDebounce === "" || item.Label.toUpperCase().includes(searchDebounce.toUpperCase().trim());
+            const checkBookmark = bookmarkCheckRef.current ? item.IsBookmark : true
 
-        //         return checkBotType && checkBot && checkPosition && checkCandle && checkSearch && checkBookmark;
-        //     });
-
-        //     if (filteredChildren.length > 0) {
-        //         acc.push({ ...data, children: filteredChildren });
-        //     }
-
-        //     return acc;
-        // }, []);
+            return checkBotType && checkBot && checkPosition && checkMarket && checkSearch && checkBookmark;
+        });
 
 
-        // setDataCheckTree(listData)
-        // handleCheckAllCheckBox(false)
+        setDataCheckTree(listData)
 
     }
 
@@ -374,17 +546,21 @@ function Scanner() {
     const resetAfterSuccess = () => {
         openCreateStrategy.dataChange = false
         openEditTreeItemMultipleDialog.dataChange = false
-        setDataTreeViewIndex(SCROLL_INDEX_FIRST)
-        handleCheckAllCheckBox(false)
         botTypeSelectedRef.current = "All"
         botSelectedRef.current = "All"
         positionSideSelectedRef.current = "All"
-        candlestickSelectedRef.current = "All"
+        marketSelectedRef.current = "All"
+        bookmarkCheckRef.current = false
         setSearchKey("")
     }
 
+    const searchDebounce = useDebounce(searchKey, 200)
 
-    const searchDebounce = useDebounce(searchKey)
+    const handleDataCheckTreeSelected = useMemo(() => {
+        return dataCheckTreeSelected.map(id => {
+            return JSON.stringify(dataCheckTreeDefaultObject.current[id])
+        })
+    }, [dataCheckTreeSelected, dataCheckTree, dataCheckTreeDefaultRef.current])
 
     useEffect(() => {
         handleFilterAll()
@@ -422,7 +598,7 @@ function Scanner() {
                     <TextField
                         value={searchKey}
                         size="small"
-                        placeholder="Search"
+                        placeholder="Label"
                         onChange={(e) => {
                             setSearchKey(e.target.value)
                         }}
@@ -442,7 +618,7 @@ function Scanner() {
                 </div>
 
                 <div className={styles.strategiesHeader}>
-                    <FormControl className={styles.strategiesHeaderItem}>
+                    {/* <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
                         <Select
                             value={botTypeSelectedRef.current}
@@ -459,7 +635,7 @@ function Scanner() {
                                 ))
                             }
                         </Select>
-                    </FormControl>
+                    </FormControl> */}
 
                     <FormControl className={styles.strategiesHeaderItem}>
                         <FormLabel className={styles.formLabel}>Bot</FormLabel>
@@ -474,6 +650,25 @@ function Scanner() {
                         >
                             {
                                 botList.map(item => (
+                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
+
+                    <FormControl className={styles.strategiesHeaderItem}>
+                        <FormLabel className={styles.formLabel}>Market</FormLabel>
+                        <Select
+                            value={marketSelectedRef.current}
+                            size="small"
+                            onChange={e => {
+                                const value = e.target.value;
+                                marketSelectedRef.current = value
+                                handleFilterAll()
+                            }}
+                        >
+                            {
+                                marketList.map(item => (
                                     <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
                                 ))
                             }
@@ -505,14 +700,14 @@ function Scanner() {
             </div>
             <div className={styles.strategiesData}>
                 {
-                    (dataCheckTree.length > 0 && !loadingDataCheckTree)
+                    (!loadingDataCheckTree)
                         ?
                         <DataGridCustom
                             setDataTableChange={setDataCheckTreeSelected}
                             tableRows={dataCheckTree}
                             tableColumns={tableColumns}
                             hideFooter
-                            centerCell
+                            // centerCell = {window.innerWidth > 740}
                         />
                         :
                         <p style={{
@@ -520,7 +715,7 @@ function Scanner() {
                             margin: "16px 0 6px",
                             fontWeight: 500,
                             opacity: ".6"
-                        }}>{loadingDataCheckTree ? "Loading..." : "No data"}</p>
+                        }}>Loading...</p>
                 }
             </div>
 
@@ -573,7 +768,6 @@ function Scanner() {
                     </div>
                 </Tooltip>
 
-                {dataTreeViewIndex <= dataCheckTree.length && <KeyboardDoubleArrowDownIcon className={styles.scrollDownIcon} />}
             </div>
 
 
@@ -599,7 +793,19 @@ function Scanner() {
                     onClose={(data) => {
                         setOpenCreateStrategy(data)
                     }}
-                    symbolValueInput={openCreateStrategy.symbolValueInput}
+                />
+
+            }
+            {openUpdateStrategy.isOpen &&
+
+                <UpdateStrategy
+                    botListInput={botList.slice(1)}
+                    onClose={(data) => {
+                        setOpenUpdateStrategy(data)
+                    }}
+                    dataInput={openUpdateStrategy.data}
+                    setDataCheckTree={setDataCheckTree}
+                    dataCheckTreeDefaultRef={dataCheckTreeDefaultRef}
                 />
 
             }
@@ -608,14 +814,130 @@ function Scanner() {
             {openEditTreeItemMultipleDialog.isOpen &&
 
                 <EditMulTreeItem
-                    // setDataCheckTree={setDataCheckTreeWithAll}
-                    dataCheckTreeSelected={dataCheckTreeSelected}
+                    dataCheckTreeSelected={handleDataCheckTreeSelected}
                     botListInput={botList.slice(1)}
                     onClose={(data) => {
                         setOpenEditTreeItemMultipleDialog(data)
                     }}
                 />
 
+            }
+
+            {showOnlyPairsList && (
+                <DialogCustom
+                    open={true}
+                    onClose={() => {
+                        setShowOnlyPairsList(false)
+                    }}
+                    dialogTitle='Only Pairs'
+                    hideActionBtn
+                    backdrop
+                >
+                    <Table className={styles.addMember}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell style={{ fontWeight: "bold" }}>STT </TableCell>
+                                <TableCell style={{ fontWeight: "bold" }}>Symbol </TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {
+                                showOnlyPairsList.map((data, index) => (
+                                    <TableRow key={data}>
+                                        <TableCell>
+                                            {index + 1}
+                                        </TableCell>
+                                        <TableCell>
+                                            {data}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            }
+                        </TableBody>
+                    </Table>
+                </DialogCustom>
+            )
+            }
+            {
+                showBlackList && (
+                    <DialogCustom
+                        open={true}
+                        onClose={() => {
+                            setShowBlackList(false)
+                        }}
+                        dialogTitle='BlackList'
+                        hideActionBtn
+                        backdrop
+                    >
+
+                        <Table className={styles.addMember}>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell style={{ fontWeight: "bold" }}>STT </TableCell>
+                                    <TableCell style={{ fontWeight: "bold" }}>Symbol </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {
+                                    showBlackList.map((data, index) => (
+                                        <TableRow key={data}>
+                                            <TableCell>
+                                                {index + 1}
+                                            </TableCell>
+                                            <TableCell>
+                                                {data}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                }
+                            </TableBody>
+                        </Table>
+
+                    </DialogCustom>
+                )
+            }
+
+            {
+                openConfirmDeleteConfig && (
+                    <DialogCustom
+                        dialogTitle='The action requires confirmation'
+                        reserveBtn
+                        open={true}
+                        onClose={() => {
+                            setOpenConfirmDeleteConfig(false)
+                        }}
+                        submitBtnText='Confirm'
+                        position='center'
+                        submitBtnColor='error'
+                        backdrop
+                        onSubmit={async () => {
+                            const configID = openConfirmDeleteConfig
+                            try {
+                                const res = await deleteStrategiesByIDScanner({ configID })
+                                const { data: resData, status, message } = res.data
+
+                                dispatch(addMessageToast({
+                                    status,
+                                    message,
+                                }))
+
+                                if (status === 200) {
+                                    setDataCheckTree(dataCheckTree => dataCheckTree.filter(item => item._id !== configID))
+                                    dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.filter(item => item._id !== configID)
+                                    delete dataCheckTreeDefaultObject.current[configID]
+                                    setOpenConfirmDeleteConfig(false)
+                                }
+                            } catch (error) {
+                                dispatch(addMessageToast({
+                                    status: 500,
+                                    message: error.message,
+                                }))
+                            }
+                        }}
+                    >
+                        <p>Are you remove this config?</p>
+                    </DialogCustom>
+                )
             }
 
         </div >

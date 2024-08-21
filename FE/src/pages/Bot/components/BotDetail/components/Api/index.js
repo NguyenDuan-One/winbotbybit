@@ -50,6 +50,7 @@ function Api() {
         dataChange: ""
     });
     const [apiData, setApiData] = useState([]);
+    const [botType, setBotType] = useState("");
     const checkBotRef = useRef(false)
 
     const dispatch = useDispatch()
@@ -63,6 +64,7 @@ function Api() {
             const { status, message, data: resData } = res.data
             if (status === 200) {
                 resData.ApiKey ? setApiData([resData].map(item => ({ ...item, id: item._id }))) : setApiData([])
+                setBotType(resData.botType)
                 checkBotRef.current= resData.Status === "Running"
             }
             else {
@@ -136,6 +138,7 @@ function Api() {
                     setOpenAddApi(data)
                 }}
                 checkBot = {checkBotRef.current}
+                botType = {botType}
             />}
 
             {openEditApi.confirm && <EditApi
@@ -144,6 +147,7 @@ function Api() {
                 onClose={(data) => {
                     setOpenEditApi(data)
                 }}
+                botType = {botType}
             />}
 
             {

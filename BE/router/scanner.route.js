@@ -7,7 +7,13 @@ const scannerController = require('../controllers/scanner');
 router.post('/getAllConfigScanner', MiddlewareController.verifyToken, scannerController.getAllConfigScanner);
 
 router.post('/createConfigScanner', MiddlewareController.verifyToken, scannerController.createConfigScanner)
+router.post('/updateStrategiesMultipleScanner', MiddlewareController.verifyToken, scannerController.updateStrategiesMultipleScanner)
+router.post('/copyMultipleStrategiesToBotScanner', MiddlewareController.verifyToken, scannerController.copyMultipleStrategiesToBotScanner)
 
+router.post('/deleteStrategiesByIDScanner', MiddlewareController.verifyToken, scannerController.deleteStrategiesByIDScanner)
+router.post('/deleteStrategiesByIDScanner', MiddlewareController.verifyToken, scannerController.deleteStrategiesByIDScanner)
+router.post('/updateConfigByID', MiddlewareController.verifyToken, scannerController.updateConfigByID)
+router.post('/handleBookmarkScanner', MiddlewareController.verifyToken, scannerController.handleBookmarkScanner)
 router.get('/syncSymbolScanner', MiddlewareController.verifyToken, scannerController.syncSymbolScanner)
 
 

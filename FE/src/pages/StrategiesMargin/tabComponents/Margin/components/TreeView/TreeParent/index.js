@@ -16,7 +16,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import DialogCustom from '../../../../../../../components/DialogCustom';
 import { handleCheckAllCheckBox } from '../../../../../../../functions';
 import { addMessageToast } from '../../../../../../../store/slices/Toast';
-import { updateStrategiesMultipleSpot,deleteStrategiesSpot,addToBookmarkSpot,removeToBookmarkSpot } from '../../../../../../../services/marginService';
+import { updateStrategiesMultipleSpot, deleteStrategiesSpot, addToBookmarkSpot, removeToBookmarkSpot } from '../../../../../../../services/marginService';
 
 function TreeParent({
     treeData,
@@ -190,7 +190,7 @@ function TreeParent({
             }))
 
             if (status === 200) {
-                
+
                 dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
                     if (data._id === treeData._id) {
                         return {
@@ -221,7 +221,7 @@ function TreeParent({
             }))
 
             if (status === 200) {
-                
+
                 dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
                     if (data._id === treeData._id) {
                         return {
@@ -372,6 +372,7 @@ function TreeParent({
                     submitBtnText='Confirm'
                     position='center'
                     submitBtnColor='error'
+                    backdrop
                     onSubmit={handleDeleteStrategies}
                 >
                     <p>Are you remove this symbol?</p>

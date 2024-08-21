@@ -155,7 +155,7 @@ function EditMulTreeItem({
     }
     const handleGetAllBot = async () => {
         try {
-            const res = await getAllBotActive()
+            const res = await getAllBotActive("ByBitV3")
             const { data: resUserData } = res.data
             setBotListInputVIP(resUserData.map(item => ({
                 name: item.botName,
@@ -365,9 +365,7 @@ function EditMulTreeItem({
                 status: status,
                 message: message,
             }))
-            if (status === 200) {
-                dataChange = true
-            }
+            dataChange = true
 
         }
         catch (err) {
@@ -451,9 +449,7 @@ function EditMulTreeItem({
                 status: status,
                 message: message,
             }))
-            if (status === 200) {
-                dataChange = true
-            }
+            dataChange = true
 
         }
         catch (err) {
