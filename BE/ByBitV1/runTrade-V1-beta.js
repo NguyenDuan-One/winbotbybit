@@ -1513,6 +1513,8 @@ const Main = async () => {
 
     listKline = [...new Set(allSymbolRes.flatMap(item=>item.value.map(symbol=>`kline.1.${symbol}`)))]
     
+    console.log(listKline.length);
+    
     await handleSocketListKline(listKline)
 
 }

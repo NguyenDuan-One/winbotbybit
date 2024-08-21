@@ -154,7 +154,7 @@ function Scanner() {
         {
             field: 'IsActive',
             type: "actions",
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 150 : 130,
             headerName: 'Active',
             renderCell: params => {
                 const data = params.row
@@ -241,20 +241,19 @@ function Scanner() {
         {
             field: 'BotName',
             headerName: 'Bot',
-            minWidth: 130,
+            minWidth:  130,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Market',
             headerName: 'Market',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 130 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
-
         },
         {
             field: 'PositionSide',
             headerName: 'Position',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 140 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 const rowData = params.row
@@ -267,19 +266,19 @@ function Scanner() {
         {
             field: 'OrderChange',
             headerName: 'OC (%)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 120 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Elastic',
             headerName: 'Elastic (%)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 150 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Turnover',
             headerName: 'Turnover ($)',
-            minWidth: 120,
+            minWidth: window.innerWidth <= 740 ? 170 : 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 return <p >{formatNumberString(params.row['Turnover'])}</p>
@@ -288,13 +287,13 @@ function Scanner() {
         {
             field: 'Numbs',
             headerName: 'Numbs',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 130 : 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'Amount',
             headerName: 'Amount ($)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 160 : 130,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 return <p >{formatNumberString(params.row['Amount'])}</p>
@@ -303,7 +302,7 @@ function Scanner() {
         {
             field: 'Limit',
             headerName: 'Limit ($)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 150 : 130,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 return <p >{formatNumberString(params.row['Limit'])}</p>
@@ -312,17 +311,17 @@ function Scanner() {
         {
             field: 'Expire',
             headerName: 'Expire (min)',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 160 : 120,
             flex: window.innerWidth <= 740 ? undefined : 1,
         },
         {
             field: 'OnlyPairs',
             headerName: 'Only Pairs',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 150 : 110,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 const list = params.row["OnlyPairs"]
-                return <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                return <div style={{ display: "flex", alignItems: "center",  }}>
                     <p style={{
                         marginRight: "6px"
                     }}>{list.length}</p>
@@ -341,11 +340,11 @@ function Scanner() {
         {
             field: 'Blacklist',
             headerName: 'Blacklist',
-            minWidth: 100,
+            minWidth: window.innerWidth <= 740 ? 150 : 110,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: params => {
                 const list = params.row["Blacklist"]
-                return <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                return <div style={{ display: "flex", alignItems: "center",  }}>
                     <p style={{
                         marginRight: "6px"
                     }}>{list.length}</p>

@@ -256,9 +256,6 @@ function Position() {
             
             
             if (status === 200) {
-                console.log(resData);
-                
-                
                 const data = resData.length > 0 ? resData?.map(item => (
                     {
                         id: item._id,
