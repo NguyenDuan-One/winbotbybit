@@ -99,6 +99,7 @@ const dataCoinByBitController = {
                 .catch((error) => {
                     console.error(error);
                 });
+
             ListCoin1m = data.flatMap((coin) => {
                 return `kline.1.${coin}`
             });
@@ -1257,10 +1258,11 @@ const dataCoinByBitController = {
             return []
         }
     },
-    getAllSymbolBE: async (req, res) => {
+    getAllSymbolMarginBE: async () => {
         try {
-            const result = await MarginModel.find().select("value");
-            return result || []
+            const result = await MarginModel.find().sort({ "label": 1 });
+
+            return result.map(item => item.value)
 
         } catch (err) {
             return []

@@ -189,6 +189,7 @@ const PositionController = {
                                     Miss: positionData?.Miss || true,
                                     botID: dataBotItem?.value,
                                     botName: dataBotItem?.name,
+                                    botData: dataBotItem
                                 }
                                 delete dataPositionObject[Symbol]
                                 return data

@@ -90,7 +90,7 @@ const dataCoinByBitController = {
                 .then((rescoin) => {
                     rescoin.result.list.forEach((e) => {
 
-                        if (e.symbol.split("USDT")[1] === "" && e.marginTrading !== "utaOnly" && e.marginTrading !== "both" ) {
+                        if (e.symbol.split("USDT")[1] === "" && e.marginTrading !== "utaOnly" && e.marginTrading !== "both") {
                             data.push({
                                 symbol: e.symbol,
                                 volume24h: e.turnover24h,
@@ -1254,10 +1254,11 @@ const dataCoinByBitController = {
             return []
         }
     },
-    getAllSymbolBE: async (req, res) => {
+    getAllSymbolSpotBE: async () => {
         try {
-            const result = await SpotModel.find().select("value");
-            return result || []
+            const result = await SpotModel.find().sort({ "label": 1 });
+
+            return result.map(item => item.value)
 
         } catch (err) {
             return []
