@@ -298,16 +298,22 @@ const PositionController = {
                 price: Math.abs(Price).toString(),
                 reduceOnly: true
             })
-            .then((response) => {
+            .then(async (response) => {
                 if (response.retCode == 0) {
 
-                    PositionController.updatePositionBE({
-                        newDataUpdate: {
+                   const result = await PositionModel.updateOne({ Symbol: symbol }, {
+                        $set: {
                             Miss: false,
                             TimeUpdated: new Date()
-                        },
-                        orderID: positionData.id
-                    })
+                        }
+                    });
+        
+                    if (result.acknowledged && result.matchedCount !== 0) {
+                        console.log("[Mongo] Update Position Successful")
+                    }
+                    else {
+                        console.log(`[Mongo] Update Position Failed`)
+                    }
 
                     // PositionController.sendDataRealtime({
                     //     type: "close-limit",
