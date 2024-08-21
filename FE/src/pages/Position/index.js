@@ -264,7 +264,7 @@ function Position() {
                         id: item._id,
                         BotName: item.botName,
                         botID: item.botID,
-                        botData: item.botID,
+                        botData: item.botData,
                         Symbol: item.Symbol,
                         Side: item.Side,
                         Price: item.Price,
