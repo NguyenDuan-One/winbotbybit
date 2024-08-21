@@ -253,12 +253,17 @@ function Position() {
         try {
             const res = await updatePL(botListInput.slice(1))
             const { status, message, data: resData } = res.data
+            
+            
             if (status === 200) {
+                console.log(resData);
+                
+                
                 const data = resData.length > 0 ? resData?.map(item => (
                     {
                         id: item._id,
-                        BotName: item.botID.botName,
-                        botID: item.botID._id,
+                        BotName: item.botName,
+                        botID: item.botID,
                         botData: item.botID,
                         Symbol: item.Symbol,
                         Side: item.Side,
@@ -282,6 +287,7 @@ function Position() {
 
         }
         catch (err) {
+            
             dispatch(addMessageToast({
                 status: 500,
                 message: "Refresh Position Error",

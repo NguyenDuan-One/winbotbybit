@@ -24,13 +24,131 @@ const PositionController = {
         }
     },
 
+    // updatePL: async (req, res) => {
+    //     try {
+    //         const { botListID } = req.body
+
+    //         if (botListID.length > 0) {
+
+    //             await Promise.allSettled(botListID.map(dataBotItem => {
+    //                 const client = new RestClientV5({
+    //                     testnet: false,
+    //                     key: dataBotItem.ApiKey,
+    //                     secret: dataBotItem.SecretKey,
+    //                     syncTimeBeforePrivateRequests: true,
+    //                 });
+
+    //                 return client.getPositionInfo({
+    //                     category: 'linear',
+    //                     settleCoin: "USDT"
+    //                     // symbol: positionData.Symbol
+    //                 }).then(async response => {
+
+    //                     const dataPosition = await PositionModel.find({ botID: dataBotItem.value }).populate("botID")
+
+    //                     const viTheList = response.result.list;
+
+    //                     if (viTheList?.length > 0) {
+    //                         if (viTheList.length >= dataPosition.length) {
+    //                             return Promise.allSettled(viTheList?.map(viTheListItem => {
+    //                                 const positionDataNew = {
+    //                                     Pnl: viTheListItem.unrealisedPnl,
+    //                                     Side: viTheListItem.side,
+    //                                     Price: +viTheListItem.avgPrice,
+    //                                     Symbol: viTheListItem.symbol,
+    //                                     Quantity: viTheListItem.size
+    //                                 };
+    //                                 const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+
+    //                                 if (checkPositionExist) {
+    //                                     // if (+positionDataNew.Quantity != 0) {
+    //                                     positionDataNew.TimeUpdated = new Date()
+    //                                     return PositionController.updatePositionBE({
+    //                                         newDataUpdate: positionDataNew,
+    //                                         orderID: checkPositionExist._id
+    //                                     })
+    //                                     // } 
+    //                                     // else {
+    //                                     //     return PositionController.deletePositionBE({
+    //                                     //         orderID: checkPositionExist._id
+    //                                     //     });
+    //                                     // }
+    //                                 }
+    //                                 else {
+    //                                     return PositionController.createPositionBE({
+    //                                         ...positionDataNew,
+    //                                         botID: dataBotItem.value,
+    //                                         Miss: true
+    //                                     });
+    //                                 }
+    //                             }))
+    //                         }
+    //                         else {
+    //                             return Promise.allSettled(dataPosition?.map(positionItem => {
+
+    //                                 const checkPositionExist = viTheList.find(item => item.symbol === positionItem.Symbol && positionItem.botID._id == dataBotItem.value)
+
+    //                                 if (checkPositionExist) {
+    //                                     const positionDataNew = {
+    //                                         Pnl: checkPositionExist.unrealisedPnl,
+    //                                         Side: checkPositionExist.side,
+    //                                         Price: +checkPositionExist.avgPrice,
+    //                                         Symbol: checkPositionExist.symbol,
+    //                                         Quantity: checkPositionExist.size
+    //                                     };
+    //                                     // if (+positionDataNew.Quantity != 0) {
+    //                                     positionDataNew.TimeUpdated = new Date()
+    //                                     return PositionController.updatePositionBE({
+    //                                         newDataUpdate: positionDataNew,
+    //                                         orderID: positionItem._id
+    //                                     })
+    //                                     // } 
+    //                                     // else {
+    //                                     //     return PositionController.deletePositionBE({
+    //                                     //         orderID: positionItem._id
+    //                                     //     });
+    //                                     // }
+    //                                 }
+    //                                 else {
+    //                                     return PositionController.deletePositionBE({
+    //                                         orderID: positionItem._id
+    //                                     });
+
+    //                                 }
+    //                             }))
+    //                         }
+    //                     }
+    //                     else {
+    //                         return PositionModel.deleteMany({ botID: dataBotItem.value })
+    //                     }
+    //                 }).catch(error => {
+    //                     console.log("Error", error);
+    //                     return [];
+    //                 });
+    //             }));
+
+    //             const newData = await PositionModel.find({ botID: { $in: botListID.map(item => item.value) } }).populate("botID")
+
+    //             res.customResponse(200, "Refresh Position Successful", newData);
+    //         }
+    //         else {
+    //             res.customResponse(200, "Refresh Position Successful", "");
+    //         }
+
+    //     } catch (err) {
+    //         res.status(500).json({ message: err.message });
+    //     }
+    // },
+
     updatePL: async (req, res) => {
         try {
             const { botListID } = req.body
 
             if (botListID.length > 0) {
+                let newData = []
 
                 await Promise.allSettled(botListID.map(dataBotItem => {
+
                     const client = new RestClientV5({
                         testnet: false,
                         key: dataBotItem.ApiKey,
@@ -46,88 +164,49 @@ const PositionController = {
 
                         const dataPosition = await PositionModel.find({ botID: dataBotItem.value }).populate("botID")
 
+                        const dataPositionObject = dataPosition.reduce((pre, cur) => {
+                            pre[cur.Symbol] = cur
+                            return pre
+                        }, {})
+
                         const viTheList = response.result.list;
 
                         if (viTheList?.length > 0) {
-                            if (viTheList.length >= dataPosition.length) {
-                                return Promise.allSettled(viTheList?.map(viTheListItem => {
-                                    const positionDataNew = {
-                                        Pnl: viTheListItem.unrealisedPnl,
-                                        Side: viTheListItem.side,
-                                        Price: +viTheListItem.avgPrice,
-                                        Symbol: viTheListItem.symbol,
-                                        Quantity: viTheListItem.size
-                                    };
-                                    const checkPositionExist = dataPosition.find(positionItem => positionItem.Symbol === viTheListItem.symbol && dataBotItem.value == positionItem.botID._id);
+                            newData = viTheList.map(viTheListItem => {
+                                console.log(viTheListItem);
 
-                                    if (checkPositionExist) {
-                                        // if (+positionDataNew.Quantity != 0) {
-                                        positionDataNew.TimeUpdated = new Date()
-                                        return PositionController.updatePositionBE({
-                                            newDataUpdate: positionDataNew,
-                                            orderID: checkPositionExist._id
-                                        })
-                                        // } 
-                                        // else {
-                                        //     return PositionController.deletePositionBE({
-                                        //         orderID: checkPositionExist._id
-                                        //     });
-                                        // }
-                                    }
-                                    else {
-                                        return PositionController.createPositionBE({
-                                            ...positionDataNew,
-                                            botID: dataBotItem.value,
-                                            Miss: true
-                                        });
-                                    }
-                                }))
-                            }
-                            else {
-                                return Promise.allSettled(dataPosition?.map(positionItem => {
-
-                                    const checkPositionExist = viTheList.find(item => item.symbol === positionItem.Symbol && positionItem.botID._id == dataBotItem.value)
-
-                                    if (checkPositionExist) {
-                                        const positionDataNew = {
-                                            Pnl: checkPositionExist.unrealisedPnl,
-                                            Side: checkPositionExist.side,
-                                            Price: +checkPositionExist.avgPrice,
-                                            Symbol: checkPositionExist.symbol,
-                                            Quantity: checkPositionExist.size
-                                        };
-                                        // if (+positionDataNew.Quantity != 0) {
-                                        positionDataNew.TimeUpdated = new Date()
-                                        return PositionController.updatePositionBE({
-                                            newDataUpdate: positionDataNew,
-                                            orderID: positionItem._id
-                                        })
-                                        // } 
-                                        // else {
-                                        //     return PositionController.deletePositionBE({
-                                        //         orderID: positionItem._id
-                                        //     });
-                                        // }
-                                    }
-                                    else {
-                                        return PositionController.deletePositionBE({
-                                            orderID: positionItem._id
-                                        });
-
-                                    }
-                                }))
-                            }
+                                const Symbol = viTheListItem.symbol
+                                const positionData = dataPositionObject[Symbol]
+                                const data = {
+                                    _id: positionData?._id || Symbol,
+                                    Pnl: viTheListItem.unrealisedPnl,
+                                    Side: viTheListItem.side,
+                                    Price: +viTheListItem.avgPrice,
+                                    Symbol,
+                                    Quantity: viTheListItem.size,
+                                    Time: positionData?.Time,
+                                    TimeUpdated: positionData?.TimeUpdated,
+                                    Miss: positionData?.Miss || true,
+                                    botID: dataBotItem?.value,
+                                    botName: dataBotItem?.name,
+                                }
+                                delete dataPositionObject[Symbol]
+                                return data
+                            })
                         }
                         else {
-                            return PositionModel.deleteMany({ botID: dataBotItem.value })
+                            return await PositionModel.deleteMany({ botID: dataBotItem.value })
                         }
+
+                        const positionOld = Object.values(dataPositionObject)
+                        positionOld.length > 0 && await PositionModel.deleteMany({ _id: { $in: positionOld.map(item => item._id) } })
+
                     }).catch(error => {
                         console.log("Error", error);
                         return [];
                     });
                 }));
 
-                const newData = await PositionModel.find({ botID: { $in: botListID.map(item => item.value) } }).populate("botID")
 
                 res.customResponse(200, "Refresh Position Successful", newData);
             }
