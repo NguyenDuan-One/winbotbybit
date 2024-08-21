@@ -260,7 +260,7 @@ const PositionController = {
                 positionIdx: 0,
                 orderType: 'Market',
                 qty: Math.abs(Quantity).toString(),
-                price: positionData.Price,
+                // price: Math.abs(positionData.Price).toString(),
             })
             .then((response) => {
 
