@@ -463,7 +463,15 @@ const handleStatistic = async (statisticLabel) => {
     await delay(1000)
 }
 
+const sendMessageTinhOC = async () => {
+    if (messageList.length) {
+        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
+        await sendMessageWithRetry(messageList.join("\n\n"))
+        messageList = []
+    }
+    delayTimeOut = false
 
+}
 
 let Main = async () => {
 
@@ -538,17 +546,9 @@ let Main = async () => {
                 const symbol = dataCoin.topic.split(".").slice(-1)[0]
                 tinhOC(symbol, dataCoin.data[0])
             }
-            if (dataCoin.data[0].confirm === true) {
-
-                delayTimeOut && clearTimeout(delayTimeOut)
-
-                delayTimeOut = setTimeout(() => {
-                    if (messageList.length) {
-                        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
-                        sendMessageWithRetry(messageList.join("\n\n"))
-                        messageList = []
-                    }
-                }, 2000)   
+            if (dataCoin.data[0].confirm === true && !delayTimeOut) {
+                delayTimeOut = true
+                sendMessageTinhOC()
             }
 
             // if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {
