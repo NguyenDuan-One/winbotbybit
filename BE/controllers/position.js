@@ -172,7 +172,7 @@ const PositionController = {
                         const viTheList = response.result.list;
 
                         if (viTheList?.length > 0) {
-                            newData = viTheList.map(viTheListItem => {
+                            newData = newData.concat(viTheList.map(viTheListItem => {
 
                                 const Symbol = viTheListItem.symbol
                                 const positionData = dataPositionObject[Symbol]
@@ -192,7 +192,7 @@ const PositionController = {
                                 }
                                 delete dataPositionObject[Symbol]
                                 return data
-                            })
+                            }))
                         }
                         else {
                             return await PositionModel.deleteMany({ botID: dataBotItem.value })
@@ -301,13 +301,13 @@ const PositionController = {
             .then(async (response) => {
                 if (response.retCode == 0) {
 
-                   const result = await PositionModel.updateOne({ Symbol: symbol }, {
+                    const result = await PositionModel.updateOne({ Symbol: symbol }, {
                         $set: {
                             Miss: false,
                             TimeUpdated: new Date()
                         }
                     });
-        
+
                     if (result.acknowledged && result.matchedCount !== 0) {
                         console.log("[Mongo] Update Position Successful")
                     }
