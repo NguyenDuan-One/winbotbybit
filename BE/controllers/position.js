@@ -173,7 +173,6 @@ const PositionController = {
 
                         if (viTheList?.length > 0) {
                             newData = viTheList.map(viTheListItem => {
-                                console.log(viTheListItem);
 
                                 const Symbol = viTheListItem.symbol
                                 const positionData = dataPositionObject[Symbol]
