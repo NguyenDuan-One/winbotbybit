@@ -5,7 +5,7 @@ const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
 const TelegramBot = require('node-telegram-bot-api');
 const { getAllSymbolMarginBE } = require('../controllers/margin');
-const { getAllSymbolSpotBE } = require('../controllers/spot');
+const { getAllSymbolSpotBE, getAllStrategiesActiveSpot } = require('../controllers/spot');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 
@@ -1458,32 +1458,7 @@ const handleSocketListKline = async (listKlineInput) => {
 
 
      
-        wsSymbol.on('update', async (dataCoin) => {
-
-            const [_, candle, symbol] = dataCoin.topic.split(".");
-
-            const dataMain = dataCoin.data[0]
-
-            const coinOpen = +dataMain.open
-            const coinCurrent = +dataMain.close
-            const dataConfirm = dataMain.confirm
-            
-
-        })
-
-        wsSymbol.on('close', () => {
-            console.log('[V] Connection listKline closed');
-            wsSymbol.unsubscribeV5(listKline, "spot")
-        });
-
-        wsSymbol.on('reconnected', () => {
-            console.log('[V] Reconnected listKline successful')
-        });
-
-        wsSymbol.on('error', (err) => {
-            console.log('[!] Connection listKline error');
-            console.log(err);
-        });
+        
     }).catch(err => {
         console.log("[!] Subscribe kline error:", err)
     })
@@ -1508,14 +1483,45 @@ const Main = async () => {
 
     const getAllSymbolSpot = getAllSymbolSpotBE()
     const getAllSymbolMargin = getAllSymbolMarginBE()
+    const getAllConfigSpot = getAllStrategiesActiveSpot()
+    
 
-    const allSymbolRes = await Promise.allSettled([getAllSymbolSpot, getAllSymbolMargin])
+
+    const allRes = await Promise.allSettled([getAllConfigSpot,getAllSymbolSpot, getAllSymbolMargin])
+
+    console.log(allRes);
+    
+    const allSymbolRes = allRes
 
     listKline = [...new Set(allSymbolRes.flatMap(item=>item.value.map(symbol=>`kline.1.${symbol}`)))]
     
     console.log(listKline.length);
     
-    await handleSocketListKline(listKline)
+    // await handleSocketListKline(listKline)
+
+    // wsSymbol.on('update', async (dataCoin) => {
+
+    //     const [_, candle, symbol] = dataCoin.topic.split(".");
+
+    //     const dataMain = dataCoin.data[0]
+
+    //     const coinCurrent = +dataMain.close
+
+    // })
+
+    wsSymbol.on('close', () => {
+        console.log('[V] Connection listKline closed');
+        wsSymbol.unsubscribeV5(listKline, "spot")
+    });
+
+    wsSymbol.on('reconnected', () => {
+        console.log('[V] Reconnected listKline successful')
+    });
+
+    wsSymbol.on('error', (err) => {
+        console.log('[!] Connection listKline error');
+        console.log(err);
+    });
 
 }
 

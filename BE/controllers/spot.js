@@ -62,7 +62,8 @@ const dataCoinByBitController = {
         socketServer.emit(type, data)
         // socketServer.to("room2").emit(type, data)
     },
-    // GET
+    // GET OTHER
+
     closeAllBotForUpCode: async (req, res) => {
         dataCoinByBitController.sendDataRealtime({
             type: "close-upcode"
@@ -112,7 +113,35 @@ const dataCoinByBitController = {
             return []
         }
     },
+    getSpotBorrowCheck: async (req, res) => {
 
+        const { botListData, symbol } = req.body
+
+        try {
+            const resultAll = await Promise.allSettled(botListData.map(async botData => {
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: botData.ApiKey,
+                    secret: botData.SecretKey,
+                    syncTimeBeforePrivateRequests: true,
+                });
+                const res =  await client.getSpotBorrowCheck(symbol, "Buy")
+                return {
+                    botData,
+                    spotMaxTradeAmount:res.result?.spotMaxTradeAmount || 0
+                }
+            }))
+
+           const handleResult = resultAll.map(item=>item.value)
+
+            res.customResponse(res.statusCode, "Get Spot Borrow Check Successful", handleResult);
+        }
+        catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
+
+    // GET
     getAllStrategiesSpot: async (req, res) => {
         try {
             const userID = req.user._id
@@ -1200,7 +1229,7 @@ const dataCoinByBitController = {
         }
     },
 
-    getAllStrategiesActive: async () => {
+    getAllStrategiesActiveSpot: async () => {
         try {
             require("../models/bot.model")
 

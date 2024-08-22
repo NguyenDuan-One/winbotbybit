@@ -27,5 +27,7 @@ router.post('/copyMultipleStrategiesToBotSpot', MiddlewareController.verifyToken
 router.post('/balanceWallet', MiddlewareController.verifyToken, spotController.balanceWallet)
 router.get('/getAllStrategiesActive', MiddlewareController.verifyToken, spotController.getAllStrategiesActive)
 
+// Other V1
+router.post('/getSpotBorrowCheck', MiddlewareController.verifyToken, spotController.getSpotBorrowCheck)
 
 module.exports = router;

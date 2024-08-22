@@ -64,3 +64,8 @@ export const copyMultipleStrategiesToBotSpot = async (newData) => {
 export const balanceWallet = async (data) => {
     return await api.post("/spot/balanceWallet", data)
 }
+
+// Other V1
+export const getSpotBorrowCheck = async ({ botListData,symbol }) => {
+    return await api.post("/spot/getSpotBorrowCheck", { botListData,symbol })
+}

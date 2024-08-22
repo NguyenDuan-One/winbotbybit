@@ -157,7 +157,6 @@ const handleSubmitOrder = async ({
 
     const orderLinkId = uuidv4()
 
-
     if (allStrategiesByBotIDOrderOC[botID].totalOC < MAX_ORDER_LIMIT) {
 
         allStrategiesByBotIDOrderOC[botID].totalOC += 1
@@ -588,9 +587,9 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
             }
         }))
         console.log("[V] Cancel All OC Successful");
-        setTimeout(() => {
-            updatingAllMain = false
-        }, 1000)
+        // setTimeout(() => {
+        //     updatingAllMain = false
+        // }, 1000)
     }
 
 }
@@ -1486,7 +1485,6 @@ const Main = async () => {
     const allStrategiesActiveObject = result[0]
     allSymbol = result[1]
 
-
     allStrategiesActiveObject.forEach(strategyItem => {
         if (checkConditionBot(strategyItem)) {
 
@@ -1572,7 +1570,7 @@ const Main = async () => {
     await handleSocketBotApiList(botApiList)
 
     await handleSocketListKline(listKline)
-    
+
     let cancelingAll = {};
 
     [1, 3, 5, 15].forEach(candleItem => {
@@ -1580,7 +1578,7 @@ const Main = async () => {
             canceling: false,
         }
     });
-    
+
     wsSymbol.on('update', async (dataCoin) => {
 
         const [_, candle, symbol] = dataCoin.topic.split(".");
@@ -1648,10 +1646,12 @@ const Main = async () => {
                     const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
                     if (dataConfirm == false && strategy.IsActive && !updatingAllMain) {
+
                         if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
 
 
                             trichMauOCListObject[symbolCandleID].curTime = new Date()
+
 
                             if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime >= 150) {
 
@@ -1707,6 +1707,7 @@ const Main = async () => {
                             // if (trichMauOCListObject[symbolCandleID].minPrice.length === 3 && trichMauOCListObject[symbolCandleID].coinColor.length === 3) {
 
                             if (trichMauOCListObject[symbolCandleID].minPrice.length === 3) {
+
                                 let conditionOrder = 0
                                 let priceOrder = 0
 
@@ -1781,6 +1782,8 @@ const Main = async () => {
                                     telegramToken,
                                     coinOpen
                                 }
+
+                                
                                 if (side === "Buy") {
                                     +conditionOrder >= coinCurrent && (coinOpen - coinCurrent) > 0 && conditionPre && handleSubmitOrder(dataInput)
                                 }
@@ -2125,6 +2128,8 @@ const Main = async () => {
                 checkBTC07Price = 0
 
             }, 5 * 60 * 1000)
+
+            updatingAllMain = false
         }
 
         // Coin CLosed
@@ -2361,7 +2366,7 @@ socketRealtime.on('add', async (newData = []) => {
 
     }))
 
-    handleSocketBotApiList(newBotApiList)
+    await handleSocketBotApiList(newBotApiList)
 
 });
 
@@ -2491,7 +2496,10 @@ socketRealtime.on('update', async (newData = []) => {
 
     await Promise.allSettled([cancelAllOC, cancelAllTP])
 
-    handleSocketBotApiList(newBotApiList)
+    await handleSocketBotApiList(newBotApiList)
+
+    updatingAllMain = false
+
 
 });
 
@@ -2571,6 +2579,9 @@ socketRealtime.on('delete', async (newData) => {
     })
 
     await Promise.allSettled([cancelAllOC, cancelAllTP])
+
+    updatingAllMain = false
+
 
 });
 
@@ -2724,7 +2735,10 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
     await Promise.allSettled([cancelAllOC, cancelAllTP])
 
-    !botApiData && handleSocketBotApiList(newBotApiList);
+    !botApiData && await handleSocketBotApiList(newBotApiList);
+
+    updatingAllMain = false
+
 
 });
 
@@ -2850,6 +2864,9 @@ socketRealtime.on('bot-api', async (data) => {
         console.log("[!] Error subscribeV5", error)
     }
 
+    updatingAllMain = false
+
+
 });
 
 socketRealtime.on('bot-delete', async (data) => {
@@ -2950,6 +2967,9 @@ socketRealtime.on('bot-delete', async (data) => {
     await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
 
     delete botApiList[botIDMain]
+
+    updatingAllMain = false
+
 
 });
 
