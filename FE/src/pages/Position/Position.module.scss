@@ -29,11 +29,11 @@
             margin: 0 -8px;
 
             &Item {
-                flex: 1
+                flex-basis: 40%
             }
 
             .refreshBtn {
-                margin-left: 8px;
+                // margin-left: 8px;
             }
         }
     }
