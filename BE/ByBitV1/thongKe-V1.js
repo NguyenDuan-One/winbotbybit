@@ -15,7 +15,7 @@ const bot = new TelegramBot("6992407921:AAFS2wimsauyuoj1eXJFN_XxRFhs5wWtp7c", {
     }
 });
 const CHANNEL_ID = "-1002178225625"
-const MAX_ORDER_LIMIT = 30
+const MAX_ORDER_LIMIT = 10
 
 var sendTeleCount = {
     logError: false,
@@ -224,7 +224,8 @@ const tinhOC = (symbol, data) => {
 
     if (sendTeleCount.total < MAX_ORDER_LIMIT && messageList.length > 0) {
         sendTeleCount.total += 1
-        sendMessageTinhOC()
+        sendMessageTinhOC(messageList)
+        messageList = []
     }
     else {
         if (sendTeleCount?.logError) {
@@ -497,10 +498,9 @@ const handleStatistic = async (statisticLabel) => {
     await delay(1000)
 }
 
-const sendMessageTinhOC = async () => {
-    console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
+const sendMessageTinhOC = async (messageList) => {
+    console.log(`Send telegram tính OC ( 🍁 ): `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
     await sendMessageWithRetry(messageList.join("\n\n"))
-    messageList = []
 
 }
 
@@ -662,7 +662,7 @@ try {
     setInterval(() => {
         listKline.forEach(kline => {
             const [_, candle, symbol] = kline.split(".");
-            tinhOC(symbol, trichMauData[symbol])
+            trichMauData[symbol].open && tinhOC(symbol, trichMauData[symbol])
             trichMauData[symbol] = {
                 open: 0,
                 close: 0,
