@@ -223,6 +223,8 @@ function tinhOC(symbol, data) {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
+    sendMessageTinhOC()
+
 }
 
 async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coinListWin50 = []) {
@@ -590,7 +592,7 @@ let Main = async () => {
                 trichMauData[symbol].close = coinCurrent
 
                 trichMau.cur = new Date()
-                if (trichMau.cur - trichMau.pre > 1000) {
+                if (trichMau.cur - trichMau.pre >= 1000) {
                     trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
                     tinhOC(symbol, trichMauData[symbol])
                     trichMauData[symbol] = {
@@ -603,10 +605,8 @@ let Main = async () => {
                     trichMau.pre = new Date()
                 }
             }
-            if (dataMain.confirm === true && !delayTimeOut) {
-                delayTimeOut = true
+            if (dataMain.confirm === true) {
                 coinAllClose = true
-                sendMessageTinhOC()
             }
 
             // if (dataCoin.topic.indexOf("kline.1.BTCUSDT") != -1) {

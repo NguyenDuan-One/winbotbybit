@@ -171,7 +171,6 @@ const PositionController = {
 
                         const viTheList = response.result.list;
 
-
                         if (viTheList?.length > 0) {
 
                             newData = await Promise.all((viTheList.map(async viTheListItem => {
@@ -197,6 +196,7 @@ const PositionController = {
                                         TimeUpdated: positionData?.TimeUpdated,
                                         Miss: positionData.Miss,
                                     }
+                                    delete dataPositionObject[Symbol]
                                 }
                                 else {
                                     const resNew = await PositionController.createPositionBE(data)
@@ -209,8 +209,6 @@ const PositionController = {
                                         Miss: true,
                                     }
                                 }
-
-                                delete dataPositionObject[Symbol]
                                 return data
                             })))
 
