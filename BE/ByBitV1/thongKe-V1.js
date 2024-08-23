@@ -23,6 +23,8 @@ let CoinFT = []
 let messageList = []
 let delayTimeOut = ""
 
+var trichMauData = {}
+
 let botListTelegram = {}
 
 let wsConfig = {
@@ -69,8 +71,16 @@ async function ListCoinFT() {
         .then((rescoin) => {
             rescoin.result.list.forEach((e) => {
 
-                if (e.symbol.split("USDT")[1] === "") {
-                    ListCoin1m.push(`kline.1.${e.symbol}`)
+                const symbol = e.symbol
+                if (symbol.split("USDT")[1] === "") {
+                    ListCoin1m.push(`kline.1.${symbol}`)
+                }
+                trichMauData[symbol] = {
+                    open: 0,
+                    close: 0,
+                    high: 0,
+                    low: 0,
+                    turnover: 0
                 }
             })
         })
@@ -150,11 +160,10 @@ const handleIconCandle = (candle) => {
 
 function tinhOC(symbol, data) {
 
-    const interval = data.interval
-    const Close = data.close
-    const Open = data.open
-    const Highest = data.high
-    const Lowest = data.low
+    const Close = +data.close
+    const Open = +data.open
+    const Highest = +data.high
+    const Lowest = +data.low
 
     // console.log("Close",Close);
     // console.log("Open",Open);
@@ -162,6 +171,7 @@ function tinhOC(symbol, data) {
     // console.log("Highest",Highest);
 
     // const vol = data.volume * data.open
+
     const vol = data.turnover
 
     let OC = ((Highest - Open) / Open) || 0
@@ -193,13 +203,13 @@ function tinhOC(symbol, data) {
     const OCRound = roundNumber(OC)
     const OCLongRound = roundNumber(OCLong)
 
-    if (OCRound > .5) {
-        const ht = (`⚾ | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
+    if (Math.abs(OCRound) > 1) {
+        const ht = (`⚾ | <b>${symbol.replace("USDT", "")}</b> - 1 min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
-    if (OCLongRound > .5) {
-        const htLong = (`⚾ | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
+    if (Math.abs(OCLongRound) > 1) {
+        const htLong = (`⚾ | <b>${symbol.replace("USDT", "")}</b> - 1 min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
 }
@@ -480,6 +490,7 @@ let Main = async () => {
         cur: 0
     }
 
+
     const listKline = await ListCoinFT()
 
     wsSymbol.subscribeV5(listKline, 'spot').then(() => {
@@ -540,11 +551,44 @@ let Main = async () => {
     wsSymbol.on('update', async (dataCoin) => {
         if (dataCoin.wsKey === "v5SpotPublic") {
 
+            const dataMain = dataCoin.data[0]
+
+            const symbol = dataCoin.topic.split(".").slice(-1)[0]
+
+            const coinCurrent = +dataMain.close
+            const turnover = +dataMain.turnover
+
+            !trichMauData[symbol].open && (
+                trichMauData[symbol] = {
+                    open: coinCurrent,
+                    close: coinCurrent,
+                    high: coinCurrent,
+                    low: coinCurrent,
+                    turnover: turnover,
+                }
+            )
+
+            if (coinCurrent > trichMauData[symbol].high) {
+                trichMauData[symbol].high = coinCurrent
+            }
+            else if (coinCurrent < trichMauData[symbol].low) {
+                trichMauData[symbol].low = coinCurrent
+            }
+
+            trichMauData[symbol].close = coinCurrent
+
             trichMau.cur = new Date()
             if (trichMau.cur - trichMau.pre > 1000) {
                 trichMau.pre = new Date()
-                const symbol = dataCoin.topic.split(".").slice(-1)[0]
-                tinhOC(symbol, dataCoin.data[0])
+                trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+                tinhOC(symbol, trichMauData[symbol])
+                trichMauData[symbol] = {
+                    open: coinCurrent,
+                    close: coinCurrent,
+                    high: coinCurrent,
+                    low: coinCurrent,
+                    turnover: turnover,
+                }
             }
             if (dataCoin.data[0].confirm === true && !delayTimeOut) {
                 delayTimeOut = true

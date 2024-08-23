@@ -1229,7 +1229,7 @@ const dataCoinByBitController = {
         }
     },
 
-    getAllStrategiesActiveSpot: async () => {
+    getAllStrategiesActiveSpotBE: async () => {
         try {
             require("../models/bot.model")
 

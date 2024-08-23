@@ -5,7 +5,7 @@ const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
 const TelegramBot = require('node-telegram-bot-api');
 const { getAllSymbolMarginBE } = require('../controllers/margin');
-const { getAllSymbolSpotBE, getAllStrategiesActiveSpot } = require('../controllers/spot');
+const { getAllSymbolSpotBE, getAllStrategiesActiveSpotBE } = require('../controllers/spot');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 
@@ -1457,8 +1457,8 @@ const handleSocketListKline = async (listKlineInput) => {
         console.log("[V] Subscribe kline successful\n");
 
 
-     
-        
+
+
     }).catch(err => {
         console.log("[!] Subscribe kline error:", err)
     })
@@ -1483,31 +1483,63 @@ const Main = async () => {
 
     const getAllSymbolSpot = getAllSymbolSpotBE()
     const getAllSymbolMargin = getAllSymbolMarginBE()
-    const getAllConfigSpot = getAllStrategiesActiveSpot()
-    
+    const getAllConfigSpot = getAllStrategiesActiveSpotBE()
+
+    const allRes = await Promise.allSettled([getAllConfigSpot, getAllSymbolSpot, getAllSymbolMargin])
+
+    const getAllConfigSpotRes = allRes[0].value
+
+    const allSymbolRes = [
+        ...allRes[1].value,
+        ...allRes[2].value,
+    ]
+
+    listKline = [...new Set(allSymbolRes.map(item => `kline.1.${item}`))]
 
 
-    const allRes = await Promise.allSettled([getAllConfigSpot,getAllSymbolSpot, getAllSymbolMargin])
+    getAllConfigSpotRes.forEach(strategyItem => {
+        if (checkConditionBot(strategyItem)) {
+            
+            const strategyID = strategyItem._id
+            const botID = strategyItem.botID._id
+            const botName = strategyItem.botID.botName
+            const symbol = strategyItem.symbol
 
-    console.log(allRes);
-    
-    const allSymbolRes = allRes
+            botApiList[botID] = {
+                id: botID,
+                botName,
+                ApiKey: strategyItem.botID.ApiKey,
+                SecretKey: strategyItem.botID.SecretKey,
+                telegramID: strategyItem.botID.telegramID,
+                telegramToken: strategyItem.botID.telegramToken,
+            }
 
-    listKline = [...new Set(allSymbolRes.flatMap(item=>item.value.map(symbol=>`kline.1.${symbol}`)))]
-    
-    console.log(listKline.length);
-    
-    // await handleSocketListKline(listKline)
+            !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {});
+            allStrategiesByCandleAndSymbol[symbol][strategyID] = strategyItem;
 
-    // wsSymbol.on('update', async (dataCoin) => {
+            cancelAll({ strategyID, botID })
 
-    //     const [_, candle, symbol] = dataCoin.topic.split(".");
+        }
+    })
 
-    //     const dataMain = dataCoin.data[0]
+    await handleSocketListKline(listKline)
 
-    //     const coinCurrent = +dataMain.close
+    wsSymbol.on('update', async (dataCoin) => {
 
-    // })
+        const [_, candle, symbol] = dataCoin.topic.split(".");
+
+        const dataMain = dataCoin.data[0]
+
+        const coinCurrent = +dataMain.close
+
+        const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]
+        
+        listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+           const strategyOrderChange = strategy.OrderChange
+           const priceOrderOC = coinCurrent
+        }))
+
+    })
 
     wsSymbol.on('close', () => {
         console.log('[V] Connection listKline closed');
@@ -1529,7 +1561,7 @@ try {
     Main()
 
     setTimeout(() => {
-        cron.schedule('*/15 * * * *', () => {
+        cron.schedule('*/1 * * * *', () => {
             getMoneyFuture(botApiList)
         });
     }, 1000)

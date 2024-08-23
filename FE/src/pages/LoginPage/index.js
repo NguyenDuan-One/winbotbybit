@@ -126,7 +126,7 @@ function LoginPage() {
 
                 </form>
 
-                <p>© Copyright <b>FOMO LAND</b>.</p>
+                <p>© Copyright by <b>CYBER TEAM</b></p>
             </div>
         </div>
     );

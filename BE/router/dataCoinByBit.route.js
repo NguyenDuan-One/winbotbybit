@@ -20,7 +20,7 @@ router.put('/addToBookmark/:id', MiddlewareController.verifyToken, dataCoinByBit
 router.put('/removeToBookmark/:id', MiddlewareController.verifyToken, dataCoinByBitController.removeToBookmark)
 
 router.post('/deleteStrategiesItem', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategiesItem)
-router.delete('/deleteStrategies/:id', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategies)
+router.post('/deleteStrategies/:id', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategies)
 router.post('/deleteStrategiesMultiple', MiddlewareController.verifyToken, dataCoinByBitController.deleteStrategiesMultiple)
 
 router.get('/syncSymbol', MiddlewareController.verifyToken, dataCoinByBitController.syncSymbol)

@@ -154,18 +154,18 @@ const handleIconCandle = (candle) => {
 function tinhOC(symbol, data) {
 
     const interval = data.interval
-    const Close = data.close
-    const Open = data.open
-    const Highest = data.high
-    const Lowest = data.low
+    const Close = +data.close
+    const Open = +data.open
+    const Highest = +data.high
+    const Lowest = +data.low
 
     // console.log("Close",Close);
     // console.log("Open",Open);
     // console.log("Lowest",Lowest);
     // console.log("Highest",Highest);
 
-    // const vol = data.volume * data.open
-    const vol = data.turnover
+    // const vol = +data.volume * +data.open
+    const vol = +data.turnover
 
     let OC = ((Highest - Open) / Open) || 0
     let TP = ((Highest - Close) / (Highest - Open)) || 0
@@ -196,12 +196,12 @@ function tinhOC(symbol, data) {
     const OCRound = roundNumber(OC)
     const OCLongRound = roundNumber(OCLong)
 
-    if (OCRound > 1) {
+    if (Math.abs(OCRound) > 1) {
         const ht = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
-    if (OCLongRound > 1) {
+    if (Math.abs(OCLongRound) > 1) {
         const htLong = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }

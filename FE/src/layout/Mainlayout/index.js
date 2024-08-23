@@ -212,7 +212,7 @@ function MainLayout({ children }) {
                         </div>
                     </div>
                     <div className={styles.footer}>
-                        © Copyright <b>FOMO LAND</b>. All Rights Reserved
+                        © Copyright <b>CYBER TEAM</b>. All Rights Reserved
                     </div>
                 </div>
             </div>

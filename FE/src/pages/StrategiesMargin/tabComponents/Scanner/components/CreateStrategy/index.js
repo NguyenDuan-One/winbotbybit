@@ -32,7 +32,7 @@ function CreateStrategy({
             value: "Spot",
         },
     ]
-    const positionSideList = [
+    const positionSideListDefault = [
         {
             name: "Both",
             value: "Both",
@@ -53,17 +53,18 @@ function CreateStrategy({
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitted }
+        formState: { errors, isSubmitted },
     } = useForm();
 
     const [onlyPairsSelected, setOnlyPairsSelected] = useState(onlyPairsInput || [])
-    const [spotDataList, setSpotDataList] = useState([])
     const [blackListSelected, setBlackListSelected] = useState(blackListSelectedInput || [])
-    const [marginDataList, setMarginDataList] = useState([])
     const [botList, setBotList] = useState([])
     const [loadingSyncCoin, setLoadingSyncCoin] = useState(false);
 
     const dataChangeRef = useRef(false)
+    const spotDataListRef = useRef([])
+    const marginDataListRef = useRef([])
+    const positionSideListRef = useRef(positionSideListDefault)
 
     const [symbolGroupDataList, setSymbolGroupDataList] = useState({
         label: "Margin",
@@ -72,19 +73,25 @@ function CreateStrategy({
 
     const dispatch = useDispatch()
 
-    const handleGetSpotDataList = async () => {
+    const handleGetSpotDataList = async (syncNew = true) => {
         try {
-            const res = await getAllSymbolSpot()
-            const { status, message, data: symbolListDataRes } = res.data
+            let newData = spotDataListRef.current
+            if(syncNew)
+            {
+                const res = await getAllSymbolSpot()
+                const {  data: symbolListDataRes } = res.data
+                newData = symbolListDataRes.map(item => ({ name: item, value: item }))
+            }
 
             setBlackListSelected([])
             setOnlyPairsSelected([])
             setSymbolGroupDataList(
                 {
                     label: "Spot",
-                    list: symbolListDataRes.map(item => ({ name: item, value: item }))
+                    list: newData
                 }
             )
+            spotDataListRef.current = newData
 
         }
         catch (err) {
@@ -95,19 +102,26 @@ function CreateStrategy({
         }
     }
 
-    const handleGetMarginDataList = async () => {
+    const handleGetMarginDataList = async (syncNew = true) => {
         try {
-            const res = await getAllSymbolMargin()
-            const { status, message, data: symbolListDataRes } = res.data
+
+            let newData = marginDataListRef.current
+            if(syncNew)
+            {
+                const res = await getAllSymbolMargin()
+                const {  data: symbolListDataRes } = res.data
+                newData = symbolListDataRes.map(item => ({ name: item, value: item }))
+            }
 
             setBlackListSelected([])
             setOnlyPairsSelected([])
             setSymbolGroupDataList(
                 {
                     label: "Margin",
-                    list: symbolListDataRes.map(item => ({ name: item, value: item }))
+                    list: newData
                 }
             )
+            marginDataListRef.current = newData
         }
         catch (err) {
             dispatch(addMessageToast({
@@ -319,7 +333,20 @@ function CreateStrategy({
                             size="medium"
                             {...register("Market", { required: true, })}
                             onChange={e => {
-                                e.target.value === "Spot" ? handleGetSpotDataList() : handleGetMarginDataList()
+                                if(e.target.value === "Spot") {
+                                    handleGetSpotDataList(!spotDataListRef.current.length)
+                                    positionSideListRef.current = [
+                                        {
+                                                name: "Long",
+                                                value: "Long",
+                                        }
+                                    ]
+                                }
+                                else 
+                                {
+                                    handleGetMarginDataList(!marginDataListRef.current.length)
+                                    positionSideListRef.current = positionSideListDefault
+                                }
                             }}
                         >
                             {
@@ -337,13 +364,12 @@ function CreateStrategy({
                             select
                             label="Position side"
                             variant="outlined"
-                            defaultValue={positionSideList[0].value}
+                            defaultValue={positionSideListRef.current[0].value}
                             size="medium"
                             {...register("PositionSide", { required: true, })}
                         >
                             {
-
-                                positionSideList.map(item => (
+                                positionSideListRef.current.map(item => (
                                     <MenuItem value={item?.value} key={item?.value}>{item?.name}</MenuItem>
                                 ))
                             }

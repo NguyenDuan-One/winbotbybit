@@ -3,7 +3,6 @@ import StarIcon from '@mui/icons-material/Star';
 import AddIcon from '@mui/icons-material/Add';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -13,10 +12,9 @@ import styles from "./TreeParent.module.scss"
 import TreeChild from '../TreeChild';
 import { memo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import DialogCustom from '../../../../../../../components/DialogCustom';
 import { handleCheckAllCheckBox } from '../../../../../../../functions';
 import { addMessageToast } from '../../../../../../../store/slices/Toast';
-import { updateStrategiesMultipleSpot, deleteStrategiesSpot, addToBookmarkSpot, removeToBookmarkSpot } from '../../../../../../../services/marginService';
+import { updateStrategiesMultipleSpot, addToBookmarkSpot, removeToBookmarkSpot } from '../../../../../../../services/marginService';
 
 function TreeParent({
     treeData,
@@ -151,34 +149,34 @@ function TreeParent({
         }
     }
 
-    const handleDeleteStrategies = async () => {
-        try {
-            const res = await deleteStrategiesSpot(treeData._id,)
-            const { status, message } = res.data
+    // const handleDeleteStrategies = async () => {
+    //     try {
+    //         const res = await deleteStrategiesSpot(treeData._id,)
+    //         const { status, message } = res.data
 
-            if (status === 200) {
-                // handleUpdateDataAfterSuccess(newData)
-                if (status === 200) {
-                    setDataCheckTree(dataCheckTree => dataCheckTree.filter(data => data._id !== treeData._id))
-                    dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.filter(data => data._id !== treeData._id)
-                    handleCheckAllCheckBox(false)
-                }
+    //         if (status === 200) {
+    //             // handleUpdateDataAfterSuccess(newData)
+    //             if (status === 200) {
+    //                 setDataCheckTree(dataCheckTree => dataCheckTree.filter(data => data._id !== treeData._id))
+    //                 dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.filter(data => data._id !== treeData._id)
+    //                 handleCheckAllCheckBox(false)
+    //             }
 
-            }
+    //         }
 
-            dispatch(addMessageToast({
-                status: status,
-                message: message,
-            }))
-        }
-        catch (err) {
-            dispatch(addMessageToast({
-                status: 500,
-                message: "Delete Error",
-            }))
-        }
-        closeDeleteDialog()
-    }
+    //         dispatch(addMessageToast({
+    //             status: status,
+    //             message: message,
+    //         }))
+    //     }
+    //     catch (err) {
+    //         dispatch(addMessageToast({
+    //             status: 500,
+    //             message: "Delete Error",
+    //         }))
+    //     }
+    //     closeDeleteDialog()
+    // }
     const handleAddToBookmark = async () => {
         try {
             const res = await addToBookmarkSpot({ symbolID: treeData._id })
@@ -362,7 +360,7 @@ function TreeParent({
                     </div>
                 )
             }
-            {openDeleteTreeSymbolGroup &&
+            {/* {openDeleteTreeSymbolGroup &&
 
                 <DialogCustom
                     dialogTitle='The action requires confirmation'
@@ -378,7 +376,7 @@ function TreeParent({
                     <p>Are you remove this symbol?</p>
                 </DialogCustom>
 
-            }
+            } */}
             <Popover
                 open={openSettingTreeNode.element}
                 anchorEl={openSettingTreeNode.element}
@@ -405,7 +403,7 @@ function TreeParent({
                         <AddIcon className={styles.settingNodeItemIcon} />
                         <span className={styles.settingNodeItemText}>Add</span>
                     </div>
-                    <div className={styles.settingNodeItem}
+                    {/* <div className={styles.settingNodeItem}
                         onClick={() => {
                             setOpenDeleteTreeSymbolGroup(true)
                         }}>
@@ -413,7 +411,7 @@ function TreeParent({
                             className={styles.settingNodeItemIcon}
                         />
                         <span className={styles.settingNodeItemText}>Delete</span>
-                    </div>
+                    </div> */}
                     <div
                         className={styles.settingNodeItem}
                         onClick={handleUnActiveAllTreeItem}

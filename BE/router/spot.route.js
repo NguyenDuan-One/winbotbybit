@@ -25,7 +25,7 @@ router.get('/syncSymbolSpot', MiddlewareController.verifyToken, spotController.s
 router.post('/copyMultipleStrategiesToSymbolSpot', MiddlewareController.verifyToken, spotController.copyMultipleStrategiesToSymbolSpot)
 router.post('/copyMultipleStrategiesToBotSpot', MiddlewareController.verifyToken, spotController.copyMultipleStrategiesToBotSpot)
 router.post('/balanceWallet', MiddlewareController.verifyToken, spotController.balanceWallet)
-router.get('/getAllStrategiesActive', MiddlewareController.verifyToken, spotController.getAllStrategiesActive)
+// router.get('/getAllStrategiesActive', MiddlewareController.verifyToken, spotController.getAllStrategiesActive)
 
 // Other V1
 router.post('/getSpotBorrowCheck', MiddlewareController.verifyToken, spotController.getSpotBorrowCheck)

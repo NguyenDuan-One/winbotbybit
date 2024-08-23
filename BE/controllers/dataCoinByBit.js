@@ -508,38 +508,39 @@ const dataCoinByBitController = {
 
             const strategiesID = req.params.id;
 
-            const resultGet = await StrategiesModel.findOne(
-                { _id: strategiesID },
-            ).populate("children.botID")
+            const strategiesIDList = req.body
 
-            const newDataSocketWithBotData = resultGet.children.map(child => {
-                child.symbol = resultGet.value
-                child.value = `${resultGet._id}-${child._id}`
-                return child
-            }) || []
+            // const resultGet = await StrategiesModel.find(
+            //     { _id: strategiesID },
+            //     { "children._id": { $in: strategiesIDList } }
+            // ).populate("children.botID")
+
+            // console.log(resultGet);
+            
+            // const newDataSocketWithBotData = resultGet.children.map(child => {
+            //     child.symbol = resultGet.value
+            //     child.value = `${resultGet._id}-${child._id}`
+            //     return child
+            // }) || []
 
 
             const result = await StrategiesModel.updateOne(
                 { _id: strategiesID },
-                {
-                    "children": []
-                }
+                { $pull: { children: { _id: { $in: strategiesIDList } } } }
             );
 
-
-
-            if (result.acknowledged && result.deletedCount !== 0) {
-
-
-                newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
-                    type: "delete",
-                    data: newDataSocketWithBotData
-                })
+            if (result.acknowledged && result.matchedCount !== 0) {
+                // console.log(newDataSocketWithBotData.length);
+                
+                // newDataSocketWithBotData.length > 0 && dataCoinByBitController.sendDataRealtime({
+                //     type: "delete",
+                //     data: newDataSocketWithBotData
+                // })
                 res.customResponse(200, "Delete Strategies Successful");
 
             }
             else {
-                res.customResponse(400, "Delete Strategies failed");
+                res.customResponse(400, "Delete Strategies Failed");
             }
 
         } catch (error) {

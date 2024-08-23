@@ -3,17 +3,15 @@ import StarIcon from '@mui/icons-material/Star';
 import AddIcon from '@mui/icons-material/Add';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Switch, Popover } from "@mui/material";
+import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Popover } from "@mui/material";
 import clsx from "clsx";
 import styles from "./TreeParent.module.scss"
 import TreeChild from '../TreeChild';
-import { memo, useEffect, useState } from 'react';
-import DialogCustom from '../../../../../components/DialogCustom';
-import { addToBookmark, deleteStrategies, removeToBookmark, updateStrategiesMultiple } from '../../../../../services/dataCoinByBitService';
+import { memo, useState } from 'react';
+import { addToBookmark, removeToBookmark, updateStrategiesMultiple } from '../../../../../services/dataCoinByBitService';
 import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../../../../store/slices/Toast';
 import { handleCheckAllCheckBox } from '../../../../../functions';
@@ -34,10 +32,7 @@ function TreeParent({
     const [openDeleteTreeSymbolGroup, setOpenDeleteTreeSymbolGroup] = useState(false);
 
 
-    const closeDeleteDialog = () => {
-        setOpenDeleteTreeSymbolGroup(false)
-
-    }
+    
     const handleUpdateDataAfterSuccess = (IsActive) => {
         handleCheckAllCheckBox(false)
         setDataCheckTree(dataCheckTree => dataCheckTree.map(data => {
@@ -150,34 +145,53 @@ function TreeParent({
         }
     }
 
-    const handleDeleteStrategies = async () => {
-        try {
-            const res = await deleteStrategies(treeData._id,)
-            const { status, message } = res.data
+    // const handleDeleteStrategies = async () => {
+    //     try {
+    //         const treeDataID = treeData._id
+    //         const strategiesListID = treeData.children.map(dataCheckTreeItem=>dataCheckTreeItem._id)
+    //         const res = await deleteStrategies(treeDataID, strategiesListID)
+    //         const { status, message } = res.data
 
-            if (status === 200) {
-                // handleUpdateDataAfterSuccess(newData)
-                if (status === 200) {
-                    setDataCheckTree(dataCheckTree => dataCheckTree.filter(data => data._id !== treeData._id))
-                    dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.filter(data => data._id !== treeData._id)
-                    handleCheckAllCheckBox(false)
-                }
+    //         if (status === 200) {
+    //             // handleUpdateDataAfterSuccess(newData)
+    //             if (status === 200) {
+    //                 dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
+    //                     if (data._id == treeDataID) {
+    //                         return {
+    //                             ...data,
+    //                             children: data.children.filter(treeItem =>!strategiesListID.includes(treeItem._id) )
+    //                         }
+    //                     }
+    //                     return data
+    //                 })
+    //                 setDataCheckTree(dataCheckTree =>  dataCheckTree.map(data => {
+    //                     if (data._id == treeDataID) {
+    //                         return {
+    //                             ...treeData,
+    //                             children: treeData.children.filter(treeItem =>!strategiesListID.includes(treeItem._id) )
+    //                         }
+    //                     }
+    //                     return data
+    //                 }))
+    //                 handleCheckAllCheckBox(false)
+    //             }
 
-            }
+    //         }
 
-            dispatch(addMessageToast({
-                status: status,
-                message: message,
-            }))
-        }
-        catch (err) {
-            dispatch(addMessageToast({
-                status: 500,
-                message: "Delete Error",
-            }))
-        }
-        closeDeleteDialog()
-    }
+    //         dispatch(addMessageToast({
+    //             status: status,
+    //             message: message,
+    //         }))
+    //     }
+    //     catch (err) {
+    //         dispatch(addMessageToast({
+    //             status: 500,
+    //             message: "Delete Error",
+    //         }))
+    //     }
+    // }
+
+
     const handleAddToBookmark = async () => {
         try {
             const res = await addToBookmark({ symbolID: treeData._id })
@@ -207,7 +221,6 @@ function TreeParent({
                 message: "Add Bookmark Error",
             }))
         }
-        closeDeleteDialog()
     }
     const handleRemoveToBookmark = async () => {
         try {
@@ -238,7 +251,6 @@ function TreeParent({
                 message: "Remove Bookmark Error",
             }))
         }
-        closeDeleteDialog()
     }
 
     return (
@@ -361,8 +373,8 @@ function TreeParent({
                     </div>
                 )
             }
-            {openDeleteTreeSymbolGroup &&
-
+            {/* {
+                openDeleteTreeSymbolGroup &&
                 <DialogCustom
                     dialogTitle='The action requires confirmation'
                     reserveBtn
@@ -376,8 +388,7 @@ function TreeParent({
                 >
                     <p>Are you remove this symbol?</p>
                 </DialogCustom>
-
-            }
+            } */}
             <Popover
                 open={openSettingTreeNode.element}
                 anchorEl={openSettingTreeNode.element}
@@ -404,7 +415,7 @@ function TreeParent({
                         <AddIcon className={styles.settingNodeItemIcon} />
                         <span className={styles.settingNodeItemText}>Add</span>
                     </div>
-                    <div className={styles.settingNodeItem}
+                    {/* <div className={styles.settingNodeItem}
                         onClick={() => {
                             setOpenDeleteTreeSymbolGroup(true)
                         }}>
@@ -412,7 +423,7 @@ function TreeParent({
                             className={styles.settingNodeItemIcon}
                         />
                         <span className={styles.settingNodeItemText}>Delete</span>
-                    </div>
+                    </div> */}
                     <div
                         className={styles.settingNodeItem}
                         onClick={handleUnActiveAllTreeItem}

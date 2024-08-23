@@ -46,8 +46,8 @@ export const removeToBookmark = async ({ symbolID }) => {
 }
 
 // DELETE
-export const deleteStrategies = async (id) => {
-    return await api.delete(`/dataCoinByBit/deleteStrategies/${id}`)
+export const deleteStrategies = async (id,data) => {
+    return await api.post(`/dataCoinByBit/deleteStrategies/${id}`,data)
 }
 export const deleteStrategiesItem = async (data) => {
     return await api.post("/dataCoinByBit/deleteStrategiesItem", data)
