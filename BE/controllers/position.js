@@ -175,7 +175,7 @@ const PositionController = {
 
                         if (viTheList?.length > 0) {
 
-                            const dataAll =  await Promise.allSettled((viTheList.map(async viTheListItem => {
+                            const dataAll = await Promise.allSettled((viTheList.map(async viTheListItem => {
 
                                 const Symbol = viTheListItem.symbol
                                 const positionID = `${botID}-${Symbol}`
@@ -219,7 +219,7 @@ const PositionController = {
                                 return data
                             })))
 
-                            newData = newData.concat(dataAll.map(data=>data.value))
+                            newData = newData.concat(dataAll.map(data => data.value))
                         }
                         else {
                             return await PositionModel.deleteMany({ botID: botID })
@@ -293,6 +293,13 @@ const PositionController = {
 
                 if (response.retCode == 0) {
                     res.customResponse(200, "Close Market Successful");
+                    PositionController.deletePositionBE({
+                        orderID: positionData.id
+                    }).then(message => {
+                        console.log(message);
+                    }).catch(err => {
+                        console.log(err);
+                    })
                 }
                 else {
                     res.customResponse(400, response.retMsg);
