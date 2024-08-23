@@ -180,8 +180,8 @@ const PositionController = {
 
                             newData = await Promise.all((viTheList.map(async viTheListItem => {
 
-                                const positionID = `${botID}-${Symbol}`
                                 const Symbol = viTheListItem.symbol
+                                const positionID = `${botID}-${Symbol}`
                                 const positionData = dataPositionObject[positionID]
 
                                 let data = {
