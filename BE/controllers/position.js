@@ -209,6 +209,8 @@ const PositionController = {
                                         TimeUpdated: new Date(),
                                         Miss: true,
                                     }
+                                    console.log(data);
+                                    
                                     const resNew = await PositionController.createPositionBE(data)
                                     data = {
                                         ...data,
@@ -216,6 +218,7 @@ const PositionController = {
                                     }
 
                                 }
+                                console.log("data",data);
                                 return data
                             })))
 
