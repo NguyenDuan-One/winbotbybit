@@ -1625,6 +1625,8 @@ const Main = async () => {
         const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]?.[candle]
 
         if (checkOrderOCAll) {
+            
+            trichMauOCListObject[symbolCandleID].curTime = new Date()
 
             listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
 
@@ -1650,7 +1652,6 @@ const Main = async () => {
                         if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
 
 
-                            trichMauOCListObject[symbolCandleID].curTime = new Date()
 
 
                             if (trichMauOCListObject[symbolCandleID].curTime - trichMauOCListObject[symbolCandleID].preTime >= 150) {
@@ -1699,7 +1700,6 @@ const Main = async () => {
 
                                 trichMauOCListObject[symbolCandleID].prePrice = coinCurrent
 
-                                trichMauOCListObject[symbolCandleID].preTime = new Date()
 
                             }
 
@@ -2067,6 +2067,9 @@ const Main = async () => {
                 }
 
             }))
+            
+            trichMauOCListObject[symbolCandleID].preTime = new Date()
+
         }
 
         else {

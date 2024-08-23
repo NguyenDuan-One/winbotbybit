@@ -23,7 +23,9 @@ let CoinFT = []
 let messageList = []
 let delayTimeOut = ""
 
+var coinAllClose = false
 var trichMauData = {}
+var symbolObject = {}
 
 let botListTelegram = {}
 
@@ -70,11 +72,12 @@ async function ListCoinFT() {
     await CoinInfo.getInstrumentsInfo({ category: 'spot' })
         .then((rescoin) => {
             rescoin.result.list.forEach((e) => {
-
                 const symbol = e.symbol
                 if (symbol.split("USDT")[1] === "") {
                     ListCoin1m.push(`kline.1.${symbol}`)
                 }
+
+                symbolObject[symbol] = e.marginTrading != "none" ? "🍁" : "🍀"
                 trichMauData[symbol] = {
                     open: 0,
                     close: 0,
@@ -199,17 +202,25 @@ function tinhOC(symbol, data) {
     //if (OC < Math.abs(OC1)) { OC = OC1 }
     //if (Close < Open) { TP = TP1 }
 
-    //console.log(`${symbol} : Price Close ${Close}, Price OC ${OC}`)
+    //console.log(`${symbol} : Price Close ${Close}, Price OC ${OC}`)\
+
     const OCRound = roundNumber(OC)
     const OCLongRound = roundNumber(OCLong)
 
+    if (OCRound > 8 || OCLongRound > 8) {
+        console.log("OC", OC);
+        console.log("OCRound", OCRound);
+        console.log("OCLong", OCLong);
+        console.log("OCLongRound", OCLongRound);
+
+    }
     if (Math.abs(OCRound) > 1) {
-        const ht = (`⚾ | <b>${symbol.replace("USDT", "")}</b> - 1 min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
+        const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
     if (Math.abs(OCLongRound) > 1) {
-        const htLong = (`⚾ | <b>${symbol.replace("USDT", "")}</b> - 1 min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
+        const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
 }
@@ -552,46 +563,49 @@ let Main = async () => {
         if (dataCoin.wsKey === "v5SpotPublic") {
 
             const dataMain = dataCoin.data[0]
+            if (coinAllClose) {
 
-            const symbol = dataCoin.topic.split(".").slice(-1)[0]
+                const symbol = dataCoin.topic.split(".").slice(-1)[0]
 
-            const coinCurrent = +dataMain.close
-            const turnover = +dataMain.turnover
+                const coinCurrent = +dataMain.close
+                const turnover = +dataMain.turnover
 
-            !trichMauData[symbol].open && (
-                trichMauData[symbol] = {
-                    open: coinCurrent,
-                    close: coinCurrent,
-                    high: coinCurrent,
-                    low: coinCurrent,
-                    turnover: turnover,
+                !trichMauData[symbol].open && (
+                    trichMauData[symbol] = {
+                        open: coinCurrent,
+                        close: coinCurrent,
+                        high: coinCurrent,
+                        low: coinCurrent,
+                        turnover: turnover,
+                    }
+                )
+
+                if (coinCurrent > trichMauData[symbol].high) {
+                    trichMauData[symbol].high = coinCurrent
                 }
-            )
+                else if (coinCurrent < trichMauData[symbol].low) {
+                    trichMauData[symbol].low = coinCurrent
+                }
 
-            if (coinCurrent > trichMauData[symbol].high) {
-                trichMauData[symbol].high = coinCurrent
-            }
-            else if (coinCurrent < trichMauData[symbol].low) {
-                trichMauData[symbol].low = coinCurrent
-            }
+                trichMauData[symbol].close = coinCurrent
 
-            trichMauData[symbol].close = coinCurrent
-
-            trichMau.cur = new Date()
-            if (trichMau.cur - trichMau.pre > 1000) {
-                trichMau.pre = new Date()
-                trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
-                tinhOC(symbol, trichMauData[symbol])
-                trichMauData[symbol] = {
-                    open: coinCurrent,
-                    close: coinCurrent,
-                    high: coinCurrent,
-                    low: coinCurrent,
-                    turnover: turnover,
+                trichMau.cur = new Date()
+                if (trichMau.cur - trichMau.pre > 1000) {
+                    trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+                    tinhOC(symbol, trichMauData[symbol])
+                    trichMauData[symbol] = {
+                        open: coinCurrent,
+                        close: coinCurrent,
+                        high: coinCurrent,
+                        low: coinCurrent,
+                        turnover: turnover,
+                    }
+                    trichMau.pre = new Date()
                 }
             }
-            if (dataCoin.data[0].confirm === true && !delayTimeOut) {
+            if (dataMain.confirm === true && !delayTimeOut) {
                 delayTimeOut = true
+                coinAllClose = true
                 sendMessageTinhOC()
             }
 

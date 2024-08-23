@@ -88,7 +88,7 @@ const dataCoinByBitController = {
             await CoinInfo.getInstrumentsInfo({ category: 'spot' })
                 .then((rescoin) => {
                     rescoin.result.list.forEach((e) => {
-                        if (e.marginTrading != "none" && e.symbol.includes("USDT")) {
+                        if (e.marginTrading != "none" && e.symbol.split("USDT")[1] === "") {
                             data.push({
                                 symbol: e.symbol,
                                 volume24h: e.turnover24h,

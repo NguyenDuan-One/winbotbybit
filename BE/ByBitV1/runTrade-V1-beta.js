@@ -243,13 +243,13 @@ const handleSubmitOrder = async ({
         if (!allStrategiesByBotIDOrderOC[botID]?.logError) {
             console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
             allStrategiesByBotIDOrderOC[botID].logError = true
+            setTimeout(() => {
+        
+                allStrategiesByBotIDOrderOC[botID].logError = false
+                allStrategiesByBotIDOrderOC[botID].totalOC = 0
+            }, 1000)
         }
     }
-    setTimeout(() => {
-
-        allStrategiesByBotIDOrderOC[botID].logError = false
-        allStrategiesByBotIDOrderOC[botID].totalOC = 0
-    }, 1000)
 }
 
 const handleMoveOrderOC = async ({
@@ -305,12 +305,12 @@ const handleMoveOrderOC = async ({
         if (!maxAmendOrderOCData[botID]?.logError) {
             console.log(changeColorConsole.redBright(`[!] LIMIT AMEND OC ( ${botName} )`));
             maxAmendOrderOCData[botID].logError = true
+            setTimeout(() => {
+                maxAmendOrderOCData[botID].logError = false
+                maxAmendOrderOCData[botID].totalOC = 0
+            }, 1000)
         }
     }
-    setTimeout(() => {
-        maxAmendOrderOCData[botID].logError = false
-        maxAmendOrderOCData[botID].totalOC = 0
-    }, 1000)
 }
 
 const handleSubmitOrderTP = async ({
