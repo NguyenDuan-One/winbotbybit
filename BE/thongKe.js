@@ -167,6 +167,7 @@ function tinhOC(symbol, data) {
     // const vol = +data.volume * +data.open
     const vol = +data.turnover
 
+    
     let OC = ((Highest - Open) / Open) || 0
     let TP = ((Highest - Close) / (Highest - Open)) || 0
 
@@ -174,6 +175,7 @@ function tinhOC(symbol, data) {
     let TPLong = (Close - Lowest) / (Open - Lowest) || 0
 
     if (OC == "Infinity") {
+        console.log("Open",Open);
         OC = 0
     }
     if (TP == "Infinity") {
@@ -193,8 +195,12 @@ function tinhOC(symbol, data) {
     //if (Close < Open) { TP = TP1 }
 
     //console.log(`${symbol} : Price Close ${Close}, Price OC ${OC}`)
+
+
     const OCRound = roundNumber(OC)
     const OCLongRound = roundNumber(OCLong)
+
+    
 
     if (Math.abs(OCRound) > 1) {
         const ht = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
@@ -202,7 +208,7 @@ function tinhOC(symbol, data) {
 
     }
     if (Math.abs(OCLongRound) > 1) {
-        const htLong = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
+        const htLong = (`${handleIconCandle(interval)} | <b>${symbol.replace("USDT", "")}</b> - ${interval} min - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
 }

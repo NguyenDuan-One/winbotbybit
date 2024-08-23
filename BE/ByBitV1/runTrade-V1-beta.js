@@ -18,7 +18,8 @@ const wsSymbol = new WebsocketClient(wsConfig);
 
 const LIST_ORDER = ["order", "position"]
 // const LIST_ORDER = ["order"]
-const MAX_ORDER_LIMIT = 10
+const MAX_ORDER_LIMIT = 20
+const MAX_AMEND_LIMIT = 10
 
 const clientDigit = new RestClientV5({
     testnet: false,
@@ -49,6 +50,7 @@ var trichMauTPListObject = {}
 var allStrategiesByBotIDAndOrderID = {}
 var allStrategiesByBotIDAndStrategiesID = {}
 var allStrategiesByBotIDOrderOC = {}
+var maxAmendOrderOCData = {}
 var botApiList = {}
 var digitAllCoinObject = {}
 var botAmountListObject = {}
@@ -108,10 +110,15 @@ const Digit = async () => {// proScale
         category: 'spot',
     })
         .then((response) => {
-            PScale = PScale.concat(response.result.list.map(item => ({
-                symbol: item.symbol,
-                priceScale: item.priceFilter.tickSize
-            })))
+            response.result.list.forEach((e) => {
+                if (e.symbol.split("USDT")[1] === "" && e.marginTrading !== "utaOnly" && e.marginTrading !== "both") {
+                    PScale.push({
+                        symbol: e.symbol,
+                        priceScale: e.priceFilter.tickSize
+                    })
+                }
+            })
+
         })
         .catch((error) => {
             console.log("Error Digit:", error)
@@ -127,7 +134,6 @@ const handleSubmitOrder = async ({
     qty,
     side,
     price,
-    candle,
     ApiKey,
     SecretKey,
     botName,
@@ -146,12 +152,12 @@ const handleSubmitOrder = async ({
         }
     );
 
-    !listOCByCandleBot[candle] && (listOCByCandleBot[candle] = {});
-    !listOCByCandleBot[candle][botID] && (listOCByCandleBot[candle][botID] = {
-        listOC: {},
-        ApiKey,
-        SecretKey,
-    });
+    // !listOCByCandleBot[candle] && (listOCByCandleBot[candle] = {});
+    // !listOCByCandleBot[candle][botID] && (listOCByCandleBot[candle][botID] = {
+    //     listOC: {},
+    //     ApiKey,
+    //     SecretKey,
+    // });
 
     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = true
 
@@ -197,21 +203,21 @@ const handleSubmitOrder = async ({
                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
 
 
-                    listOCByCandleBot[candle][botID].listOC[strategyID] = {
-                        strategyID,
-                        candle,
-                        symbol,
-                        side,
-                        botName,
-                        botID,
-                        orderLinkId
-                    }
+                    // listOCByCandleBot[candle][botID].listOC[strategyID] = {
+                    //     strategyID,
+                    //     candle,
+                    //     symbol,
+                    //     side,
+                    //     botName,
+                    //     botID,
+                    //     orderLinkId
+                    // }
 
                     const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
 
-                    const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} - ${candle} ) successful`
+                    const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% -> ${newOC.toFixed(2)}% ) ( ${botName} - ${side} - ${symbol} ) successful`
                     console.log(text)
-                    console.log(changeColorConsole.greenBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} - ${candle} ): ${newOrderLinkID}`));
+                    console.log(changeColorConsole.greenBright(`[_OC orderID_] ( ${botName} - ${side} - ${symbol} ): ${newOrderLinkID}`));
 
                     // sendMessageWithRetry({
                     //     messageText: text,
@@ -221,14 +227,14 @@ const handleSubmitOrder = async ({
 
                 }
                 else {
-                    console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
+                    console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} ) failed: `, response.retMsg))
                     delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
 
                 }
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = false
             })
             .catch((error) => {
-                console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
+                console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} ) error `, error)
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = false
                 delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
             });
@@ -237,13 +243,74 @@ const handleSubmitOrder = async ({
         if (!allStrategiesByBotIDOrderOC[botID]?.logError) {
             console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
             allStrategiesByBotIDOrderOC[botID].logError = true
-            setTimeout(() => {
-
-                allStrategiesByBotIDOrderOC[botID].logError = false
-                allStrategiesByBotIDOrderOC[botID].totalOC = 0
-            }, 1000)
         }
     }
+    setTimeout(() => {
+
+        allStrategiesByBotIDOrderOC[botID].logError = false
+        allStrategiesByBotIDOrderOC[botID].totalOC = 0
+    }, 1000)
+}
+
+const handleMoveOrderOC = async ({
+    strategyID,
+    symbol,
+    price,
+    orderId,
+    side,
+    ApiKey,
+    SecretKey,
+    botName,
+    botID
+}) => {
+    // console.log(changeColorConsole.greenBright(`Price Move TP ( ${botName} - ${side} - ${symbol} - ${candle} ):`, price));
+    !maxAmendOrderOCData[botID] && (
+        maxAmendOrderOCData[botID] = {
+            totalOC: 0,
+            logError: false
+        }
+    );
+    if (maxAmendOrderOCData[botID].totalOC < MAX_AMEND_LIMIT) {
+
+        maxAmendOrderOCData[botID].totalOC += 1
+        const client = new RestClientV5({
+            testnet: false,
+            key: ApiKey,
+            secret: SecretKey,
+            syncTimeBeforePrivateRequests: true,
+
+        });
+        await client
+            .amendOrder({
+                category: 'spot',
+                symbol,
+                price,
+                orderId
+            })
+            .then((response) => {
+                if (response.retCode == 0) {
+                    allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
+                    console.log(`[->] Move Order OC ( ${botName} - ${side} - ${symbol} -  ) successful: ${price}`)
+                }
+                else {
+                    console.log(changeColorConsole.yellowBright(`[!] Move Order OC ( ${botName} - ${side} - ${symbol} -  ) failed `, response.retMsg))
+                }
+            })
+            .catch((error) => {
+                console.log(`[!] Move Order OC ( ${botName} - ${side} - ${symbol} -  ) error `, error)
+            });
+
+    }
+    else {
+        if (!maxAmendOrderOCData[botID]?.logError) {
+            console.log(changeColorConsole.redBright(`[!] LIMIT AMEND OC ( ${botName} )`));
+            maxAmendOrderOCData[botID].logError = true
+        }
+    }
+    setTimeout(() => {
+        maxAmendOrderOCData[botID].logError = false
+        maxAmendOrderOCData[botID].totalOC = 0
+    }, 1000)
 }
 
 const handleSubmitOrderTP = async ({
@@ -371,6 +438,7 @@ const handleSubmitOrderTP = async ({
             console.log("ERROR Order TP:", error)
         });
 }
+
 
 const moveOrderTP = async ({
     strategyID,
@@ -1494,16 +1562,24 @@ const Main = async () => {
         ...allRes[2].value,
     ]
 
-    listKline = [...new Set(allSymbolRes.map(item => `kline.1.${item}`))]
+    listKline = [...new Set(allSymbolRes.map(symbol => {
+        trichMauOCListObject[symbol] = {
+            curTime: 0,
+            preTime: 0,
+        }
+        return `kline.1.${symbol}`
+    }))]
 
 
     getAllConfigSpotRes.forEach(strategyItem => {
         if (checkConditionBot(strategyItem)) {
-            
-            const strategyID = strategyItem._id
+
+            const strategyID = strategyItem.value
+
             const botID = strategyItem.botID._id
             const botName = strategyItem.botID.botName
             const symbol = strategyItem.symbol
+            strategyItem.tradeType = "Spot"
 
             botApiList[botID] = {
                 id: botID,
@@ -1522,6 +1598,18 @@ const Main = async () => {
         }
     })
 
+    const resultDigitAll = await Digit()
+    resultDigitAll?.length > 0 && (
+        resultDigitAll.reduce((pre, cur) => {
+            if (cur.symbol.includes("USDT")) {
+                pre[cur.symbol] = cur.priceScale
+            }
+            return pre
+        }, digitAllCoinObject)
+    );
+
+
+
     await handleSocketListKline(listKline)
 
     wsSymbol.on('update', async (dataCoin) => {
@@ -1531,13 +1619,71 @@ const Main = async () => {
         const dataMain = dataCoin.data[0]
 
         const coinCurrent = +dataMain.close
+        const coinOpen = +dataMain.open
 
         const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]
-        
+
+        trichMauOCListObject[symbol].curTime = new Date()
+
         listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
-           const strategyOrderChange = strategy.OrderChange
-           const priceOrderOC = coinCurrent
+
+            const strategyID = strategy.value
+            const strategyOrderChange = strategy.OrderChange
+
+            const botID = strategy.botID._id
+            const botName = strategy.botID.botName
+
+            const ApiKey = strategy.botID.ApiKey
+            const SecretKey = strategy.botID.SecretKey
+            const telegramID = strategy.botID.telegramID
+            const telegramToken = strategy.botID.telegramToken
+
+            const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
+
+            if (strategy.IsActive && !updatingAllMain) {
+
+                let priceOrderOC = 0
+                let qty = 0
+
+                priceOrderOC = coinCurrent - coinCurrent * strategyOrderChange / 100
+                qty = (strategy.Amount / +priceOrderOC).toFixed(0)
+
+                const dataInput = {
+                    strategy,
+                    strategyID,
+                    ApiKey,
+                    SecretKey,
+                    symbol,
+                    qty,
+                    side,
+                    price: roundPrice({
+                        price: priceOrderOC,
+                        tickSize: digitAllCoinObject[symbol]
+                    }),
+                    botName,
+                    botID,
+                    telegramID,
+                    telegramToken,
+                    coinOpen,
+                    isLeverage: strategy.tradeType === "Spot" ? 0 : 1
+                }
+
+                if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
+                    handleSubmitOrder(dataInput)
+                }
+                else if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
+                    !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
+                    trichMauOCListObject[symbol].curTime - trichMauOCListObject[symbol].preTime >= 1000) {
+                    handleMoveOrderOC({
+                        ...dataInput,
+                        orderId: allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID
+                    })
+                }
+
+            }
         }))
+
+        trichMauOCListObject[symbol].preTime = new Date()
 
     })
 
