@@ -200,7 +200,7 @@ const PositionController = {
                                         TimeUpdated: positionData?.TimeUpdated,
                                         Miss: positionData.Miss,
                                     }
-                                    // delete dataPositionObject[positionID]
+                                    delete dataPositionObject[positionID]
                                 }
                                 else {
                                     const resNew = await PositionController.createPositionBE(data)

@@ -15,8 +15,12 @@ const bot = new TelegramBot("6992407921:AAFS2wimsauyuoj1eXJFN_XxRFhs5wWtp7c", {
     }
 });
 const CHANNEL_ID = "-1002178225625"
+const MAX_ORDER_LIMIT = 10
 
-
+var sendTeleCount = {
+    logError: false,
+    total: 0
+}
 let digit = []
 let OpenTimem1 = []
 let CoinFT = []
@@ -161,7 +165,7 @@ const handleIconCandle = (candle) => {
     }
 }
 
-function tinhOC(symbol, data) {
+const tinhOC = (symbol, data) => {
 
     const Close = +data.close
     const Open = +data.open
@@ -223,8 +227,21 @@ function tinhOC(symbol, data) {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
-    sendMessageTinhOC()
+    if (sendTeleCount.total < MAX_ORDER_LIMIT) {
+        sendTeleCount.total += 1
+        sendMessageTinhOC()
+    }
+    else {
 
+        if (sendTeleCount?.logError) {
+            console.log(changeColorConsole.redBright(`[!] LIMIT SEND TELEGRAM`));
+            sendTeleCount.logError = true
+            setTimeout(() => {
+                sendTeleCount.logError = false
+                sendTeleCount.total = 0
+            }, 1000)
+        }
+    }
 }
 
 async function history(symbol, OpenTime, limit = 10, dg, percentDefault = 1, coinListWin50 = []) {
