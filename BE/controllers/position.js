@@ -173,6 +173,9 @@ const PositionController = {
 
                         const viTheList = response.result.list;
 
+                        console.log(viTheList);
+                        
+
                         if (viTheList?.length > 0) {
 
                             newData = await Promise.all((viTheList.map(async viTheListItem => {
