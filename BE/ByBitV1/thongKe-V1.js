@@ -15,7 +15,7 @@ const bot = new TelegramBot("6992407921:AAFS2wimsauyuoj1eXJFN_XxRFhs5wWtp7c", {
     }
 });
 const CHANNEL_ID = "-1002178225625"
-const MAX_ORDER_LIMIT = 10
+const MAX_ORDER_LIMIT = 30
 
 var sendTeleCount = {
     logError: false,
@@ -30,6 +30,7 @@ let delayTimeOut = ""
 var coinAllClose = false
 var trichMauData = {}
 var symbolObject = {}
+var listKline = []
 
 let botListTelegram = {}
 
@@ -211,13 +212,6 @@ const tinhOC = (symbol, data) => {
     const OCRound = roundNumber(OC)
     const OCLongRound = roundNumber(OCLong)
 
-    if (OCRound > 8 || OCLongRound > 8) {
-        console.log("OC", OC);
-        console.log("OCRound", OCRound);
-        console.log("OCLong", OCLong);
-        console.log("OCLongRound", OCLongRound);
-
-    }
     if (Math.abs(OCRound) > 1) {
         const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
@@ -227,12 +221,12 @@ const tinhOC = (symbol, data) => {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
-    if (sendTeleCount.total < MAX_ORDER_LIMIT) {
+
+    if (sendTeleCount.total < MAX_ORDER_LIMIT && messageList.length > 0) {
         sendTeleCount.total += 1
         sendMessageTinhOC()
     }
     else {
-
         if (sendTeleCount?.logError) {
             console.log(changeColorConsole.redBright(`[!] LIMIT SEND TELEGRAM`));
             sendTeleCount.logError = true
@@ -504,12 +498,9 @@ const handleStatistic = async (statisticLabel) => {
 }
 
 const sendMessageTinhOC = async () => {
-    if (messageList.length) {
-        console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
-        await sendMessageWithRetry(messageList.join("\n\n"))
-        messageList = []
-    }
-    delayTimeOut = false
+    console.log(`Send telegram tính OC: `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
+    await sendMessageWithRetry(messageList.join("\n\n"))
+    messageList = []
 
 }
 
@@ -521,7 +512,7 @@ let Main = async () => {
     }
 
 
-    const listKline = await ListCoinFT()
+    listKline = await ListCoinFT()
 
     wsSymbol.subscribeV5(listKline, 'spot').then(() => {
         console.log("[V] Subscribe Kline Successful");
@@ -599,6 +590,8 @@ let Main = async () => {
                     }
                 )
 
+                trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+
                 if (coinCurrent > trichMauData[symbol].high) {
                     trichMauData[symbol].high = coinCurrent
                 }
@@ -608,19 +601,6 @@ let Main = async () => {
 
                 trichMauData[symbol].close = coinCurrent
 
-                trichMau.cur = new Date()
-                if (trichMau.cur - trichMau.pre >= 1000) {
-                    trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
-                    tinhOC(symbol, trichMauData[symbol])
-                    trichMauData[symbol] = {
-                        open: coinCurrent,
-                        close: coinCurrent,
-                        high: coinCurrent,
-                        low: coinCurrent,
-                        turnover: turnover,
-                    }
-                    trichMau.pre = new Date()
-                }
             }
             if (dataMain.confirm === true) {
                 coinAllClose = true
@@ -678,6 +658,20 @@ let Main = async () => {
 
 try {
     Main()
+
+    setInterval(() => {
+        listKline.forEach(kline => {
+            const [_, candle, symbol] = kline.split(".");
+            tinhOC(symbol, trichMauData[symbol])
+            trichMauData[symbol] = {
+                open: 0,
+                close: 0,
+                high: 0,
+                low: 0,
+                turnover: 0
+            }
+        })
+    }, 1000)
 
     setTimeout(() => {
         cron.schedule('0 */3 * * *', async () => {
