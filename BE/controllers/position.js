@@ -203,15 +203,18 @@ const PositionController = {
                                     delete dataPositionObject[positionID]
                                 }
                                 else {
-                                    const resNew = await PositionController.createPositionBE(data)
-
                                     data = {
                                         ...data,
-                                        _id: resNew?.id || positionID,
                                         Time: new Date(),
                                         TimeUpdated: new Date(),
                                         Miss: true,
                                     }
+                                    const resNew = await PositionController.createPositionBE(data)
+                                    data = {
+                                        ...data,
+                                        _id: resNew?.id || positionID,
+                                    }
+
                                 }
                                 return data
                             })))
