@@ -173,12 +173,9 @@ const PositionController = {
 
                         const viTheList = response.result.list;
 
-                        console.log(viTheList);
-                        
-
                         if (viTheList?.length > 0) {
 
-                            newData = await Promise.all((viTheList.map(async viTheListItem => {
+                            const dataAll =  await Promise.allSettled((viTheList.map(async viTheListItem => {
 
                                 const Symbol = viTheListItem.symbol
                                 const positionID = `${botID}-${Symbol}`
@@ -219,6 +216,7 @@ const PositionController = {
                                 return data
                             })))
 
+                            newData = newData.concat(dataAll.map(data=>data.value))
                         }
                         else {
                             return await PositionModel.deleteMany({ botID: botID })
