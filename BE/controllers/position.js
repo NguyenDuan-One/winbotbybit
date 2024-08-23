@@ -156,16 +156,18 @@ const PositionController = {
                         syncTimeBeforePrivateRequests: true,
                     });
 
+                    const botID = dataBotItem.value
+
                     return client.getPositionInfo({
                         category: 'linear',
                         settleCoin: "USDT"
                         // symbol: positionData.Symbol
                     }).then(async response => {
 
-                        const dataPosition = await PositionModel.find({ botID: dataBotItem.value }).populate("botID")
+                        const dataPosition = await PositionModel.find({ botID: botID }).populate("botID")
 
                         const dataPositionObject = dataPosition.reduce((pre, cur) => {
-                            pre[cur.Symbol] = cur
+                            pre[`${botID}-${cur.Symbol}`] = cur
                             return pre
                         }, {})
 
@@ -175,8 +177,10 @@ const PositionController = {
 
                             newData = await Promise.all((viTheList.map(async viTheListItem => {
 
+                                const positionID = `${botID}-${Symbol}`
                                 const Symbol = viTheListItem.symbol
-                                const positionData = dataPositionObject[Symbol]
+                                const positionData = dataPositionObject[positionID]
+
                                 let data = {
                                     Pnl: viTheListItem.unrealisedPnl,
                                     Side: viTheListItem.side,
@@ -184,7 +188,7 @@ const PositionController = {
                                     Symbol,
                                     Quantity: viTheListItem.size,
 
-                                    botID: dataBotItem?.value,
+                                    botID,
                                     botName: dataBotItem?.name,
                                     botData: dataBotItem
                                 }
@@ -196,14 +200,14 @@ const PositionController = {
                                         TimeUpdated: positionData?.TimeUpdated,
                                         Miss: positionData.Miss,
                                     }
-                                    delete dataPositionObject[Symbol]
+                                    // delete dataPositionObject[positionID]
                                 }
                                 else {
                                     const resNew = await PositionController.createPositionBE(data)
 
                                     data = {
                                         ...data,
-                                        _id: resNew?.id || `${dataBotItem?.value}-${Symbol}`,
+                                        _id: resNew?.id || positionID,
                                         Time: new Date(),
                                         TimeUpdated: new Date(),
                                         Miss: true,
@@ -214,7 +218,7 @@ const PositionController = {
 
                         }
                         else {
-                            return await PositionModel.deleteMany({ botID: dataBotItem.value })
+                            return await PositionModel.deleteMany({ botID: botID })
                         }
 
                         const positionOld = Object.values(dataPositionObject)
