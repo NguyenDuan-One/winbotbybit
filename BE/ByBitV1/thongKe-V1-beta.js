@@ -32,6 +32,10 @@ var trichMauData = {}
 var trichMau = {}
 var symbolObject = {}
 var listKline = []
+var trichMauTimeMainSendTele = {
+    pre: 0,
+    cur: 0
+}
 
 let botListTelegram = {}
 
@@ -171,36 +175,40 @@ const tinhOC = (symbol, data) => {
     const OCLongRound = roundNumber(OCLong)
 
 
-    if (OCRound > .1) {
+    if (OCRound > 1) {
         const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
-    if (OCLongRound < -.1) {
+    if (OCLongRound < -1) {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
 
 
     if (messageList.length > 0) {
-        sendTeleCount.total += 1
-        console.log("data", data, new Date().toLocaleTimeString());
-        console.log(messageList);
-        // sendMessageTinhOC(messageList)
-        messageList = []
-    }
-    if (sendTeleCount.total < MAX_ORDER_LIMIT) {
-    }
-    else {
-        if (!sendTeleCount?.logError) {
-            console.log(`[!] LIMIT SEND TELEGRAM`);
-            sendTeleCount.logError = true
-            setTimeout(() => {
-                sendTeleCount.logError = false
-                sendTeleCount.total = 0
-            }, 3000)
+        trichMauTimeMainSendTele.cur = new Date()
+        if (trichMauTimeMainSendTele.cur - trichMauTimeMainSendTele.pre >= 3000) {
+            sendTeleCount.total += 1
+            // console.log("data", data, new Date().toLocaleTimeString());
+            // console.log(messageList);
+            sendMessageTinhOC(messageList)
+            messageList = []
+            trichMauTimeMainSendTele.pre = new Date()
         }
     }
+    // if (sendTeleCount.total < MAX_ORDER_LIMIT) {
+    // }
+    // else {
+    //     if (!sendTeleCount?.logError) {
+    //         console.log(`[!] LIMIT SEND TELEGRAM`);
+    //         sendTeleCount.logError = true
+    //         setTimeout(() => {
+    //             sendTeleCount.logError = false
+    //             sendTeleCount.total = 0
+    //         }, 3000)
+    //     }
+    // }
 }
 
 
