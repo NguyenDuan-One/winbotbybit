@@ -15,7 +15,7 @@ const bot = new TelegramBot("6992407921:AAFS2wimsauyuoj1eXJFN_XxRFhs5wWtp7c", {
     }
 });
 const CHANNEL_ID = "-1002178225625"
-const MAX_ORDER_LIMIT = 10
+const MAX_ORDER_LIMIT = 20
 
 var sendTeleCount = {
     logError: false,
@@ -25,8 +25,8 @@ let digit = []
 let OpenTimem1 = []
 let CoinFT = []
 let messageList = []
-let delayTimeOut = ""
 
+var delayTimeOut = ""
 var coinAllClose = false
 var trichMauData = {}
 var trichMau = {}
@@ -171,32 +171,34 @@ const tinhOC = (symbol, data) => {
     const OCLongRound = roundNumber(OCLong)
 
 
-    if (OCRound > 1) {
+    if (OCRound > .1) {
         const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
-    if (OCLongRound < -1) {
+    if (OCLongRound < -.1) {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
 
-    if (sendTeleCount.total < MAX_ORDER_LIMIT && messageList.length > 0) {
+
+    if (messageList.length > 0) {
         sendTeleCount.total += 1
         console.log("data", data, new Date().toLocaleTimeString());
         console.log(messageList);
-
-        sendMessageTinhOC(messageList)
+        // sendMessageTinhOC(messageList)
         messageList = []
     }
+    if (sendTeleCount.total < MAX_ORDER_LIMIT) {
+    }
     else {
-        if (sendTeleCount?.logError) {
-            console.log(changeColorConsole.redBright(`[!] LIMIT SEND TELEGRAM`));
+        if (!sendTeleCount?.logError) {
+            console.log(`[!] LIMIT SEND TELEGRAM`);
             sendTeleCount.logError = true
             setTimeout(() => {
                 sendTeleCount.logError = false
                 sendTeleCount.total = 0
-            }, 1000)
+            }, 3000)
         }
     }
 }
