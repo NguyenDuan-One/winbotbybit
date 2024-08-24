@@ -156,12 +156,12 @@ const tinhOC = (symbol, data) => {
     const OCLongRound = roundNumber(OCLong)
 
 
-    if (Math.abs(OCRound) > 0.3) {
+    if (Math.abs(OCRound) > 0.6) {
         const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
-    if (OCLongRound < -0.3) {
+    if (OCLongRound < -0.6) {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }
@@ -221,7 +221,7 @@ let Main = async () => {
 
                 !trichMauData[symbol].open && (
                     trichMauData[symbol] = {
-                        open:  coinCurrent,
+                        open: trichMauData[symbol].open || coinCurrent,
                         close: coinCurrent,
                         high: coinCurrent,
                         low: coinCurrent,
@@ -265,15 +265,16 @@ try {
     Main()
 
     setInterval(() => {
-        listKline.forEach(kline => {
+        listKline.map(kline => {
             const [_, candle, symbol] = kline.split(".");
-            trichMauData[symbol].open && tinhOC(symbol, trichMauData[symbol])
+            trichMauData[symbol].close && tinhOC(symbol, trichMauData[symbol])
+            const coinCurrent = trichMauData[symbol].close
             trichMauData[symbol] = {
-                open: 0,
-                close: 0,
-                high: 0,
-                low: 0,
-                turnover: 0
+                open: coinCurrent,
+                close: coinCurrent,
+                high: coinCurrent,
+                low: coinCurrent,
+                turnover: trichMauData[symbol].turnover
             }
         })
     }, 1000)

@@ -164,16 +164,17 @@ const PositionController = {
                         // symbol: positionData.Symbol
                     }).then(async response => {
 
-                        const dataPosition = await PositionModel.find({ botID: botID }).populate("botID")
-
-                        const dataPositionObject = dataPosition.reduce((pre, cur) => {
-                            pre[`${botID}-${cur.Symbol}`] = cur
-                            return pre
-                        }, {})
 
                         const viTheList = response.result.list;
 
+
                         if (viTheList?.length > 0) {
+                            const dataPosition = await PositionModel.find({ botID: botID }).populate("botID")
+
+                            const dataPositionObject = dataPosition.reduce((pre, cur) => {
+                                pre[`${botID}-${cur.Symbol}`] = cur
+                                return pre
+                            }, {})
 
                             const dataAll = await Promise.allSettled((viTheList.map(async viTheListItem => {
 
@@ -220,13 +221,16 @@ const PositionController = {
                             })))
 
                             newData = newData.concat(dataAll.map(data => data.value))
+
+                            const positionOld = Object.values(dataPositionObject)
+                            
+                            positionOld.length > 0 && await PositionModel.deleteMany({ _id: { $in: positionOld.map(item => item._id) } })
                         }
                         else {
                             return await PositionModel.deleteMany({ botID: botID })
                         }
 
-                        const positionOld = Object.values(dataPositionObject)
-                        positionOld.length > 0 && await PositionModel.deleteMany({ _id: { $in: positionOld.map(item => item._id) } })
+
 
                     }).catch(error => {
                         console.log("Error", error);
