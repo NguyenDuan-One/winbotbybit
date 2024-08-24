@@ -183,8 +183,9 @@ const tinhOC = (symbol, data) => {
 
     if (sendTeleCount.total < MAX_ORDER_LIMIT && messageList.length > 0) {
         sendTeleCount.total += 1
-        // console.log("data", data, new Date().toLocaleTimeString());
-        // console.log(messageList);
+        console.log("data", data, new Date().toLocaleTimeString());
+        console.log(messageList);
+
         sendMessageTinhOC(messageList)
         messageList = []
     }
