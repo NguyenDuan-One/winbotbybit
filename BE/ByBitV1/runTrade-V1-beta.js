@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 const { exec } = require('child_process');
-require('dotenv').config();
+require('dotenv').config({
+    path: "../.env"
+});
 const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
 const TelegramBot = require('node-telegram-bot-api');
@@ -68,6 +70,7 @@ const roundPrice = (
     }
 ) => {
     return (Math.floor(price / tickSize) * tickSize).toString()
+    
 }
 
 
@@ -227,7 +230,7 @@ const handleSubmitOrder = async ({
 
                 }
                 else {
-                    console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} ) failed: `, response.retMsg))
+                    console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} ) failed: `, response.retMsg, price))
                     delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
 
                 }
@@ -244,7 +247,7 @@ const handleSubmitOrder = async ({
             console.log(changeColorConsole.redBright(`[!] LIMIT ORDER OC ( ${botName} )`));
             allStrategiesByBotIDOrderOC[botID].logError = true
             setTimeout(() => {
-        
+
                 allStrategiesByBotIDOrderOC[botID].logError = false
                 allStrategiesByBotIDOrderOC[botID].totalOC = 0
             }, 1000)
@@ -1083,6 +1086,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.qty = qty
 
+                                            
                                             const dataInput = {
                                                 strategy,
                                                 strategyID,
@@ -1669,6 +1673,8 @@ const Main = async () => {
                 }
 
                 if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
+                    console.log(price);
+
                     handleSubmitOrder(dataInput)
                 }
                 else if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
@@ -1747,7 +1753,6 @@ socketRealtime.on('add', async (newData = []) => {
 
             const botID = newStrategiesData.botID._id
             const botName = newStrategiesData.botID.botName
-            const Candlestick = newStrategiesData.Candlestick.split("")[0]
 
             const ApiKey = newStrategiesData.botID.ApiKey
             const SecretKey = newStrategiesData.botID.SecretKey
@@ -1783,8 +1788,7 @@ socketRealtime.on('add', async (newData = []) => {
 
 
             !allStrategiesByCandleAndSymbol[symbol] && (allStrategiesByCandleAndSymbol[symbol] = {});
-            !allStrategiesByCandleAndSymbol[symbol][Candlestick] && (allStrategiesByCandleAndSymbol[symbol][Candlestick] = {});
-            allStrategiesByCandleAndSymbol[symbol][Candlestick][strategyID] = newStrategiesData;
+            allStrategiesByCandleAndSymbol[symbol][strategyID] = newStrategiesData;
 
             cancelAll({ strategyID, botID })
 
@@ -1792,7 +1796,7 @@ socketRealtime.on('add', async (newData = []) => {
 
     }))
 
-    handleSocketBotApiList(newBotApiList)
+    // handleSocketBotApiList(newBotApiList)
 
 });
 
