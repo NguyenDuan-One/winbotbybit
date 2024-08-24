@@ -230,7 +230,10 @@ let Main = async () => {
                 )
 
                 trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+                trichMauData[symbol].close = coinCurrent
 
+                trichMauData[symbol].turnoverD = turnover
+                
                 if (coinCurrent > trichMauData[symbol].high) {
                     trichMauData[symbol].high = coinCurrent
                 }
@@ -238,9 +241,7 @@ let Main = async () => {
                     trichMauData[symbol].low = coinCurrent
                 }
 
-                trichMauData[symbol].close = coinCurrent
-
-                trichMauData[symbol].turnoverD = turnover
+               
 
             }
             if (dataMain.confirm === true) {

@@ -1,3 +1,6 @@
+require('dotenv').config();
+const { exec } = require('child_process');
+
 const TelegramBot = require('node-telegram-bot-api');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
@@ -18,12 +21,19 @@ var sendTeleCount = {
     logError: false,
     total: 0
 }
+let digit = []
+let OpenTimem1 = []
+let CoinFT = []
 let messageList = []
+let delayTimeOut = ""
 
 var coinAllClose = false
 var trichMauData = {}
+var trichMau = {}
 var symbolObject = {}
 var listKline = []
+
+let botListTelegram = {}
 
 let wsConfig = {
     market: 'v5',
@@ -81,6 +91,10 @@ async function ListCoinFT() {
                     low: 0,
                     turnover: 0
                 }
+                trichMau[symbol] = {
+                    cur: 0,
+                    pre: 0,
+                }
             })
         })
         .catch((error) => {
@@ -90,6 +104,7 @@ async function ListCoinFT() {
 
     return ListCoin1m
 }
+
 
 
 const roundNumber = (number) => {
@@ -108,6 +123,12 @@ const formatNumberString = number => {
     }
 }
 
+const sendMessageTinhOC = async (messageList) => {
+    console.log(`Send telegram tính OC ( 🍁 ): `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
+    await sendMessageWithRetry(messageList.join("\n\n"))
+
+}
+
 
 const tinhOC = (symbol, data) => {
 
@@ -116,12 +137,6 @@ const tinhOC = (symbol, data) => {
     const Highest = +data.high
     const Lowest = +data.low
 
-    // console.log("Close",Close);
-    // console.log("Open",Open);
-    // console.log("Lowest",Lowest);
-    // console.log("Highest",Highest);
-
-    // const vol = data.volume * data.open
 
     const vol = data.turnover
 
@@ -156,7 +171,7 @@ const tinhOC = (symbol, data) => {
     const OCLongRound = roundNumber(OCLong)
 
 
-    if (Math.abs(OCRound) > 0.6) {
+    if (OCRound > 0.6) {
         const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
@@ -168,8 +183,8 @@ const tinhOC = (symbol, data) => {
 
     if (sendTeleCount.total < MAX_ORDER_LIMIT && messageList.length > 0) {
         sendTeleCount.total += 1
-        console.log("data", data, new Date().toLocaleTimeString());
-        console.log(messageList);
+        // console.log("data", data, new Date().toLocaleTimeString());
+        // console.log(messageList);
         sendMessageTinhOC(messageList)
         messageList = []
     }
@@ -186,18 +201,9 @@ const tinhOC = (symbol, data) => {
 }
 
 
-const sendMessageTinhOC = async (messageList) => {
-    console.log(`Send telegram tính OC ( 🍁 ): `, new Date().toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }));
-    await sendMessageWithRetry(messageList.join("\n\n"))
-
-}
-
 let Main = async () => {
 
-    const trichMau = {
-        pre: 0,
-        cur: 0
-    }
+
 
 
     listKline = await ListCoinFT()
@@ -208,21 +214,21 @@ let Main = async () => {
     }).catch((err) => { console.log(err) });
 
 
+
     wsSymbol.on('update', async (dataCoin) => {
         if (dataCoin.wsKey === "v5SpotPublic") {
 
             const dataMain = dataCoin.data[0]
+            // if (coinAllClose) {
             if (true) {
-
                 const symbol = dataCoin.topic.split(".").slice(-1)[0]
 
                 const coinCurrent = +dataMain.close
                 const turnover = +dataMain.turnover
 
-                !trichMauData[symbol].open && (
+                !trichMauData[symbol].high && (
                     trichMauData[symbol] = {
-                        open: trichMauData[symbol].open || coinCurrent,
-                        close: coinCurrent,
+                        open: coinCurrent,
                         high: coinCurrent,
                         low: coinCurrent,
                         turnover: turnover,
@@ -230,6 +236,8 @@ let Main = async () => {
                 )
 
                 trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+                trichMauData[symbol].close = coinCurrent
+                trichMauData[symbol].turnoverD = turnover
 
                 if (coinCurrent > trichMauData[symbol].high) {
                     trichMauData[symbol].high = coinCurrent
@@ -238,14 +246,25 @@ let Main = async () => {
                     trichMauData[symbol].low = coinCurrent
                 }
 
-                trichMauData[symbol].close = coinCurrent
 
-                trichMauData[symbol].turnoverD = turnover
+                trichMau[symbol].cur = new Date()
+                if (trichMau[symbol].cur - trichMau[symbol].pre >= 1000) {
+                    trichMau[symbol].pre = new Date()
+                    tinhOC(symbol, trichMauData[symbol])
+                }
+
+                trichMauData[symbol] = {
+                    open: coinCurrent,
+                    high: coinCurrent,
+                    low: coinCurrent,
+                    turnover: turnover,
+                }
 
             }
             if (dataMain.confirm === true) {
                 coinAllClose = true
             }
+
 
 
 
@@ -264,20 +283,6 @@ let Main = async () => {
 try {
     Main()
 
-    setInterval(() => {
-        listKline.map(kline => {
-            const [_, candle, symbol] = kline.split(".");
-            trichMauData[symbol].close && tinhOC(symbol, trichMauData[symbol])
-            const coinCurrent = trichMauData[symbol].close
-            trichMauData[symbol] = {
-                open: coinCurrent,
-                close: coinCurrent,
-                high: coinCurrent,
-                low: coinCurrent,
-                turnover: trichMauData[symbol].turnover
-            }
-        })
-    }, 1000)
 
     setTimeout(() => {
         cron.schedule('0 */3 * * *', async () => {
