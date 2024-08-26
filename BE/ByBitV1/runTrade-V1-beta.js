@@ -22,6 +22,9 @@ const LIST_ORDER = ["order", "position"]
 // const LIST_ORDER = ["order"]
 const MAX_ORDER_LIMIT = 20
 const MAX_AMEND_LIMIT = 10
+const RE_TP_ADAPTIVE = 5
+const TP_ADAPTIVE = 80
+const TP_NOT_ADAPTIVE = 60
 
 const clientDigit = new RestClientV5({
     testnet: false,
@@ -509,10 +512,10 @@ const handleMoveOrderTP = async ({
 
         let TPNew
         if (strategy.PositionSide === "Long") {
-            TPNew = TPOld - Math.abs(TPOld - coinOpen) * (strategy.ReduceTakeProfit / 100)
+            TPNew = TPOld - strategy.digit
         }
         else {
-            TPNew = TPOld + Math.abs(TPOld - coinOpen) * (strategy.ReduceTakeProfit / 100)
+            TPNew = TPOld + strategy.digit
         }
 
         allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = TPNew
@@ -970,6 +973,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                         const topicMain = dataCoin.topic
                         const dataMainAll = dataCoin.data
 
+
                         ApiKey && SecretKey && await Promise.allSettled(dataMainAll.map(async dataMain => {
 
                             const symbol = dataMain.symbol
@@ -982,7 +986,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
                             }
                             if (orderStatus === "PartiallyFilled") {
-                                console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID( ${botName} - ${dataMain.side} - ${symbol} - ${strategy.Candlestick} ):`, dataMain.qty));
+                                console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID( ${botName} - ${dataMain.side} - ${symbol}):`, dataMain.qty));
                             }
 
                             if (topicMain === "order") {
@@ -997,6 +1001,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 if (strategy) {
 
                                     const strategyID = strategy.value
+
+                                    const TPMain = strategy.Adaptive ? TP_ADAPTIVE : TP_NOT_ADAPTIVE
+
                                     // const coinOpenOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen || strategy.coinOpen
 
                                     if (orderStatus === "Filled") {
@@ -1006,7 +1013,6 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             const coinOpenOC = strategyData.coinOpen
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.orderFilled = true
 
-                                            // Send telegram
                                             const openTrade = +dataMain.avgPrice  //Gia khop lenh
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.openTrade = openTrade
@@ -1022,9 +1028,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             const priceOldOrder = (botAmountListObject[botID] * strategy.Amount / 100).toFixed(2)
 
-                                            console.log(`\n\n[V] Filled OC: \n${symbol.replace("USDT", "")} | Open ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}\n`);
-                                            const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
-                                            // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+                                            console.log(`\n\n[V] Filled OC: \n${symbol.replace("USDT", "")} | Open ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${TPMain}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}\n`);
+                                            const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${TPMain}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
+                                            // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Open ${sideText} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${TPMain}% \nPrice: ${openTrade} | Amount: ${priceOldOrder}`
 
                                             if (!missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
 
@@ -1070,11 +1076,11 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             let TPNew = 0
 
                                             if (strategy.PositionSide === "Long") {
-                                                TPNew = openTrade + Math.abs((openTrade - coinOpenOC)) * (strategy.TakeProfit / 100)
+                                                TPNew = openTrade + Math.abs((openTrade - coinOpenOC)) * (TPMain / 100)
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = openTrade + Math.abs((openTrade - coinOpenOC)) * ((strategy.EntryTrailing || 40) / 100)
                                             }
                                             else {
-                                                TPNew = openTrade - Math.abs((openTrade - coinOpenOC)) * (strategy.TakeProfit / 100)
+                                                TPNew = openTrade - Math.abs((openTrade - coinOpenOC)) * (TPMain / 100)
                                                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.priceCompare = openTrade - Math.abs((openTrade - coinOpenOC)) * ((strategy.EntryTrailing || 40) / 100)
                                             }
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.side = strategy.PositionSide === "Long" ? "Sell" : "Buy"
@@ -1128,9 +1134,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             const newOC = allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.newOC
 
-                                            console.log(`\n\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}\n`);
-                                            const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
-                                            // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${strategy.TakeProfit}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
+                                            console.log(`\n\n[V] Filled TP: \n${symbol.replace("USDT", "")} | Close ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${TPMain}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}\n`);
+                                            const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${strategy.PositionSide} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% -> ${newOC}% | TP: ${TPMain}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
+                                            // const teleText = `<b>${symbol.replace("USDT", "")}</b> | Close ${side} \nBot: ${botName} \nFT: ${strategy.Candlestick} | OC: ${strategy.OrderChange}% | TP: ${TPMain}% \nPrice: ${closePrice} | Amount: ${priceOldOrder}`
 
                                             const priceWinPercent = (Math.abs(closePrice - openTradeOCFilled) / openTradeOCFilled * 100).toFixed(2) || 0;
                                             const priceWin = ((closePrice - openTradeOCFilled) * qty).toFixed(2) || 0;
@@ -1608,6 +1614,7 @@ const Main = async () => {
     );
 
 
+    await handleSocketBotApiList(botApiList)
 
     await handleSocketListKline(listKline)
 
@@ -1658,17 +1665,9 @@ const Main = async () => {
                 delete allStrategiesByCandleAndSymbol?.[symbol]?.[strategyID]
             }
 
-            //Check expire Increase-Amount - 
+            //Check expire Increase-Amount - OK
             if (new Date() - strategy.AmountExpirePre >= strategy.AmountExpire * 60 * 1000) {
                 strategy.Amount = strategy.AmountOld
-            }
-
-            if (strategy.preIsWin) {
-                const newAmount = strategy.Amount + strategy.Amount * strategy.AmountAutoPercent / 100
-                newAmount <= strategy.Limit && (strategy.Amount = newAmount);
-            }
-            if (strategy.preIsLose) {
-                strategy.OrderChange = strategy.OrderChange + strategy.OrderChange * strategy.AmountIncreaseOC / 100
             }
 
             // 
@@ -1705,7 +1704,15 @@ const Main = async () => {
                 if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
                     console.log(price);
 
-                    // handleSubmitOrder(dataInput)
+                    if (strategy.preIsWin) {
+                        const newAmount = strategy.Amount + strategy.Amount * strategy.AmountAutoPercent / 100
+                        newAmount <= strategy.Limit && (strategy.Amount = newAmount);
+                    }
+                    if (strategy.preIsLose) {
+                        strategy.OrderChange = strategy.OrderChange + strategy.OrderChange * strategy.AmountIncreaseOC / 100
+                    }
+
+                    handleSubmitOrder(dataInput)
                 }
                 else if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
                     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
@@ -1713,6 +1720,14 @@ const Main = async () => {
                     handleMoveOrderOC({
                         ...dataInput,
                         orderId: allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID
+                    })
+                }
+                else if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderID &&
+                    strategy.Adaptive &&
+                    trichMauOCListObject[symbol].curTime - trichMauOCListObject[symbol].preTime >= 1000) {
+                    handleMoveOrderTP({
+                        ...dataInput,
+                        orderId: allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.TP?.orderID
                     })
                 }
 
