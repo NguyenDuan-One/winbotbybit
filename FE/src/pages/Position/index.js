@@ -359,7 +359,6 @@ function Position() {
                                 variant="contained"
                                 size="small"
                                 color="info"
-                                style={{ marginRight: "12px" }}
                                 onClick={() => {
                                     handleRefreshData()
                                 }}
@@ -371,6 +370,7 @@ function Position() {
                                 variant="contained"
                                 size="small"
                                 color="error"
+                                style={{ marginLeft: "12px" }}
                                 onClick={() => {
                                     setConfirmCloseAllPosition({
                                         isOpen: true,
