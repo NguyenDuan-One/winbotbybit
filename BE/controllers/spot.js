@@ -1294,6 +1294,28 @@ const dataCoinByBitController = {
         }
     },
 
+    deleteStrategiesItemSpotBE: async ({
+        id, parentID
+    }) => {
+        try {
+            const result = await SpotModel.updateOne(
+                { _id: parentID },
+                { $pull: { children: { _id: id } } }
+            );
+
+            if (result.acknowledged && result.deletedCount !== 0) {
+                
+                return "Delete Strategies Successful"
+            }
+            else {
+                return "Delete Strategies failed"
+            }
+            
+        } catch (error) {
+            return "Delete Strategies Error: " + error.message
+        }
+    },
+
 }
 
 module.exports = dataCoinByBitController 

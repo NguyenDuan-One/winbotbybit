@@ -176,12 +176,12 @@ const tinhOC = (symbol, data) => {
     const OCLongRound = roundNumber(OCLong)
     const TPLongRound = roundNumber(TPLong)
 
-    if (OCRound >= 1 && TPRound >= 1) {
+    if (OCRound >= .5 && TPRound >= 1) {
         const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
 
     }
-    if (OCLongRound <= -1 && TPLongRound <= -1) {
+    if (OCLongRound <= -.5 && TPLongRound <= -1) {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
     }

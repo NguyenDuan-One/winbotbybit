@@ -7,7 +7,7 @@ const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
 const TelegramBot = require('node-telegram-bot-api');
 const { getAllSymbolMarginBE } = require('../controllers/margin');
-const { getAllSymbolSpotBE, getAllStrategiesActiveSpotBE } = require('../controllers/spot');
+const { getAllSymbolSpotBE, getAllStrategiesActiveSpotBE, deleteStrategiesItemSpotBE } = require('../controllers/spot');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 
@@ -659,9 +659,7 @@ const handleCancelAllOrderOC = async (items = [], batchSize = 10) => {
             }
         }))
         console.log("[V] Cancel All OC Successful");
-        setTimeout(() => {
-            updatingAllMain = false
-        }, 1000)
+
     }
 
 }
@@ -1627,6 +1625,12 @@ const Main = async () => {
 
         const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]
 
+        if(symbol === "INSPUSDT")
+        {
+            console.log("listDataObject", listDataObject && Object.values(listDataObject)?.length );
+        }
+        
+
         trichMauOCListObject[symbol].curTime = new Date()
 
         listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
@@ -1643,8 +1647,21 @@ const Main = async () => {
             const telegramToken = strategy.botID.telegramToken
 
             // Gắn time limit config
-            !strategy.limitPre && (strategy.limitPre = new Date())
+            !strategy.ExpirePre && (strategy.ExpirePre = new Date())
 
+            //Check limit config
+
+            if (new Date() - strategy.ExpirePre >= strategy.Expire * 60 * 1000) {
+                // delete mongo config
+                const [parentID, id] = strategy.value.split("-")
+                deleteStrategiesItemSpotBE({ id, parentID }).then(message => {
+                    console.log(message);
+                }).catch(err => {
+                    console.log(err.message);
+                })
+                strategy.IsActive = false
+                delete allStrategiesByCandleAndSymbol?.[symbol]?.[strategyID]
+            }
 
             const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
@@ -1690,11 +1707,7 @@ const Main = async () => {
                     })
                 }
 
-                //Check limit config
-                if (new Date() - strategy.limitPre >= strategy.Limit * 60 * 1000) {
-                    // delete mongo config
-
-                }
+                
             }
         }))
 
@@ -1935,8 +1948,9 @@ socketRealtime.on('update', async (newData = []) => {
 
     await Promise.allSettled([cancelAllOC, cancelAllTP])
 
-    handleSocketBotApiList(newBotApiList)
+    await handleSocketBotApiList(newBotApiList)
 
+    updatingAllMain = false
 });
 
 socketRealtime.on('delete', async (newData) => {
@@ -2015,6 +2029,7 @@ socketRealtime.on('delete', async (newData) => {
     })
 
     await Promise.allSettled([cancelAllOC, cancelAllTP])
+    updatingAllMain = false
 
 });
 
@@ -2168,7 +2183,8 @@ socketRealtime.on('bot-update', async (data = {}) => {
 
     await Promise.allSettled([cancelAllOC, cancelAllTP])
 
-    !botApiData && handleSocketBotApiList(newBotApiList);
+    !botApiData && await handleSocketBotApiList(newBotApiList);
+    updatingAllMain = false
 
 });
 
@@ -2294,6 +2310,9 @@ socketRealtime.on('bot-api', async (data) => {
         console.log("[!] Error subscribeV5", error)
     }
 
+    updatingAllMain = false
+
+
 });
 
 socketRealtime.on('bot-delete', async (data) => {
@@ -2394,6 +2413,7 @@ socketRealtime.on('bot-delete', async (data) => {
     await wsOrder.unsubscribeV5(LIST_ORDER, 'spot')
 
     delete botApiList[botIDMain]
+    updatingAllMain = false
 
 });
 
