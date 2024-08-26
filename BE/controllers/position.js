@@ -314,35 +314,10 @@ const PositionController = {
                 if (list.length > 0) {
                     console.log(`[...] Total Position Can Be Cancelled: ${list.length}`);
                     let index = 0;
-                    const listCancel = {}
                     while (index < list.length) {
                         const batch = list.slice(index, index + batchSize);
 
                         const res = await client.batchSubmitOrders("linear", batch)
-                        const listSuccess = res.result.list || []
-                        const listSuccessCode = res.retExtInfo.list || []
-
-
-                        listSuccess.forEach((item, index) => {
-                            const data = listCancel[item.orderLinkId]
-                            const codeData = listSuccessCode[index]
-                            const botIDTemp = data.botID
-                            const strategyIDTemp = data.strategyID
-                            const candleTemp = data.candle
-
-                            if (codeData.code == 0) {
-                                console.log(`[V] Cancel position ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) successful `);
-                                cancelAll({
-                                    botID: botIDTemp,
-                                    strategyID: strategyIDTemp,
-                                })
-                            }
-                            else {
-                                allStrategiesByBotIDAndStrategiesID[botIDTemp][strategyIDTemp].OC.orderID = ""
-                                console.log(changeColorConsole.yellowBright(`[!] Cancel position ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) failed `, codeData.msg));
-                            }
-                            delete listOCByCandleBot[candleTemp][botIDTemp].listOC[strategyIDTemp]
-                        })
 
                         await delay(1000)
                         index += batchSize
