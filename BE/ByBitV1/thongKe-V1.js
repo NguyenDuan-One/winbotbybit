@@ -166,16 +166,18 @@ const tinhOC = (symbol, data) => {
         messageList.push(htLong)
     }
 
-    if (sendTeleCount.total < MAX_ORDER_LIMIT && messageList.length > 0) {
-        sendTeleCount.total += 1
-        console.log("data", data, new Date().toLocaleTimeString());
-        console.log(messageList);
-        sendMessageTinhOC(messageList)
-        messageList = []
+    if (sendTeleCount.total < MAX_ORDER_LIMIT) {
+        if (messageList.length > 0) {
+            sendTeleCount.total += 1
+            console.log("data", data, new Date().toLocaleTimeString());
+            console.log(messageList);
+            // sendMessageTinhOC(messageList)
+            messageList = []
+        }
     }
     else {
-        if (sendTeleCount?.logError) {
-            console.log(changeColorConsole.redBright(`[!] LIMIT SEND TELEGRAM`));
+        if (!sendTeleCount?.logError) {
+            console.log(`[!] LIMIT SEND TELEGRAM`)
             sendTeleCount.logError = true
             setTimeout(() => {
                 sendTeleCount.logError = false
@@ -221,7 +223,7 @@ let Main = async () => {
 
                 !trichMauData[symbol].open && (
                     trichMauData[symbol] = {
-                        open:  coinCurrent,
+                        open: coinCurrent,
                         close: coinCurrent,
                         high: coinCurrent,
                         low: coinCurrent,
@@ -233,7 +235,7 @@ let Main = async () => {
                 trichMauData[symbol].close = coinCurrent
 
                 trichMauData[symbol].turnoverD = turnover
-                
+
                 if (coinCurrent > trichMauData[symbol].high) {
                     trichMauData[symbol].high = coinCurrent
                 }
@@ -241,7 +243,7 @@ let Main = async () => {
                     trichMauData[symbol].low = coinCurrent
                 }
 
-               
+
 
             }
             if (dataMain.confirm === true) {
