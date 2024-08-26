@@ -223,7 +223,7 @@ const PositionController = {
                             newData = newData.concat(dataAll.map(data => data.value))
 
                             const positionOld = Object.values(dataPositionObject)
-                            
+
                             positionOld.length > 0 && await PositionModel.deleteMany({ _id: { $in: positionOld.map(item => item._id) } })
                         }
                         else {
@@ -338,7 +338,7 @@ const PositionController = {
             .then(async (response) => {
                 if (response.retCode == 0) {
 
-                    const result = await PositionModel.updateOne({ Symbol: symbol }, {
+                    const result = await PositionModel.updateOne({ Symbol: symbol, botID: positionData.botID }, {
                         $set: {
                             Miss: false,
                             TimeUpdated: new Date()
@@ -346,10 +346,10 @@ const PositionController = {
                     });
 
                     if (result.acknowledged && result.matchedCount !== 0) {
-                        console.log("[Mongo] Update Position Successful")
+                        console.log(`[Mongo-Limit] Update Position ( ${positionData.BotName} ) Successful`)
                     }
                     else {
-                        console.log(`[Mongo] Update Position Failed`)
+                        console.log(`[Mongo-Limit] Update Position ( ${positionData.BotName} ) Failed`)
                     }
 
                     // PositionController.sendDataRealtime({

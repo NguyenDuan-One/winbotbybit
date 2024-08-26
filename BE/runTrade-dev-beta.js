@@ -1309,6 +1309,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                 missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
                                 missTPDataBySymbol[botSymbolMissID].size = Math.abs(dataMain.qty)
+                                
+                                missTPDataBySymbol[botSymbolMissID].gongLai = false
+
                             }
                             // User cancel vị thế ( Market )
                             if (dataMain.orderType === "Market") {
