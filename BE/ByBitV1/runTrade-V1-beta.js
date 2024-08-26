@@ -1526,9 +1526,6 @@ const handleSocketListKline = async (listKlineInput) => {
 
         console.log("[V] Subscribe kline successful\n");
 
-
-
-
     }).catch(err => {
         console.log("[!] Subscribe kline error:", err)
     })
@@ -1625,15 +1622,12 @@ const Main = async () => {
 
         const listDataObject = allStrategiesByCandleAndSymbol?.[symbol]
 
-        if(symbol === "INSPUSDT")
-        {
-            console.log("listDataObject", listDataObject && Object.values(listDataObject)?.length );
-        }
-        
-
         trichMauOCListObject[symbol].curTime = new Date()
 
         listDataObject && Object.values(listDataObject)?.length > 0 && await Promise.allSettled(Object.values(listDataObject).map(async strategy => {
+
+            console.log("strategy.Amount", strategy.Amount);
+            console.log("strategy.OrderChange", strategy.OrderChange);
 
             const strategyID = strategy.value
             const strategyOrderChange = strategy.OrderChange
@@ -1647,10 +1641,11 @@ const Main = async () => {
             const telegramToken = strategy.botID.telegramToken
 
             // Gắn time limit config
-            !strategy.ExpirePre && (strategy.ExpirePre = new Date())
+            !strategy.ExpirePre && (strategy.ExpirePre = new Date());
+            !strategy.AmountOld && (strategy.AmountOld = strategy.Amount);
+            !strategy.AmountExpirePre && (strategy.AmountExpirePre = new Date());
 
-            //Check limit config
-
+            //Check expire config - OK
             if (new Date() - strategy.ExpirePre >= strategy.Expire * 60 * 1000) {
                 // delete mongo config
                 const [parentID, id] = strategy.value.split("-")
@@ -1663,6 +1658,20 @@ const Main = async () => {
                 delete allStrategiesByCandleAndSymbol?.[symbol]?.[strategyID]
             }
 
+            //Check expire Increase-Amount - 
+            if (new Date() - strategy.AmountExpirePre >= strategy.AmountExpire * 60 * 1000) {
+                strategy.Amount = strategy.AmountOld
+            }
+
+            if (strategy.preIsWin) {
+                const newAmount = strategy.Amount + strategy.Amount * strategy.AmountAutoPercent / 100
+                newAmount <= strategy.Limit && (strategy.Amount = newAmount);
+            }
+            if (strategy.preIsLose) {
+                strategy.OrderChange = strategy.OrderChange + strategy.OrderChange * strategy.AmountIncreaseOC / 100
+            }
+
+            // 
             const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
             if (strategy.IsActive && !updatingAllMain) {
@@ -1707,7 +1716,7 @@ const Main = async () => {
                     })
                 }
 
-                
+
             }
         }))
 
@@ -1843,7 +1852,6 @@ socketRealtime.on('update', async (newData = []) => {
             const symbol = strategiesData.symbol
             const strategyID = strategiesData.value
             const IsActive = strategiesData.IsActive
-            const Candlestick = strategiesData.Candlestick.split("")[0]
 
 
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
