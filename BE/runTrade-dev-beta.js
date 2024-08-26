@@ -1308,8 +1308,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                 missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
-                                missTPDataBySymbol[botSymbolMissID].size = Math.abs(dataMain.qty)
+                                const newSize = Math.abs(dataMain.qty)
                                 
+                                missTPDataBySymbol[botSymbolMissID].size = newSize
+                                missTPDataBySymbol[botSymbolMissID].sizeTotal = newSize
+
+
                                 missTPDataBySymbol[botSymbolMissID].gongLai = false
 
                             }

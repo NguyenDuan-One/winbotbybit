@@ -5,15 +5,20 @@ import { useEffect, useRef, useState } from "react";
 import { getAllBotOnlyApiKeyByUserID } from "../../services/botService";
 import DataGridCustom from "../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
-import { updatePL } from "../../services/positionService";
+import { closeAllPosition, updatePL } from "../../services/positionService";
 import { addMessageToast } from "../../store/slices/Toast";
 import { useDispatch, useSelector } from "react-redux";
 import AddLimit from "./components/AddLimit";
 import AddMarket from "./components/AddMarket";
+import DialogCustom from "../../components/DialogCustom";
 
 function Position() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
+    const [confirmCloseAllPosition, setConfirmCloseAllPosition] = useState({
+        isOpen: false,
+        dataChange: false,
+    });
 
     // const botTypeList = [
     //     {
@@ -249,12 +254,12 @@ function Position() {
         setPositionData(listData)
     }
 
-    const handleRefreshData = async (botListInput = botList) => {
+    const handleRefreshData = async (botListInput = botList, alert = true) => {
         try {
             const res = await updatePL(botListInput.slice(1))
             const { status, message, data: resData } = res.data
-            
-            
+
+
             if (status === 200) {
                 const data = resData.length > 0 ? resData?.map(item => (
                     {
@@ -277,14 +282,14 @@ function Position() {
                 positionDataDefault.current = data
             }
 
-            dispatch(addMessageToast({
+            alert && dispatch(addMessageToast({
                 status,
                 message,
             }))
 
         }
         catch (err) {
-            
+
             dispatch(addMessageToast({
                 status: 500,
                 message: "Refresh Position Error",
@@ -298,10 +303,10 @@ function Position() {
     }, [userData.userName]);
 
     useEffect(() => {
-        if (openAddLimit.dataChange || openAddMarket.dataChange) {
-            handleRefreshData()
+        if (openAddLimit.dataChange || openAddMarket.dataChange || confirmCloseAllPosition.dataChange) {
+            handleRefreshData(undefined, false)
         }
-    }, [openAddLimit, openAddMarket]);
+    }, [openAddLimit, openAddMarket,confirmCloseAllPosition]);
 
     return (
         <div>
@@ -348,18 +353,35 @@ function Position() {
 
 
 
-                    {botList.length > 0 &&
-                        <Button
-                            variant="contained"
-                            size="small"
-                            color="info"
-                            className={styles.refreshBtn}
-                            onClick={() => {
-                                handleRefreshData()
-                            }}
-                        >
-                            Refresh
-                        </Button>}
+                    <div className={styles.refreshBtn}>
+                        {botList.length > 0 &&
+                            <Button
+                                variant="contained"
+                                size="small"
+                                color="info"
+                                style={{ marginRight: "12px" }}
+                                onClick={() => {
+                                    handleRefreshData()
+                                }}
+                            >
+                                Refresh
+                            </Button>}
+                        {/* {positionData.length > 0 && */}
+                        {true &&
+                            <Button
+                                variant="contained"
+                                size="small"
+                                color="error"
+                                onClick={() => {
+                                    setConfirmCloseAllPosition({
+                                        isOpen: true,
+                                        dataChange: false
+                                    })
+                                }}
+                            >
+                                Close All
+                            </Button>}
+                    </div>
                 </div>
 
                 <div className={styles.positionTable}>
@@ -370,12 +392,12 @@ function Position() {
                         tableColumns={tableColumns}
                         checkboxSelection={false}
                         columnVisibilityModel={
-                          {
-                            "Price":false,
-                            "Quantity":false,
-                            "Time":false,
-                            "TimeUpdated":false,
-                          }
+                            {
+                                "Price": false,
+                                "Quantity": false,
+                                "Time": false,
+                                "TimeUpdated": false,
+                            }
                         }
                     />
                 </div>
@@ -406,6 +428,41 @@ function Position() {
                         }}
                         positionData={openAddMarket.data}
                     />
+                )
+            }
+
+            {
+                confirmCloseAllPosition.isOpen && (
+                    <DialogCustom
+                        backdrop
+                        open={true}
+                        onClose={() => {
+                            setConfirmCloseAllPosition({
+                                dataChange: false,
+                                isOpen: false
+                            })
+                        }}
+                        onSubmit={async () => {
+                            const res = await closeAllPosition(botList.slice(1))
+                            const { message } = res.data
+
+                            dispatch(addMessageToast({
+                                status: 200,
+                                message,
+                            }))
+                            setConfirmCloseAllPosition({
+                                dataChange: true,
+                                isOpen: false
+                            })
+                        }}
+                        dialogTitle="The action requires confirmation"
+                        submitBtnColor="error"
+                        submitBtnText="Close"
+                        reserveBtn
+                        position="center"
+                    >
+                        <p style={{ textAlign: "center" }}>Do you want to close all position of bots?</p>
+                    </DialogCustom >
                 )
             }
         </div >

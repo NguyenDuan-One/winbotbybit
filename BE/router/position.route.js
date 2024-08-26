@@ -9,5 +9,6 @@ router.post('/getAllPosition', MiddlewareController.verifyToken, PositionControl
 router.post('/updatePL', MiddlewareController.verifyToken, PositionController.updatePL);
 router.post('/closeMarket', MiddlewareController.verifyToken, PositionController.closeMarket);
 router.post('/closeLimit', MiddlewareController.verifyToken, PositionController.closeLimit);
+router.post('/closeAllPosition', MiddlewareController.verifyToken, PositionController.closeAllPosition);
 
 module.exports = router;

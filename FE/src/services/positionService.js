@@ -18,5 +18,7 @@ export const closeMarket = async ({ positionData, Quantity }) => {
 export const closeLimit = async ({ positionData, Quantity, Price }) => {
     return await api.post("/position/closeLimit", { positionData, Quantity, Price })
 }
-
+export const closeAllPosition = async (botListID) => {
+    return await api.post("/position/closeAllPosition", { botListID })
+}
 

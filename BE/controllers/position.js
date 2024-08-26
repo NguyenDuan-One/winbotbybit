@@ -249,6 +249,110 @@ const PositionController = {
         }
     },
 
+    closeAllPosition: async (req, res) => {
+        try {
+            const { botListID } = req.body
+
+            let allViThe = {}
+
+            await Promise.allSettled(botListID.map(dataBotItem => {
+
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: dataBotItem.ApiKey,
+                    secret: dataBotItem.SecretKey,
+                    syncTimeBeforePrivateRequests: true,
+                });
+
+                const botID = dataBotItem.value
+
+                return client.getPositionInfo({
+                    category: 'linear',
+                    settleCoin: "USDT"
+                    // symbol: positionData.Symbol
+                }).then(async response => {
+
+                    const viTheList = response.result.list;
+
+                    allViThe[botID] = {
+                        ApiKey: dataBotItem.ApiKey,
+                        SecretKey: dataBotItem.SecretKey,
+                        listOC: viTheList.map(viTheListItem => (
+                            {
+                                side: viTheListItem.side === "Buy" ? "Sell" : "Buy",
+                                symbol: viTheListItem.symbol,
+                                qty: viTheListItem.size,
+                                orderType: "Market",
+                                positionIdx: 0,
+                            }
+                        ))
+                    }
+                })
+            }))
+            await PositionController.handleCancelAllPosition(
+                Object.values(allViThe))
+
+            res.customResponse(200, "Close All Position Successful", "");
+
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    },
+    handleCancelAllPosition: async (items = [], batchSize = 10) => {
+
+        if (items.length > 0) {
+            await Promise.allSettled(items.map(async item => {
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: item.ApiKey,
+                    secret: item.SecretKey,
+                    syncTimeBeforePrivateRequests: true,
+
+                });
+                const list = Object.values(item.listOC || {})
+
+                if (list.length > 0) {
+                    console.log(`[...] Total Position Can Be Cancelled: ${list.length}`);
+                    let index = 0;
+                    const listCancel = {}
+                    while (index < list.length) {
+                        const batch = list.slice(index, index + batchSize);
+
+                        const res = await client.batchSubmitOrders("linear", batch)
+                        const listSuccess = res.result.list || []
+                        const listSuccessCode = res.retExtInfo.list || []
+
+
+                        listSuccess.forEach((item, index) => {
+                            const data = listCancel[item.orderLinkId]
+                            const codeData = listSuccessCode[index]
+                            const botIDTemp = data.botID
+                            const strategyIDTemp = data.strategyID
+                            const candleTemp = data.candle
+
+                            if (codeData.code == 0) {
+                                console.log(`[V] Cancel position ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) successful `);
+                                cancelAll({
+                                    botID: botIDTemp,
+                                    strategyID: strategyIDTemp,
+                                })
+                            }
+                            else {
+                                allStrategiesByBotIDAndStrategiesID[botIDTemp][strategyIDTemp].OC.orderID = ""
+                                console.log(changeColorConsole.yellowBright(`[!] Cancel position ( ${data.botName} - ${data.side} -  ${data.symbol} - ${candleTemp} ) failed `, codeData.msg));
+                            }
+                            delete listOCByCandleBot[candleTemp][botIDTemp].listOC[strategyIDTemp]
+                        })
+
+                        await delay(1000)
+                        index += batchSize
+                    }
+                }
+            }))
+            console.log("[V] Cancel All Position Successful");
+        }
+    },
+
     getPriceLimitCurrent: async (req, res) => {
         try {
             const { symbol } = req.body

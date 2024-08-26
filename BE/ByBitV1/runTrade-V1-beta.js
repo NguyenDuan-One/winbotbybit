@@ -70,7 +70,7 @@ const roundPrice = (
     }
 ) => {
     return (Math.floor(price / tickSize) * tickSize).toString()
-    
+
 }
 
 
@@ -1086,7 +1086,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.qty = qty
 
-                                            
+
                                             const dataInput = {
                                                 strategy,
                                                 strategyID,
@@ -1642,6 +1642,10 @@ const Main = async () => {
             const telegramID = strategy.botID.telegramID
             const telegramToken = strategy.botID.telegramToken
 
+            // Gắn time limit config
+            !strategy.limitPre && (strategy.limitPre = new Date())
+
+
             const side = strategy.PositionSide === "Long" ? "Buy" : "Sell"
 
             if (strategy.IsActive && !updatingAllMain) {
@@ -1675,7 +1679,7 @@ const Main = async () => {
                 if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID) {
                     console.log(price);
 
-                    handleSubmitOrder(dataInput)
+                    // handleSubmitOrder(dataInput)
                 }
                 else if (allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID &&
                     !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderFilled &&
@@ -1686,6 +1690,11 @@ const Main = async () => {
                     })
                 }
 
+                //Check limit config
+                if (new Date() - strategy.limitPre >= strategy.Limit * 60 * 1000) {
+                    // delete mongo config
+
+                }
             }
         }))
 
