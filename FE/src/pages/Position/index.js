@@ -366,8 +366,7 @@ function Position() {
                             >
                                 Refresh
                             </Button>}
-                        {/* {positionData.length > 0 && */}
-                        {true &&
+                        {positionData.length > 0 &&
                             <Button
                                 variant="contained"
                                 size="small"
