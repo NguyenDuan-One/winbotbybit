@@ -72,7 +72,7 @@ function DialogCustom({
                             margin: reserveBtn ? "0 0 0 12px" : "0 12px 0 0"
                         }}
                         onClick={onClose}
-                    >Close</Button>}
+                    >Cancel</Button>}
                     {addMore && <Button
                         variant="contained"
                         color="info"

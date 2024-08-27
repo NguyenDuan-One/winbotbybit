@@ -1,4 +1,4 @@
-const { RestClientV5, WebsocketClient } = require('bybit-api');
+const { RestClientV5 } = require('bybit-api');
 const StrategiesModel = require('../models/strategies.model')
 const BotModel = require('../models/bot.model')
 const { v4: uuidv4 } = require('uuid');
@@ -69,20 +69,12 @@ const dataCoinByBitController = {
         })
         res.customResponse(200, "Send Successful", "");
     },
-    getSymbolFromCloud: async (userID) => {
+    getSymbolFromCloud: async () => {
         try {
 
-            let ListCoin1m = []
-
-            let wsConfig = {
-                market: 'v5',
-                recvWindow: 100000
-            }
-            let wsInfo = {
+            let CoinInfo = new RestClientV5({
                 testnet: false,
-            }
-            let wsSymbol = new WebsocketClient(wsConfig);
-            let CoinInfo = new RestClientV5(wsInfo);
+            });
 
             let data = []
             await CoinInfo.getTickers({ category: 'linear' })
@@ -99,9 +91,6 @@ const dataCoinByBitController = {
                 .catch((error) => {
                     console.error(error);
                 });
-            ListCoin1m = data.flatMap((coin) => {
-                return `kline.1.${coin}`
-            });
 
             return data
 
@@ -815,7 +804,7 @@ const dataCoinByBitController = {
         try {
             const userID = req.user._id
 
-            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud(userID);
+            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud();
 
             if (listSymbolObject?.length) {
 

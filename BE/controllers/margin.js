@@ -1,4 +1,4 @@
-const { RestClientV5, WebsocketClient } = require('bybit-api');
+const { RestClientV5 } = require('bybit-api');
 const MarginModel = require('../models/margin.model')
 const BotModel = require('../models/bot.model')
 const { v4: uuidv4 } = require('uuid');
@@ -69,29 +69,36 @@ const dataCoinByBitController = {
         })
         res.customResponse(200, "Send Successful", "");
     },
-    getSymbolFromCloud: async (userID) => {
+    getSymbolFromCloud: async () => {
         try {
 
-            let ListCoin1m = []
-
-            let wsConfig = {
-                market: 'v5',
-                recvWindow: 100000
-            }
-            let wsInfo = {
+          
+            let CoinInfo = new RestClientV5({
                 testnet: false,
-            }
-            let wsSymbol = new WebsocketClient(wsConfig);
-            let CoinInfo = new RestClientV5(wsInfo);
+            });
 
             let data = []
+
+            let vol24Object = {}
+
+            await CoinInfo.getTickers({ category: 'spot' })
+                .then((rescoin) => {
+                    rescoin.result.list.forEach((e) => {
+                        if (e.symbol.indexOf("USDT") > 0) {
+                            vol24Object[e.symbol] = e.turnover24h || 0
+                        }
+                    })
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
             await CoinInfo.getInstrumentsInfo({ category: 'spot' })
                 .then((rescoin) => {
                     rescoin.result.list.forEach((e) => {
                         if (e.marginTrading != "none" && e.symbol.split("USDT")[1] === "") {
                             data.push({
                                 symbol: e.symbol,
-                                volume24h: e.turnover24h,
+                                volume24h: vol24Object[e.symbol],
                             })
                         }
                     })
@@ -100,9 +107,6 @@ const dataCoinByBitController = {
                     console.error(error);
                 });
 
-            ListCoin1m = data.flatMap((coin) => {
-                return `kline.1.${coin}`
-            });
 
             return data
 
@@ -815,7 +819,7 @@ const dataCoinByBitController = {
         try {
             const userID = req.user._id
 
-            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud(userID);
+            const listSymbolObject = await dataCoinByBitController.getSymbolFromCloud();
 
             if (listSymbolObject?.length) {
 

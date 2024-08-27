@@ -456,7 +456,7 @@ function Position() {
                         }}
                         dialogTitle="The action requires confirmation"
                         submitBtnColor="error"
-                        submitBtnText="Close"
+                        submitBtnText="Close All"
                         reserveBtn
                         position="center"
                     >

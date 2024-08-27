@@ -176,19 +176,31 @@ const tinhOC = (symbol, data) => {
     const OCLongRound = roundNumber(OCLong)
     const TPLongRound = roundNumber(TPLong)
 
-    if (OCRound >= 1 && TPRound > 0) {
+    // if (OCRound >= 1 && TPRound > 0) {
+    if (OCRound >= .5) {
         const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${roundNumber(TP)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(ht)
-        // console.log("data", data, new Date().toLocaleTimeString());
-        // console.log(ht);
-
+        console.log("data", data, new Date().toLocaleTimeString());
+        console.log(ht);
+        if (TPRound < 0) {
+            console.log("data", data, new Date().toLocaleTimeString());
+            console.log(ht);
+            process.exit(0)
+        }
     }
-    if (OCLongRound <= -1 && TPLongRound < 0) {
+    // if (OCLongRound <= -1 && TPLongRound < 0) {
+    if (OCLongRound <= -.5) {
         const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${roundNumber(TPLong)}% - VOL: ${formatNumberString(vol)}`)
         messageList.push(htLong)
-        // console.log("data", data, new Date().toLocaleTimeString());
-        // console.log(htLong);
+        console.log("data", data, new Date().toLocaleTimeString());
+        console.log(htLong);
+        if (TPLongRound < 0) {
+            console.log("data", data, new Date().toLocaleTimeString());
+            console.log(htLong);
+            process.exit(0)
+        }
     }
+
 
 
     if (messageList.length > 0) {
@@ -196,7 +208,7 @@ const tinhOC = (symbol, data) => {
         if (trichMauTimeMainSendTele.cur - trichMauTimeMainSendTele.pre >= 3000) {
             sendTeleCount.total += 1
 
-            sendMessageTinhOC(messageList)
+            // sendMessageTinhOC(messageList)
             messageList = []
             trichMauTimeMainSendTele.pre = new Date()
         }
@@ -224,38 +236,48 @@ let Main = async () => {
     wsSymbol.subscribeV5(listKline, 'spot').then(() => {
         console.log("[V] Subscribe Kline Successful");
 
-    }).catch((err) => { console.log(err) });
+        wsSymbol.on('update', async (dataCoin) => {
 
-
-    wsSymbol.on('update', async (dataCoin) => {
-
-
-        const dataMain = dataCoin.data[0]
-        const coinCurrent = +dataMain.close
-        const turnover = +dataMain.turnover
-        const symbol = dataCoin.topic.split(".").slice(-1)[0]
-
-        trichMau[symbol].cur = new Date()
-
-        if (coinAllClose) {
-
-            trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
-            trichMauData[symbol].turnoverD = turnover
-            trichMauData[symbol].close = coinCurrent
-
-            if (coinCurrent > trichMauData[symbol].high) {
-                trichMauData[symbol].high = coinCurrent
+            const dataMain = dataCoin.data[0]
+            const coinCurrent = +dataMain.close
+            const turnover = +dataMain.turnover
+            const symbol = dataCoin.topic.split(".").slice(-1)[0]
+    
+            if (coinAllClose) {
+    
+                if (symbol === "AZYUSDT" || symbol === "OBXUSDT") {
+                    console.log("\n",dataCoin,"\n");
+                }
+    
+                if (coinCurrent > trichMauData[symbol].high) {
+                    trichMauData[symbol].high = coinCurrent
+    
+                }
+                if (coinCurrent < trichMauData[symbol].low) {
+                    trichMauData[symbol].low = coinCurrent
+                }
+    
+                trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+                trichMauData[symbol].turnoverD = turnover
+                trichMauData[symbol].close = coinCurrent
+    
+                if (new Date() - trichMau[symbol].pre >= 1000) {
+    
+                    trichMau[symbol].pre = new Date()
+                    tinhOC(symbol, trichMauData[symbol])
+    
+                }
+                trichMauData[symbol] = {
+                    open: coinCurrent,
+                    high: coinCurrent,
+                    low: coinCurrent,
+                    turnover: turnover,
+                }
+    
             }
-            else if (coinCurrent < trichMauData[symbol].low) {
-                trichMauData[symbol].low = coinCurrent
-            }
-
-            if (trichMau[symbol].cur - trichMau[symbol].pre >= 250) {
-
-                tinhOC(symbol, trichMauData[symbol])
-
+            else if (dataMain.confirm === true) {
+                coinAllClose = true
                 trichMau[symbol].pre = new Date()
-
                 trichMauData[symbol] = {
                     open: coinCurrent,
                     high: coinCurrent,
@@ -263,21 +285,13 @@ let Main = async () => {
                     turnover: turnover,
                 }
             }
-
-        }
-        if (dataMain.confirm === true) {
-            coinAllClose = true
-            trichMau[symbol].pre = 0
-            trichMauData[symbol] = {
-                open: coinCurrent,
-                high: coinCurrent,
-                low: coinCurrent,
-                turnover: turnover,
-            }
-        }
+    
+    
+        });
+    }).catch((err) => { console.log(err) });
 
 
-    });
+   
 
 
     //Báo lỗi socket$ pm2 start app.js

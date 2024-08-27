@@ -1,4 +1,4 @@
-const { RestClientV5, WebsocketClient } = require('bybit-api');
+const { RestClientV5 } = require('bybit-api');
 const SpotModel = require('../models/spot.model')
 const BotModel = require('../models/bot.model')
 const { v4: uuidv4 } = require('uuid');
@@ -73,29 +73,19 @@ const dataCoinByBitController = {
     getSymbolFromCloud: async (userID) => {
         try {
 
-            let ListCoin1m = []
-
-            let wsConfig = {
-                market: 'v5',
-                recvWindow: 100000
-            }
-            let wsInfo = {
+            let CoinInfo = new RestClientV5({
                 testnet: false,
-            }
-            let wsSymbol = new WebsocketClient(wsConfig);
-            let CoinInfo = new RestClientV5(wsInfo);
+            });
 
             let data = []
 
-            await CoinInfo.getInstrumentsInfo({ category: 'spot' })
+            let vol24Object = {}
+
+            await CoinInfo.getTickers({ category: 'spot' })
                 .then((rescoin) => {
                     rescoin.result.list.forEach((e) => {
-
-                        if (e.symbol.split("USDT")[1] === "" && e.marginTrading !== "utaOnly" && e.marginTrading !== "both") {
-                            data.push({
-                                symbol: e.symbol,
-                                volume24h: e.turnover24h,
-                            })
+                        if (e.symbol.indexOf("USDT") > 0) {
+                            vol24Object[e.symbol] = e.turnover24h || 0
                         }
                     })
                 })
@@ -103,9 +93,21 @@ const dataCoinByBitController = {
                     console.error(error);
                 });
 
-            ListCoin1m = data.flatMap((coin) => {
-                return `kline.1.${coin}`
-            });
+
+            await CoinInfo.getInstrumentsInfo({ category: 'spot' })
+                .then((rescoin) => {
+                    rescoin.result.list.forEach((e) => {
+                        if (e.symbol.split("USDT")[1] === "" && e.marginTrading !== "utaOnly" && e.marginTrading !== "both") {
+                            data.push({
+                                symbol: e.symbol,
+                                volume24h: vol24Object[e.symbol],
+                            })
+                        }
+                    })
+                })
+                .catch((error) => {
+                    console.error(error);
+                });
 
             return data
 
@@ -125,14 +127,14 @@ const dataCoinByBitController = {
                     secret: botData.SecretKey,
                     syncTimeBeforePrivateRequests: true,
                 });
-                const res =  await client.getSpotBorrowCheck(symbol, "Buy")
+                const res = await client.getSpotBorrowCheck(symbol, "Buy")
                 return {
                     botData,
-                    spotMaxTradeAmount:res.result?.spotMaxTradeAmount || 0
+                    spotMaxTradeAmount: res.result?.spotMaxTradeAmount || 0
                 }
             }))
 
-           const handleResult = resultAll.map(item=>item.value)
+            const handleResult = resultAll.map(item => item.value)
 
             res.customResponse(res.statusCode, "Get Spot Borrow Check Successful", handleResult);
         }
@@ -1304,13 +1306,13 @@ const dataCoinByBitController = {
             );
 
             if (result.acknowledged && result.deletedCount !== 0) {
-                
+
                 return "Delete Strategies Successful"
             }
             else {
                 return "Delete Strategies failed"
             }
-            
+
         } catch (error) {
             return "Delete Strategies Error: " + error.message
         }
