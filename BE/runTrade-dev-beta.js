@@ -36,7 +36,6 @@ var updatingAllMain = false
 var nangOCValue = 0
 var checkOrderOCAll = true
 
-var checkBTC07Price = ""
 var haOCFunc = ""
 
 // -------  ------------
@@ -45,7 +44,7 @@ var allStrategiesByCandleAndSymbol = {}
 var listPricePreOne = {}
 var trichMauOCListObject = {}
 var trichMauTPListObject = {}
-var trichMauTimeCur = {}
+
 var trichMauTimePre = {}
 
 var allStrategiesByBotIDAndOrderID = {}
@@ -169,6 +168,16 @@ const handleSubmitOrder = async ({
             OC: true
         }
 
+        listOCByCandleBot[candle][botID].listOC[strategyID] = {
+            strategyID,
+            candle,
+            symbol,
+            side,
+            botName,
+            botID,
+            orderLinkId
+        }
+
         const client = new RestClientV5({
             testnet: false,
             key: ApiKey,
@@ -198,15 +207,7 @@ const handleSubmitOrder = async ({
                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
 
 
-                    listOCByCandleBot[candle][botID].listOC[strategyID] = {
-                        strategyID,
-                        candle,
-                        symbol,
-                        side,
-                        botName,
-                        botID,
-                        orderLinkId
-                    }
+
 
                     const newOC = Math.abs((price - coinOpen)) / coinOpen * 100
 
@@ -224,6 +225,7 @@ const handleSubmitOrder = async ({
                 else {
                     console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) failed: `, response.retMsg))
                     delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
+                    delete listOCByCandleBot[candle][botID].listOC[strategyID]
 
                 }
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = false
@@ -232,6 +234,8 @@ const handleSubmitOrder = async ({
                 console.log(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.ordering = false
                 delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
+                delete listOCByCandleBot[candle][botID].listOC[strategyID]
+
             });
     }
     else {
@@ -853,18 +857,18 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                         const botID = botApiData.id
 
-                        const ApiKey = botApiList[botID].ApiKey
-                        const SecretKey = botApiList[botID].SecretKey
-                        const botName = botApiList[botID].botName
+                        const ApiKey = botApiList[botID]?.ApiKey
+                        const SecretKey = botApiList[botID]?.SecretKey
+                        const botName = botApiList[botID]?.botName
 
-                        const telegramID = botApiList[botID].telegramID
-                        const telegramToken = botApiList[botID].telegramToken
+                        const telegramID = botApiList[botID]?.telegramID
+                        const telegramToken = botApiList[botID]?.telegramToken
 
                         const topicMain = dataCoin.topic
                         const dataMainAll = dataCoin.data
 
                         ApiKey && SecretKey && await Promise.allSettled(dataMainAll.map(async dataMain => {
-                            
+
                             if (dataMain.category == "linear") {
 
 
@@ -1507,25 +1511,25 @@ const Main = async () => {
             const BTCPricePercent = Math.abs(coinCurrent - coinOpen) / coinOpen * 100
 
             if (BTCPricePercent >= 0.7) {
-                const newCheckBTC07Price = Math.round(BTCPricePercent)
-                if (newCheckBTC07Price !== checkBTC07Price) {
-                    checkBTC07Price = newCheckBTC07Price
-                    sendAllBotTelegram(BTCPricePercent.toFixed(2))
-                }
+
                 if (BTCPricePercent >= 1) {
-                    const newNangOCValue = Math.round(BTCPricePercent) * 5
+                    const newNangOCValue = Math.round(BTCPricePercent - 0.3) * 5
 
                     if (newNangOCValue !== nangOCValue) {
                         nangOCValue = newNangOCValue
                         checkOrderOCAll = false
+                        sendAllBotTelegram(BTCPricePercent.toFixed(2))
+
                     }
                 }
-                else if (BTCPricePercent >= 0.7 && BTCPricePercent < 0.8) {
+                else if (0.7 <= BTCPricePercent && BTCPricePercent < 0.8) {
                     const newNangOCValue = 1
 
                     if (newNangOCValue !== nangOCValue) {
                         nangOCValue = newNangOCValue
                         checkOrderOCAll = false
+                        sendAllBotTelegram(BTCPricePercent.toFixed(2))
+
                     }
                 }
             }
@@ -1546,8 +1550,6 @@ const Main = async () => {
 
                     const strategyID = strategy.value
 
-                    trichMauTimeCur[strategyID] = new Date()
-
                     strategy.digit = digitAllCoinObject[strategy.symbol]
 
 
@@ -1565,7 +1567,7 @@ const Main = async () => {
 
                         if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
 
-                            if (trichMauTimeCur[strategyID] - trichMauTimePre[strategyID] >= 150) {
+                            if (new Date() - trichMauTimePre[strategyID] >= 150) {
 
                                 const khoangGia = Math.abs(coinCurrent - trichMauOCListObject[symbolCandleID].prePrice)
 
@@ -1935,6 +1937,7 @@ const Main = async () => {
             console.log(changeColorConsole.greenBright(`[...] START NÂNG OC THÊM ${nangOCValue}`));
 
             updatingAllMain = true
+            haOCFunc && clearTimeout(haOCFunc)
 
 
             const nangAllOC = Promise.allSettled(
@@ -1966,8 +1969,6 @@ const Main = async () => {
 
             checkOrderOCAll = true
 
-            haOCFunc && clearTimeout(haOCFunc)
-
             haOCFunc = setTimeout(async () => {
                 console.log(changeColorConsole.greenBright("[...] START HẠ OC"));
                 await Promise.allSettled(
@@ -1987,7 +1988,6 @@ const Main = async () => {
                     }
                     ))
                 console.log(changeColorConsole.greenBright("[V] HẠ OC XONG"));
-                checkBTC07Price = 0
 
             }, 5 * 60 * 1000)
 
@@ -2258,7 +2258,7 @@ socketRealtime.on('update', async (newData = []) => {
 });
 
 socketRealtime.on('delete', async (newData) => {
-    console.log("[...] Deleted Strategies From Realtime");
+    console.log("[...] Deleted Strategies From Realtime", newData.length);
     updatingAllMain = true
 
     const listOrderOC = {}
@@ -2437,7 +2437,6 @@ socketRealtime.on('bot-update', async (data = {}) => {
             botID,
             orderLinkId: allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderLinkId
         });
-
 
         if (!strategiesData.IsActive) {
 
@@ -2686,7 +2685,11 @@ socketRealtime.on('bot-delete', async (data) => {
 
     await wsOrder.unsubscribeV5(LIST_ORDER, 'linear')
 
-    delete botApiList[botIDMain]
+    delete botApiList[botIDMain];
+
+    ["1m", "3m", "5m", "15m"].forEach(candle => {
+        delete listOCByCandleBot?.[candle]?.[botIDMain]
+    });
 
     updatingAllMain = false
 

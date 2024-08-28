@@ -52,7 +52,7 @@ const BotController = {
         const newDataSocketWithBotData = result.flatMap((data) => data.children.map(child => {
             child.symbol = data.value
             child.value = `${data._id}-${child._id}`
-            // child.IsActive = IsActive !== "not-modified" ? IsActive : child.IsActive
+            child.IsActive = IsActive !== "not-modified" ? IsActive : child.IsActive
             return child
         })) || []
 
