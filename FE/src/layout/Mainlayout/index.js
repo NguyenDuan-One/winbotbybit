@@ -32,7 +32,7 @@ function MainLayout({ children }) {
         },
 
         {
-            linK: "/Positions",
+            linK: "/PositionV3",
             name: "Positions",
             icon: <ViewInArIcon className={styles.icon} />
         },

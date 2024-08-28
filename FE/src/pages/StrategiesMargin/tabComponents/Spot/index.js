@@ -113,7 +113,7 @@ function Spot() {
 
     const handleGetAllBotByUserID = () => {
 
-        getAllBotActiveByUserID(userData._id,"ByBit-V1")
+        getAllBotActiveByUserID(userData._id,"ByBitV1")
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (

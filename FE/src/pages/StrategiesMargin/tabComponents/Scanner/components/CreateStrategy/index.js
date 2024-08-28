@@ -15,8 +15,6 @@ import { getAllSymbolSpot as getAllSymbolMargin, syncSymbolSpot as syncSymbolMar
 function CreateStrategy({
     botListInput,
     onClose,
-    onlyPairsInput,
-    blackListSelectedInput
 }) {
 
     const formControlMinValue = .1
@@ -54,10 +52,11 @@ function CreateStrategy({
         handleSubmit,
         reset,
         formState: { errors, isSubmitted },
+        setValue
     } = useForm();
 
-    const [onlyPairsSelected, setOnlyPairsSelected] = useState(onlyPairsInput || [])
-    const [blackListSelected, setBlackListSelected] = useState(blackListSelectedInput || [])
+    const [onlyPairsSelected, setOnlyPairsSelected] = useState([])
+    const [blackListSelected, setBlackListSelected] = useState([])
     const [botList, setBotList] = useState([])
     const [loadingSyncCoin, setLoadingSyncCoin] = useState(false);
 
@@ -76,10 +75,9 @@ function CreateStrategy({
     const handleGetSpotDataList = async (syncNew = true) => {
         try {
             let newData = spotDataListRef.current
-            if(syncNew)
-            {
+            if (syncNew) {
                 const res = await getAllSymbolSpot()
-                const {  data: symbolListDataRes } = res.data
+                const { data: symbolListDataRes } = res.data
                 newData = symbolListDataRes.map(item => ({ name: item, value: item }))
             }
 
@@ -106,10 +104,9 @@ function CreateStrategy({
         try {
 
             let newData = marginDataListRef.current
-            if(syncNew)
-            {
+            if (syncNew) {
                 const res = await getAllSymbolMargin()
-                const {  data: symbolListDataRes } = res.data
+                const { data: symbolListDataRes } = res.data
                 newData = symbolListDataRes.map(item => ({ name: item, value: item }))
             }
 
@@ -165,32 +162,35 @@ function CreateStrategy({
 
     const handleSubmitCreate = async data => {
 
-        try {
-            const res = await createConfigScanner({
-                data: data,
-                botListId: botList.map(item => item.value),
-                Blacklist: blackListSelected.map(item => item.value),
-                OnlyPairs: onlyPairsSelected.map(item => item.value)
-            })
-            const { status, message, data: symbolListDataRes } = res.data
+        if (onlyPairsSelected.length > 0 && botList.length > 0)  {
 
-            dispatch(addMessageToast({
-                status: status,
-                message: message
-            }))
+            try {
+                const res = await createConfigScanner({
+                    data: data,
+                    botListId: botList.map(item => item.value),
+                    Blacklist: blackListSelected.map(item => item.value),
+                    OnlyPairs: onlyPairsSelected.map(item => item.value)
+                })
+                const { status, message, data: symbolListDataRes } = res.data
 
-            if (status === 200) {
-                reset()
-                dataChangeRef.current = true
+                dispatch(addMessageToast({
+                    status: status,
+                    message: message
+                }))
+
+                if (status === 200) {
+                    reset()
+                    dataChangeRef.current = true
+                }
             }
+            catch (err) {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Add New Error",
+                }))
+            }
+            closeDialog()
         }
-        catch (err) {
-            dispatch(addMessageToast({
-                status: 500,
-                message: "Add New Error",
-            }))
-        }
-        closeDialog()
     }
 
     const handleSubmitCreateWithAddMore = async data => {
@@ -333,17 +333,17 @@ function CreateStrategy({
                             size="medium"
                             {...register("Market", { required: true, })}
                             onChange={e => {
-                                if(e.target.value === "Spot") {
+                                if (e.target.value === "Spot") {
                                     handleGetSpotDataList(!spotDataListRef.current.length)
                                     positionSideListRef.current = [
                                         {
-                                                name: "Long",
-                                                value: "Long",
+                                            name: "Long",
+                                            value: "Long",
                                         }
                                     ]
+                                    setValue("PositionSide", "Long")
                                 }
-                                else 
-                                {
+                                else {
                                     handleGetMarginDataList(!marginDataListRef.current.length)
                                     positionSideListRef.current = positionSideListDefault
                                 }

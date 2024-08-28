@@ -1,7 +1,6 @@
 import Bot from "../pages/Bot"
 import Strategies from "../pages/Strategies"
 import Coin from "../pages/Coin"
-import Position from "../pages/Position"
 import Order from "../pages/Order"
 import MainLayout from "../layout/Mainlayout"
 import NotFound from "../pages/NotFound"
@@ -16,6 +15,9 @@ import StrategiesMargin from "../pages/StrategiesMargin"
 import Spot from "../pages/StrategiesMargin/tabComponents/Spot"
 import Margin from "../pages/StrategiesMargin/tabComponents/Margin"
 import Scanner from "../pages/StrategiesMargin/tabComponents/Scanner"
+import PositionAll from "../pages/Position"
+import PositionV3 from "../pages/Position/Position-V3"
+import PositionV1 from "../pages/Position/Position-V1"
 
 
 const routeList = [
@@ -81,8 +83,18 @@ const routeList = [
                 element: <Coin />,
             },
             {
-                path: "Positions",
-                element: <Position />,
+                path: "PositionV3",
+                element: <>
+                    <PositionAll />
+                    <PositionV3 />
+                </>,
+            },
+            {
+                path: "PositionV1",
+                element: <>
+                    <PositionAll />
+                    <PositionV1 />
+                </>,
             },
             {
                 path: "Order",

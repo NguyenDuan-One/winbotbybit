@@ -11,7 +11,7 @@ router.post('/updateStrategiesMultipleScanner', MiddlewareController.verifyToken
 router.post('/copyMultipleStrategiesToBotScanner', MiddlewareController.verifyToken, scannerController.copyMultipleStrategiesToBotScanner)
 
 router.post('/deleteStrategiesByIDScanner', MiddlewareController.verifyToken, scannerController.deleteStrategiesByIDScanner)
-router.post('/deleteStrategiesByIDScanner', MiddlewareController.verifyToken, scannerController.deleteStrategiesByIDScanner)
+router.post('/deleteStrategiesMultipleScanner', MiddlewareController.verifyToken, scannerController.deleteStrategiesMultipleScanner)
 router.post('/updateConfigByID', MiddlewareController.verifyToken, scannerController.updateConfigByID)
 router.post('/handleBookmarkScanner', MiddlewareController.verifyToken, scannerController.handleBookmarkScanner)
 router.get('/syncSymbolScanner', MiddlewareController.verifyToken, scannerController.syncSymbolScanner)

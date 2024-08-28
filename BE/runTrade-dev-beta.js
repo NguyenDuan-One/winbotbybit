@@ -358,7 +358,6 @@ const moveOrderTP = async ({
         key: ApiKey,
         secret: SecretKey,
         syncTimeBeforePrivateRequests: true,
-
     });
     await client
         .amendOrder({
@@ -374,12 +373,12 @@ const moveOrderTP = async ({
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
-                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
             }
         })
         .catch((error) => {
             console.log(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
-            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+            // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
         });
 
 }

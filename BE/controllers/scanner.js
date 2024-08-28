@@ -351,7 +351,7 @@ const dataCoinByBitController = {
 
             const result = await ScannerModel.deleteMany(
                 {
-                    "_id": { $in: strategiesIDList.map(item => new mongoose.Types.ObjectId(item.id)) }
+                    "_id": { $in: strategiesIDList.map(item => item.id) }
                 }
             )
 

@@ -2,6 +2,9 @@
 const BotModel = require('../models/bot.model');
 const UserModel = require('../models/user.model');
 const StrategiesModel = require('../models/strategies.model');
+const SpotModel = require('../models/spot.model');
+const MarginMModel = require('../models/margin.model');
+const ScannerModel = require('../models/scanner.model');
 const { default: mongoose } = require('mongoose');
 
 // ByBitV3
@@ -124,11 +127,12 @@ const BotController = {
     getAllBotOnlyApiKeyByUserID: async (req, res) => {
         try {
             const userID = req.params.id;
+            const botType = req.query.botType
 
             // ref: .populate({ path: "coinID", models: "Coin" })
             const data = await BotModel.find({
                 userID,
-                "botType": "ByBitV3",
+                botType,
                 ApiKey: { $exists: true, $ne: null },
                 SecretKey: { $exists: true, $ne: null }
             }, { telegramToken: 0 }).sort({ Created: -1 })
@@ -292,16 +296,19 @@ const BotController = {
             const botID = req.params.id;
             const botType = req.query.botType
 
-            let newDataSocketWithBotData = []
+            const newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
+                botID,
+                IsActive: true
+            })
 
-            switch (botType) {
-                case "ByBitV3":
-                    newDataSocketWithBotData = await BotController.getAllStrategiesByBotID({
-                        botID,
-                        IsActive: true
-                    })
-                    break
-            }
+            newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
+                type: "bot-delete",
+                data: {
+                    newData: newDataSocketWithBotData,
+                    botID,
+                }
+            })
+
             const result = await BotModel.deleteOne({ _id: botID })
 
             if (result.deletedCount !== 0) {
@@ -309,13 +316,28 @@ const BotController = {
                 switch (botType) {
                     case "ByBitV3":
 
-                        newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
-                            type: "bot-delete",
-                            data: {
-                                newData: newDataSocketWithBotData,
-                                botID,
+                        await StrategiesModel.updateMany(
+                            { "children.botID": botID },
+                            { $pull: { children: { botID: botID } } }
+                        );
+
+                        break
+                    case "ByBitV1":
+
+                        const deleteAllSpot = SpotModel.updateMany(
+                            { "children.botID": botID },
+                            { $pull: { children: { botID: botID } } }
+                        );
+                        const deleteAllMargin = MarginMModel.updateMany(
+                            { "children.botID": botID },
+                            { $pull: { children: { botID: botID } } }
+                        );
+                        const deleteAllScanner = ScannerModel.deleteMany(
+                            {
+                                "botID": botID
                             }
-                        })
+                        )
+                        await Promise.allSettled([deleteAllSpot, deleteAllMargin, deleteAllScanner])
                         break
                 }
                 res.customResponse(200, "Delete Bot Successful");
@@ -359,7 +381,7 @@ const BotController = {
 
                 switch (botType) {
                     case "ByBitV3":
-                        
+
                         newDataSocketWithBotData.length > 0 && BotController.sendDataRealtime({
                             type: "bot-delete",
                             data: {

@@ -1,11 +1,12 @@
 import { FormControl, FormLabel, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
-import DialogCustom from "../../../../components/DialogCustom";
-import styles from "../../../Bot/components/AddBot/AddBot.module.scss"
-import { addMessageToast } from "../../../../store/slices/Toast";
-import { closeLimit, getPriceLimitCurrent } from "../../../../services/positionService";
 import { useEffect, useState } from "react";
+import DialogCustom from "../../../../../components/DialogCustom";
+import { closeLimit, getPriceLimitCurrent } from "../../../../../services/positionService";
+import { addMessageToast } from "../../../../../store/slices/Toast";
+import styles from "../../../../Bot/components/AddBot/AddBot.module.scss"
+
 
 function AddLimit({
     onClose,

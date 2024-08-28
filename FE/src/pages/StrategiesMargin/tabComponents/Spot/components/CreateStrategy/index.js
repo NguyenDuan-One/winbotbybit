@@ -424,7 +424,7 @@ function CreateStrategy({
                                     USDT
                                 </InputAdornment>
                             }}
-                            {...register("Amount", { required: true, min: formControlMinValue,   ...(spotMaxTradeAmountList[0]?.spotMaxTradeAmount && { max: spotMaxTradeAmountList[0].spotMaxTradeAmount })
+                            {...register("Amount", { required: true, min: formControlMinValue,   ...(spotMaxTradeAmountList[0]?.spotMaxTradeAmount > 0 && { max: spotMaxTradeAmountList[0].spotMaxTradeAmount })
                         })}
                         />
                         {errors.Amount?.type === 'required' && <p className="formControlErrorLabel">The Amount field is required.</p>}

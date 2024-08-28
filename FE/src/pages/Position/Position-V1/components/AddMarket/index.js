@@ -1,10 +1,11 @@
 import { FormControl, FormLabel, TextField, Select, MenuItem } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
-import DialogCustom from "../../../../components/DialogCustom";
-import styles from "../../../Bot/components/AddBot/AddBot.module.scss"
-import { addMessageToast } from "../../../../store/slices/Toast";
-import { closeMarket } from "../../../../services/positionService";
+import DialogCustom from "../../../../../components/DialogCustom";
+import { closeMarket } from "../../../../../services/positionService";
+import { addMessageToast } from "../../../../../store/slices/Toast";
+import styles from "../../../../Bot/components/AddBot/AddBot.module.scss"
+
 
 function AddMarket({
     onClose,

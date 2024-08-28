@@ -42,14 +42,14 @@ function SideBar({
             icon: <PrecisionManufacturingIcon className={styles.icon} />
         },
         {
-            linK: "/Strategies",
-            name: "Strategies V3",
-            icon: <LocalMallIcon className={styles.icon} />
-        },
-        {
             linK: "/Spot",
             name: "Strategies V1",
             icon: <ShoppingCartIcon className={styles.icon} />
+        },
+        {
+            linK: "/Strategies",
+            name: "Strategies V3",
+            icon: <LocalMallIcon className={styles.icon} />
         },
         {
             linK: "/Coin",
@@ -57,7 +57,7 @@ function SideBar({
             icon: <CurrencyExchangeIcon className={styles.icon} />
         },
         {
-            linK: "/Positions",
+            linK: "/PositionV3",
             name: "Positions",
             icon: <ViewInArIcon className={styles.icon} />
         },

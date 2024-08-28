@@ -87,7 +87,7 @@ const RoleController = {
             const result = await RoleModel.updateMany(
                 {},
                 { "$addToSet": { roleList: [
-                    "Spot","Margin","Scanner"
+                    "Spot","Margin","Scanner","PositionV3","PositionV1"
                 ] } },
             );
 

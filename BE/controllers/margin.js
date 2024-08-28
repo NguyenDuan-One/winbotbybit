@@ -48,7 +48,7 @@ const dataCoinByBitController = {
 
         const newDataSocketWithBotData = result.flatMap((data) => data.children.map(child => {
             child.symbol = data.value
-            child.value = `${data._id}-${child._id}`
+            child.value = `MARGIN-${data._id}-${child._id}`
             return child
         })) || []
 
@@ -352,7 +352,7 @@ const dataCoinByBitController = {
 
             const handleResult = resultGet.flatMap((data) => data.children.map(child => {
                 child.symbol = data.value
-                child.value = `${data._id}-${child._id}`
+                child.value = `MARGIN-${data._id}-${child._id}`
                 return child
             })) || []
 
@@ -519,7 +519,7 @@ const dataCoinByBitController = {
 
             const newDataSocketWithBotData = resultGet.children.map(child => {
                 child.symbol = resultGet.value
-                child.value = `${resultGet._id}-${child._id}`
+                child.value = `MARGIN-${resultGet._id}-${child._id}`
                 return child
             }) || []
 
@@ -584,7 +584,7 @@ const dataCoinByBitController = {
             })
             const newDataSocketWithBotData = resultGet[0].children.map(child => {
                 child.symbol = resultGet.value
-                child.value = `${parentID}-${id}`
+                child.value = `MARGIN-${parentID}-${id}`
                 return child
             }) || []
 
@@ -653,7 +653,7 @@ const dataCoinByBitController = {
 
             const handleResult = resultGet.flatMap((data) => data.children.map(child => {
                 child.symbol = data.value
-                child.value = `${data._id}-${child._id}`
+                child.value = `MARGIN-${data._id}-${child._id}`
                 return child
             })) || []
 
@@ -1238,7 +1238,7 @@ const dataCoinByBitController = {
 
             const handleResult = result.flatMap((data) => data.children.map(child => {
                 child.symbol = data.value
-                child.value = `${data._id}-${child._id}`
+                child.value = `MARGIN-${data._id}-${child._id}`
                 return child
             })) || []
 
