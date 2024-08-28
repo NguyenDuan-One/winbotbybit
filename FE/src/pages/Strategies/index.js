@@ -105,6 +105,7 @@ function Strategies() {
     const [loadingDataCheckTree, setLoadingDataCheckTree] = useState(false);
 
     const dataCheckTreeSelectedRef = useRef([])
+    const dataCheckTreeSelectedSymbolRef = useRef({})
     const dataCheckTreeDefaultRef = useRef([])
     const [dataCheckTree, setDataCheckTree] = useState([]);
     const [loadingUploadSymbol, setLoadingUploadSymbol] = useState(false);
@@ -140,7 +141,7 @@ function Strategies() {
 
     const handleGetAllBotByUserID = () => {
 
-        getAllBotActiveByUserID(userData._id,"ByBitV3")
+        getAllBotActiveByUserID(userData._id, "ByBitV3")
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -380,6 +381,7 @@ function Strategies() {
         }
     }, [openCreateStrategy.dataChange, openEditTreeItemMultipleDialog.dataChange]);
 
+
     return (
         <div className={styles.strategies}>
             <AddBreadcrumbs list={["Strategies"]} />
@@ -528,10 +530,16 @@ function Strategies() {
                                             parentID: data._id
                                         }))
                                     })
+                                    dataCheckTreeSelectedSymbolRef.current[data.value] = {
+                                        name: data.value,
+                                        value: data.value
+                                    }
+
                                 })
                             }
                             else {
                                 dataCheckTreeSelectedRef.current = []
+                                dataCheckTreeSelectedSymbolRef.current = []
                             }
                         }}
                     />
@@ -575,6 +583,7 @@ function Strategies() {
                         dataCheckTree.slice(0, dataTreeViewIndex).map((treeData) => {
                             return (
                                 <TreeParent
+                                    dataCheckTreeSelectedSymbolRef={dataCheckTreeSelectedSymbolRef}
                                     dataCheckTreeSelectedRef={dataCheckTreeSelectedRef}
                                     treeData={treeData}
                                     setOpenCreateStrategy={setOpenCreateStrategy}
@@ -633,7 +642,7 @@ function Strategies() {
                             setOpenCreateStrategy(openCreateStrategy => ({
                                 ...openCreateStrategy,
                                 isOpen: true,
-
+                                symbolValueInput: Object.values(dataCheckTreeSelectedSymbolRef.current)
                             }))
                         }}
                     >

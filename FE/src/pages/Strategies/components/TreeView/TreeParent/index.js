@@ -17,11 +17,13 @@ import { addMessageToast } from '../../../../../store/slices/Toast';
 import { handleCheckAllCheckBox } from '../../../../../functions';
 function TreeParent({
     treeData,
+    dataCheckTreeSelectedSymbolRef,
     dataCheckTreeSelectedRef,
     setOpenCreateStrategy,
     setDataCheckTree,
     dataCheckTreeDefaultRef
 }) {
+
 
     const userData = useSelector(state => state.userDataSlice.userData)
 
@@ -29,10 +31,10 @@ function TreeParent({
     const dispatch = useDispatch()
 
     const [openSettingTreeNode, setOpenSettingTreeNode] = useState(false);
-    const [openDeleteTreeSymbolGroup, setOpenDeleteTreeSymbolGroup] = useState(false);
+    // const [openDeleteTreeSymbolGroup, setOpenDeleteTreeSymbolGroup] = useState(false);
 
 
-    
+
     const handleUpdateDataAfterSuccess = (IsActive) => {
         handleCheckAllCheckBox(false)
         setDataCheckTree(dataCheckTree => dataCheckTree.map(data => {
@@ -105,6 +107,7 @@ function TreeParent({
             }))
         }
     }
+
     const handleActiveAllTreeItem = async () => {
 
         try {
@@ -203,7 +206,7 @@ function TreeParent({
             }))
 
             if (status === 200) {
-                
+
                 dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
                     if (data._id === treeData._id) {
                         return {
@@ -233,7 +236,7 @@ function TreeParent({
             }))
 
             if (status === 200) {
-                
+
                 dataCheckTreeDefaultRef.current = dataCheckTreeDefaultRef.current.map(data => {
                     if (data._id === treeData._id) {
                         return {
@@ -270,6 +273,16 @@ function TreeParent({
                             item.checked = !check
                             item.click()
                         })
+                        if (check) {
+                            dataCheckTreeSelectedSymbolRef.current[treeData.value] = {
+                                name: treeData.value,
+                                value: treeData.value
+                            }
+                        }
+                        else {
+                            delete dataCheckTreeSelectedSymbolRef.current[treeData.value]
+                        }
+
                     }}
                 />
                 <div
@@ -292,10 +305,7 @@ function TreeParent({
                     onClick={e => {
                         setOpenSettingTreeNode({
                             element: e.currentTarget,
-                            symbolValueInput: {
-                                name: treeData.label,
-                                value: treeData.value,
-                            }
+
                         })
                     }}
                 />
@@ -408,7 +418,10 @@ function TreeParent({
                             setOpenCreateStrategy(openCreateStrategy => ({
                                 ...openCreateStrategy,
                                 isOpen: true,
-                                symbolValueInput: openSettingTreeNode.symbolValueInput,
+                                symbolValueInput: [{
+                                    name: treeData.label,
+                                    value: treeData.value,
+                                }],
                             }))
                         }}
                     >

@@ -14,6 +14,8 @@ function CreateStrategy({
     symbolValueInput,
 }) {
 
+    console.log(symbolValueInput);
+    
     const formControlMinValue= .1
     const groupList = [
         {
@@ -71,7 +73,7 @@ function CreateStrategy({
         formState: { errors, isSubmitted }
     } = useForm();
 
-    const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput ? [symbolValueInput] : [])
+    const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput  ||  [])
     const [botList, setBotList] = useState([])
 
     const dataChangeRef = useRef(false)
