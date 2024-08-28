@@ -182,11 +182,6 @@ const tinhOC = (symbol, data) => {
         messageList.push(ht)
         console.log("data", data, new Date().toLocaleTimeString());
         console.log(ht);
-        if (TPRound < 0) {
-            console.log("data", data, new Date().toLocaleTimeString());
-            console.log(ht);
-            process.exit(0)
-        }
     }
     // if (OCLongRound <= -1 && TPLongRound < 0) {
     if (OCLongRound <= -.5) {
@@ -194,11 +189,6 @@ const tinhOC = (symbol, data) => {
         messageList.push(htLong)
         console.log("data", data, new Date().toLocaleTimeString());
         console.log(htLong);
-        if (TPLongRound < 0) {
-            console.log("data", data, new Date().toLocaleTimeString());
-            console.log(htLong);
-            process.exit(0)
-        }
     }
 
 
@@ -207,8 +197,7 @@ const tinhOC = (symbol, data) => {
         trichMauTimeMainSendTele.cur = new Date()
         if (trichMauTimeMainSendTele.cur - trichMauTimeMainSendTele.pre >= 3000) {
             sendTeleCount.total += 1
-
-            // sendMessageTinhOC(messageList)
+            sendMessageTinhOC(messageList)
             messageList = []
             trichMauTimeMainSendTele.pre = new Date()
         }
