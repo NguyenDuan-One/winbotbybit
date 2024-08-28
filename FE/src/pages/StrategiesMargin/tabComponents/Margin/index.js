@@ -120,6 +120,7 @@ function Margin() {
                     {
                         name: item?.botName,
                         value: item?._id,
+                        ...item
                     }
                 ))
                 const newMain = [

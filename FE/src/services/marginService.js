@@ -63,3 +63,7 @@ export const copyMultipleStrategiesToBotSpot = async (newData) => {
 export const balanceWallet = async (data) => {
     return await api.post("/margin/balanceWallet", data)
 }
+
+export const getMarginBorrowCheck = async ({ botListData,symbol,positionSide }) => {
+    return await api.post("/margin/getMarginBorrowCheck", { botListData,symbol,positionSide })
+}

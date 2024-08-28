@@ -7,7 +7,7 @@ require('dotenv').config({
 const cron = require('node-cron');
 const changeColorConsole = require('cli-color');
 const TelegramBot = require('node-telegram-bot-api');
-const { getAllSymbolMarginBE } = require('../controllers/margin');
+const { getAllSymbolMarginBE, getAllStrategiesActiveMarginBE } = require('../controllers/margin');
 const { getAllSymbolSpotBE, getAllStrategiesActiveSpotBE, deleteStrategiesItemSpotBE } = require('../controllers/spot');
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
@@ -74,7 +74,6 @@ const roundPrice = (
     }
 ) => {
 
-
     const priceFix = new Big(price)
     const tickSizeFIx = new Big(tickSize)
 
@@ -117,7 +116,7 @@ const Digit = async () => {// proScale
     })
         .then((response) => {
             response.result.list.forEach((e) => {
-                if (e.symbol.split("USDT")[1] === "" && e.marginTrading !== "utaOnly" && e.marginTrading !== "both") {
+                if (e.symbol.split("USDT")[1] === "") {
                     PScale.push({
                         symbol: e.symbol,
                         priceScale: e.priceFilter.tickSize,
@@ -147,7 +146,8 @@ const handleSubmitOrder = async ({
     botID,
     telegramID,
     telegramToken,
-    coinOpen
+    coinOpen,
+    isLeverage
 }) => {
 
     !allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID] && cancelAll({ botID, strategyID });
@@ -205,7 +205,8 @@ const handleSubmitOrder = async ({
                 orderType: 'Limit',
                 qty,
                 price,
-                orderLinkId
+                orderLinkId,
+                isLeverage
             })
             .then((response) => {
                 if (response.retCode == 0) {
@@ -218,7 +219,7 @@ const handleSubmitOrder = async ({
                     allStrategiesByBotIDAndStrategiesID[botID][strategyID].OC.coinOpen = coinOpen
 
 
-                   
+
 
 
                     const text = `\n[+OC] Order OC ( ${strategy.OrderChange}% ) ( ${botName} - ${side} - ${symbol} ) successful`
@@ -451,7 +452,6 @@ const moveOrderTP = async ({
     symbol,
     price,
     orderId,
-    candle,
     side,
     ApiKey,
     SecretKey,
@@ -477,15 +477,15 @@ const moveOrderTP = async ({
         .then((response) => {
             if (response.retCode == 0) {
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = response.result.orderId
-                console.log(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) successful: ${price}`)
+                console.log(`[->] Move Order TP ( ${botName} - ${side} - ${symbol} ) successful: ${price}`)
             }
             else {
-                console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) failed `, response.retMsg))
+                console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} ) failed `, response.retMsg))
                 allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
             }
         })
         .catch((error) => {
-            console.log(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} - ${candle} ) error `, error)
+            console.log(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} ) error `, error)
             allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
         });
 
@@ -494,8 +494,6 @@ const moveOrderTP = async ({
 const handleMoveOrderTP = async ({
     strategyID,
     strategy,
-    coinOpen,
-    candle = "",
     side,
     ApiKey,
     SecretKey,
@@ -528,7 +526,6 @@ const handleMoveOrderTP = async ({
                 tickSize: strategy.digit
             }),
             orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID,
-            candle,
             side: sideText,
             ApiKey,
             SecretKey,
@@ -1558,14 +1555,17 @@ const Main = async () => {
     const getAllSymbolSpot = getAllSymbolSpotBE()
     const getAllSymbolMargin = getAllSymbolMarginBE()
     const getAllConfigSpot = getAllStrategiesActiveSpotBE()
+    const getAllConfigMargin = getAllStrategiesActiveMarginBE()
 
-    const allRes = await Promise.allSettled([getAllConfigSpot, getAllSymbolSpot, getAllSymbolMargin])
-
-    const getAllConfigSpotRes = allRes[0].value
+    const allRes = await Promise.allSettled([getAllSymbolSpot, getAllSymbolMargin, getAllConfigSpot, getAllConfigMargin])
 
     const allSymbolRes = [
-        ...allRes[1].value,
-        ...allRes[2].value,
+        ...allRes[0].value || [],
+        ...allRes[1].value || [],
+    ]
+    const getAllConfigRes = [
+        ...allRes[2].value || [],
+        ...allRes[3].value || [],
     ]
 
     listKline = [...new Set(allSymbolRes.map(symbol => {
@@ -1577,7 +1577,7 @@ const Main = async () => {
     }))]
 
 
-    getAllConfigSpotRes.forEach(strategyItem => {
+    getAllConfigRes.forEach(strategyItem => {
         if (checkConditionBot(strategyItem)) {
 
             const strategyID = strategyItem.value
@@ -1585,7 +1585,7 @@ const Main = async () => {
             const botID = strategyItem.botID._id
             const botName = strategyItem.botID.botName
             const symbol = strategyItem.symbol
-            strategyItem.tradeType = "Spot"
+            strategyItem.tradeType = strategyID.includes("SPOT") ? "Spot" : "Margin"
 
             botApiList[botID] = {
                 id: botID,
@@ -1643,8 +1643,8 @@ const Main = async () => {
 
                 const strategyID = strategy.value
 
-                strategy.digit = digitAllCoinObject[symbol].priceScale
-                strategy.minOrderQty = digitAllCoinObject[symbol].minOrderQty
+                strategy.digit = digitAllCoinObject[symbol]?.priceScale
+                strategy.minOrderQty = digitAllCoinObject[symbol]?.minOrderQty
 
                 const botID = strategy.botID._id
                 const botName = strategy.botID.botName
@@ -1695,9 +1695,16 @@ const Main = async () => {
                 let priceOrderOC = 0
                 let qty = 0
 
-                priceOrderOC = coinCurrent - coinCurrent * strategy.OrderChange / 100
+                if (side === "Buy") {
+                    priceOrderOC = coinCurrent - coinCurrent * strategy.OrderChange / 100
+                }
+                else {
+                    priceOrderOC = coinCurrent + coinCurrent * strategy.OrderChange / 100
+                }
+
                 qty = (strategy.Amount / +priceOrderOC).toFixed(0)
 
+                
                 const dataInput = {
                     strategy,
                     strategyID,
@@ -1731,7 +1738,14 @@ const Main = async () => {
                         strategy.OrderChange = strategy.OrderChange + strategy.OrderChange * strategy.AmountIncreaseOC / 100
                     }
 
-                    const priceOrderOCNew = coinCurrent - coinCurrent * strategy.OrderChange / 100
+                    let priceOrderOCNew = 0
+                    if (side === "Buy") {
+                         priceOrderOCNew = coinCurrent - coinCurrent * strategy.OrderChange / 100
+                    }
+                    else {
+                         priceOrderOCNew = coinCurrent + coinCurrent * strategy.OrderChange / 100
+                    }
+
                     const qtyNew = (strategy.Amount / +priceOrderOC).toFixed(0)
 
                     dataInput.price = roundPrice({

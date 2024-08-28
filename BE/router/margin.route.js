@@ -25,7 +25,8 @@ router.get('/syncSymbolSpot', MiddlewareController.verifyToken, marginController
 router.post('/copyMultipleStrategiesToSymbolSpot', MiddlewareController.verifyToken, marginController.copyMultipleStrategiesToSymbolSpot)
 router.post('/copyMultipleStrategiesToBotSpot', MiddlewareController.verifyToken, marginController.copyMultipleStrategiesToBotSpot)
 router.post('/balanceWallet', MiddlewareController.verifyToken, marginController.balanceWallet)
-router.get('/getAllStrategiesActive', MiddlewareController.verifyToken, marginController.getAllStrategiesActive)
 
+// Other V1
+router.post('/getMarginBorrowCheck', MiddlewareController.verifyToken, marginController.getMarginBorrowCheck)
 
 module.exports = router;

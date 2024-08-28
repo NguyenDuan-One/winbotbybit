@@ -238,60 +238,62 @@ let Main = async () => {
 
         wsSymbol.on('update', async (dataCoin) => {
 
-            const dataMain = dataCoin.data[0]
-            const coinCurrent = +dataMain.close
-            const turnover = +dataMain.turnover
-            const symbol = dataCoin.topic.split(".").slice(-1)[0]
-    
-            if (coinAllClose) {
-    
-                if (symbol === "AZYUSDT" || symbol === "OBXUSDT") {
-                    console.log("\n",dataCoin,"\n");
+            const dataMainAll = dataCoin.data
+
+            dataMainAll.forEach(dataMain => {
+                const coinCurrent = +dataMain.close
+                const turnover = +dataMain.turnover
+                const [_, candle, symbol] = dataCoin.topic.split(".");
+
+                // if (symbol === "CRDSUSDT") {
+                //     console.log("\n", dataCoin, new Date().toLocaleTimeString(), "\n");
+                // }
+
+                if (coinAllClose) {
+
+                    if (coinCurrent > trichMauData[symbol].high) {
+                        trichMauData[symbol].high = coinCurrent
+
+                    }
+                    if (coinCurrent < trichMauData[symbol].low) {
+                        trichMauData[symbol].low = coinCurrent
+                    }
+
+                    trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+                    trichMauData[symbol].turnoverD = turnover
+                    trichMauData[symbol].close = coinCurrent
+
+                    if (new Date() - trichMau[symbol].pre >= 3000) {
+
+                        trichMau[symbol].pre = new Date()
+                        tinhOC(symbol, trichMauData[symbol])
+                        trichMauData[symbol].open = coinCurrent
+                        trichMauData[symbol].turnover = turnover
+                    }
+                    trichMauData[symbol] = {
+                        high: coinCurrent,
+                        low: coinCurrent,
+                    }
+
                 }
-    
-                if (coinCurrent > trichMauData[symbol].high) {
-                    trichMauData[symbol].high = coinCurrent
-    
-                }
-                if (coinCurrent < trichMauData[symbol].low) {
-                    trichMauData[symbol].low = coinCurrent
-                }
-    
-                trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
-                trichMauData[symbol].turnoverD = turnover
-                trichMauData[symbol].close = coinCurrent
-    
-                if (new Date() - trichMau[symbol].pre >= 1000) {
-    
+                else if (dataMain.confirm === true) {
+                    coinAllClose = true
                     trichMau[symbol].pre = new Date()
-                    tinhOC(symbol, trichMauData[symbol])
-    
+                    trichMauData[symbol] = {
+                        open: coinCurrent,
+                        high: coinCurrent,
+                        low: coinCurrent,
+                        turnover: turnover,
+                    }
                 }
-                trichMauData[symbol] = {
-                    open: coinCurrent,
-                    high: coinCurrent,
-                    low: coinCurrent,
-                    turnover: turnover,
-                }
-    
-            }
-            else if (dataMain.confirm === true) {
-                coinAllClose = true
-                trichMau[symbol].pre = new Date()
-                trichMauData[symbol] = {
-                    open: coinCurrent,
-                    high: coinCurrent,
-                    low: coinCurrent,
-                    turnover: turnover,
-                }
-            }
-    
-    
+            })
+
+
         });
     }).catch((err) => { console.log(err) });
 
 
-   
+
 
 
     //Báo lỗi socket$ pm2 start app.js

@@ -224,6 +224,10 @@ function CreateStrategy({
         if (symbolGroupData.length === 1 && botList.length > 0) {
             handleGetSpotBorrowCheck()
         }
+        else 
+        {
+            setSpotMaxTradeAmountList([])
+        }
     }, [symbolGroupData, botList]);
 
     return (
@@ -591,7 +595,7 @@ function CreateStrategy({
                         marginRight: "10px",
                         background: "#db2f2f",
                         color: " #f9f9f9",
-                        padding: "8px",
+                        padding: "6px",
                         borderRadius: "6px",
                         fontSize: ".8rem",
                     }}>MAX:</b>

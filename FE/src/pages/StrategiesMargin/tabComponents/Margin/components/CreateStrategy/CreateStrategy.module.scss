@@ -22,7 +22,16 @@
         }
     }
 }
-
+.icon {
+    color: #1976d2;
+    cursor: pointer;
+}
+.addMember {
+    th,td {
+        padding: 10px 6px !important;
+        text-align: center;
+    }
+}
 @media (max-width:740px) {
     .dialogForm {
         .formMainData {

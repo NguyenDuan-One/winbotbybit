@@ -72,7 +72,7 @@ const dataCoinByBitController = {
     getSymbolFromCloud: async () => {
         try {
 
-          
+
             let CoinInfo = new RestClientV5({
                 testnet: false,
             });
@@ -112,6 +112,33 @@ const dataCoinByBitController = {
 
         } catch (err) {
             return []
+        }
+    },
+    getMarginBorrowCheck: async (req, res) => {
+
+        const { botListData, symbol, positionSide } = req.body
+
+        try {
+            const resultAll = await Promise.allSettled(botListData.map(async botData => {
+                const client = new RestClientV5({
+                    testnet: false,
+                    key: botData.ApiKey,
+                    secret: botData.SecretKey,
+                    syncTimeBeforePrivateRequests: true,
+                });
+                const res = await client.getSpotBorrowCheck(symbol, positionSide === "Long" ? "Buy" :"Sell")
+                return {
+                    botData,
+                    spotMaxTradeAmount: res.result?.maxTradeAmount || 0
+                }
+            }))
+
+            const handleResult = resultAll.map(item => item.value)
+
+            res.customResponse(res.statusCode, "Get Margin Borrow Check Successful", handleResult);
+        }
+        catch (err) {
+            res.status(500).json({ message: err.message });
         }
     },
 
@@ -1208,7 +1235,7 @@ const dataCoinByBitController = {
         }
     },
 
-    getAllStrategiesActive: async () => {
+    getAllStrategiesActiveMarginBE: async () => {
         try {
             require("../models/bot.model")
 
@@ -1244,19 +1271,6 @@ const dataCoinByBitController = {
 
             return handleResult
 
-            // const handleResult = result.reduce((result, child) => {
-            //     if (child.children.length > 0 && child.children.some(childData =>
-            //         dataCoinByBitController.checkConditionStrategies(childData)
-            //     )) {
-            //         result.push({
-            //             ...child,
-            //             children: child.children.filter(item =>
-            //                 dataCoinByBitController.checkConditionStrategies(item)
-            //             )
-            //         })
-            //     }
-            //     return result
-            // }, []) || []
 
         } catch (err) {
             return []

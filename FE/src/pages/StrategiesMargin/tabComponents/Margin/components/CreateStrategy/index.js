@@ -1,5 +1,5 @@
-
-import { FormControl, FormLabel, Autocomplete, TextField, Button, Checkbox, RadioGroup, FormControlLabel, Radio, MenuItem, Switch, InputAdornment } from "@mui/material"
+import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
+import { FormControl, FormLabel, Autocomplete, TextField, Button, Checkbox, RadioGroup, FormControlLabel, Radio, MenuItem, Switch, InputAdornment, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material"
 import clsx from "clsx"
 import { useState, useRef, useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -7,7 +7,8 @@ import { useDispatch } from "react-redux"
 import DialogCustom from "../../../../../../components/DialogCustom"
 import { addMessageToast } from "../../../../../../store/slices/Toast"
 import styles from "./CreateStrategy.module.scss"
-import { createStrategiesSpot, getAllSymbolSpot } from "../../../../../../services/marginService";
+import { createStrategiesSpot, getAllSymbolSpot, getMarginBorrowCheck } from "../../../../../../services/marginService";
+import { formatNumberString } from "../../../../../../functions"
 
 function CreateStrategy({
     botListInput,
@@ -69,11 +70,15 @@ function CreateStrategy({
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitted }
+        formState: { errors, isSubmitted },
     } = useForm();
 
     const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput ? [symbolValueInput] : [])
     const [botList, setBotList] = useState([])
+    const [spotMaxTradeAmountList, setSpotMaxTradeAmountList] = useState([]);
+    const [showSpotBorrowList, setShowSpotBorrowList] = useState([]);
+    const [positionSideValue, setPositionSideValue] = useState("");
+
 
     const dataChangeRef = useRef(false)
 
@@ -185,11 +190,48 @@ function CreateStrategy({
         reset()
     }
 
+    const handleGetSpotBorrowCheck = async (positionSide) => {
+        try {
+            const res = await getMarginBorrowCheck({
+                botListData: botList,
+                symbol: symbolGroupData[0].value,
+                positionSide
+            })
+            const { status, message, data: newData } = res.data
+
+            dispatch(addMessageToast({
+                status: status,
+                message: message
+            }))
+
+            if (status === 200) {
+                setSpotMaxTradeAmountList(newData.map(item => ({
+                    ...item,
+                    spotMaxTradeAmount: formatNumberString((+item.spotMaxTradeAmount).toFixed(2))
+                })))
+            }
+        }
+        catch (err) {
+            dispatch(addMessageToast({
+                status: 500,
+                message: err.message,
+            }))
+        }
+    }
+
     useEffect(() => {
         handleGetSymbolList()
     }, []);
 
-
+    useEffect(() => {
+        const value = positionSideValue
+        if (symbolGroupData.length === 1 && botList.length > 0 && value && value !== "Both") {
+            handleGetSpotBorrowCheck(value)
+        }
+        else {
+            setSpotMaxTradeAmountList([])
+        }
+    }, [symbolGroupData, botList, positionSideValue]);
     return (
         <DialogCustom
             dialogTitle="Create Strategy"
@@ -344,9 +386,12 @@ function CreateStrategy({
                             select
                             label="Position side"
                             variant="outlined"
-                            defaultValue={positionSideList[0].value}
+                            // defaultValue={positionSideList[0].value}
                             size="medium"
                             {...register("PositionSide", { required: true, })}
+                            onChange={e => {
+                                setPositionSideValue(e.target.value);
+                            }}
                         >
                             {
 
@@ -355,6 +400,7 @@ function CreateStrategy({
                                 ))
                             }
                         </TextField>
+                        {errors.PositionSide?.type === 'required' && <p className="formControlErrorLabel">The Position field is required.</p>}
                     </FormControl>
 
 
@@ -388,10 +434,13 @@ function CreateStrategy({
                                     USDT
                                 </InputAdornment>
                             }}
-                            {...register("Amount", { required: true, min: formControlMinValue })}
+                            {...register("Amount", {
+                                required: true, min: formControlMinValue, ...(spotMaxTradeAmountList[0]?.spotMaxTradeAmount > 0 && { max: spotMaxTradeAmountList[0].spotMaxTradeAmount })
+                            })}
                         />
                         {errors.Amount?.type === 'required' && <p className="formControlErrorLabel">The Amount field is required.</p>}
                         {errors.Amount?.type === "min" && <p className="formControlErrorLabel">The Amount must bigger 0.1.</p>}
+                        {errors.Amount?.type === "max" && <p className="formControlErrorLabel">The Amount must smaller {spotMaxTradeAmountList[0].spotMaxTradeAmount}.</p>}
 
                     </FormControl>
 
@@ -539,6 +588,75 @@ function CreateStrategy({
 
 
             </form>
+
+            {spotMaxTradeAmountList.length === 1 && <b><b style={{
+                margin: "0 3px 0 10px",
+                color: " #db2f2f",
+                fontSize: "1rem",
+            }}>MAX</b>: {spotMaxTradeAmountList[0].spotMaxTradeAmount}$</b>}
+            {spotMaxTradeAmountList.length > 1 && (
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    marginLeft: "6px"
+                }}>
+                    <b style={{
+                        marginRight: "10px",
+                        background: "#db2f2f",
+                        color: " #f9f9f9",
+                        padding: "6px",
+                        borderRadius: "6px",
+                        fontSize: ".8rem",
+                    }}>MAX:</b>
+                    <RemoveRedEyeIcon
+                        className={styles.icon}
+                        onClick={() => {
+                            setShowSpotBorrowList(spotMaxTradeAmountList)
+                        }}
+                    />
+                </div>
+            )}
+
+            {
+                showSpotBorrowList.length > 0 && (
+                    <DialogCustom
+                        open={true}
+                        onClose={() => {
+                            setShowSpotBorrowList([])
+                        }}
+                        dialogTitle='Details MAX'
+                        hideActionBtn
+                        backdrop
+                    >
+                        <Table className={styles.addMember}>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell style={{ fontWeight: "bold" }}>STT </TableCell>
+                                    <TableCell style={{ fontWeight: "bold" }}>Bot </TableCell>
+                                    <TableCell style={{ fontWeight: "bold" }}>Max </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {
+                                    showSpotBorrowList.map((data, index) => (
+                                        <TableRow key={data}>
+                                            <TableCell>
+                                                {index + 1}
+                                            </TableCell>
+                                            <TableCell>
+                                                {data.botData?.botName}
+                                            </TableCell>
+                                            <TableCell>
+                                                {data.spotMaxTradeAmount}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                }
+                            </TableBody>
+                        </Table>
+                    </DialogCustom>
+                )
+            }
         </DialogCustom>
     );
 }
