@@ -1,5 +1,4 @@
 import { FormControl, FormLabel, TextField, Select, MenuItem } from "@mui/material";
-import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import DialogCustom from "../../../../../components/DialogCustom";
 import { closeMarket } from "../../../../../services/positionService";
@@ -12,12 +11,6 @@ function AddMarket({
     positionData
 }) {
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors }
-    } = useForm();
 
     const dispatch = useDispatch();
 
@@ -56,7 +49,7 @@ function AddMarket({
             dialogTitle="Close Market"
             open={true}
             onClose={() => { handleClose(false) }}
-            onSubmit={handleSubmit(handleSubmitLimit)}
+            onSubmit={handleSubmitLimit}
             reserveBtn
             submitBtnColor="warning"
         >
@@ -74,14 +67,13 @@ function AddMarket({
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>Quantity</FormLabel>
                     <TextField
-                        {...register("Quantity")}
+                        // {...register("Quantity")}
                         type="number"
                         size="small"
                         value={Math.abs(positionData.Quantity)}
                         disabled
                     />
-                    {errors.Quantity && <p className="formControlErrorLabel">The Quantity field is required.</p>}
-
+                    {/* {errors.Quantity && <p className="formControlErrorLabel">The Quantity field is required.</p>} */}
                 </FormControl>
 
 

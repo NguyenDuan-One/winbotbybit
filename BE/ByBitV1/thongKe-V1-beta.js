@@ -97,7 +97,7 @@ async function ListCoinFT() {
                 }
                 trichMau[symbol] = {
                     cur: 0,
-                    pre: 0,
+                    pre: new Date(),
                 }
             })
         })
@@ -227,55 +227,60 @@ let Main = async () => {
 
         wsSymbol.on('update', async (dataCoin) => {
 
-            const dataMainAll = dataCoin.data
+            const dataMain = dataCoin.data[0]
 
-            dataMainAll.forEach(dataMain => {
-                const coinCurrent = +dataMain.close
-                const turnover = +dataMain.turnover
-                const [_, candle, symbol] = dataCoin.topic.split(".");
+            const coinCurrent = +dataMain.close
+            const turnover = +dataMain.turnover
+            const [_, candle, symbol] = dataCoin.topic.split(".");
 
-                // if (symbol === "CRDSUSDT") {
-                //     console.log("\n", dataCoin, new Date().toLocaleTimeString(), "\n");
-                // }
+            // if (symbol === "CRDSUSDT") {
+            //     console.log("\n", dataCoin, new Date().toLocaleTimeString(), "\n");
+            // }
 
-                if (coinAllClose) {
+            // if (true) {
 
-                    if (coinCurrent > trichMauData[symbol].high) {
-                        trichMauData[symbol].high = coinCurrent
 
-                    }
-                    if (coinCurrent < trichMauData[symbol].low) {
-                        trichMauData[symbol].low = coinCurrent
-                    }
+            if (!trichMauData[symbol].open) {
+                trichMauData[symbol].open = coinCurrent
+                trichMauData[symbol].turnover = turnover
+            }
 
-                    trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
-                    trichMauData[symbol].turnoverD = turnover
-                    trichMauData[symbol].close = coinCurrent
+            if (coinCurrent > trichMauData[symbol].high) {
+                trichMauData[symbol].high = coinCurrent
 
-                    if (new Date() - trichMau[symbol].pre >= 3000) {
+            }
+            if (coinCurrent < trichMauData[symbol].low) {
+                trichMauData[symbol].low = coinCurrent
+            }
 
-                        trichMau[symbol].pre = new Date()
-                        tinhOC(symbol, trichMauData[symbol])
-                        trichMauData[symbol].open = coinCurrent
-                        trichMauData[symbol].turnover = turnover
-                    }
-                    trichMauData[symbol] = {
-                        high: coinCurrent,
-                        low: coinCurrent,
-                    }
+            trichMauData[symbol].turnover = turnover - trichMauData[symbol].turnover
+            trichMauData[symbol].turnoverD = turnover
+            trichMauData[symbol].close = coinCurrent
 
-                }
-                else if (dataMain.confirm === true) {
-                    coinAllClose = true
-                    trichMau[symbol].pre = new Date()
-                    trichMauData[symbol] = {
-                        open: coinCurrent,
-                        high: coinCurrent,
-                        low: coinCurrent,
-                        turnover: turnover,
-                    }
-                }
-            })
+            
+            if (new Date() - trichMau[symbol].pre >= 1000) {
+
+                trichMau[symbol].pre = new Date()
+                tinhOC(symbol, trichMauData[symbol])
+                trichMauData[symbol].open = coinCurrent
+                trichMauData[symbol].turnover = turnover
+            }
+            trichMauData[symbol] = {
+                high: coinCurrent,
+                low: coinCurrent,
+            }
+
+            // }
+            // else if (dataMain.confirm === true) {
+            //     coinAllClose = true
+            //     trichMau[symbol].pre = new Date()
+            //     trichMauData[symbol] = {
+            //         open: coinCurrent,
+            //         high: coinCurrent,
+            //         low: coinCurrent,
+            //         turnover: turnover,
+            //     }
+            // }
 
 
         });

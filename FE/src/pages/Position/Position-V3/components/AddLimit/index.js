@@ -103,7 +103,7 @@ function AddLimit({
                             size="small"
                             value={priceCurrent}
                             onChange = {e=>{
-                                setPriceCurrent(e.target.value)
+                                setPriceCurrent(e.target.value.toString())
                             }}
                         />
                         {errors.Price && <p className="formControlErrorLabel">The Price field is required.</p>}

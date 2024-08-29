@@ -369,7 +369,7 @@ const PositionController = {
                 side: positionData.Side === "Sell" ? "Buy" : "Sell",
                 positionIdx: 0,
                 orderType: 'Market',
-                qty: Math.abs(Quantity).toString(),
+                qty: Quantity,
                 // price: Math.abs(positionData.Price).toString(),
             })
             .then((response) => {
@@ -410,8 +410,8 @@ const PositionController = {
                 side: positionData.Side === "Sell" ? "Buy" : "Sell",
                 positionIdx: 0,
                 orderType: 'Limit',
-                qty: Math.abs(Quantity).toString(),
-                price: Math.abs(Price).toString(),
+                qty: Quantity,
+                price: Price,
                 reduceOnly: true
             })
             .then(async (response) => {
