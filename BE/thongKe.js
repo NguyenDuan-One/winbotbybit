@@ -171,7 +171,7 @@ function tinhOC(symbol, data) {
     let OC = ((Highest - Open) / Open) || 0
     let TP = ((Highest - Close) / (Highest - Open)) || 0
 
-    let OCLong = (Lowest - Open) / Lowest || 0
+    let OCLong = (Lowest - Open) / Open || 0
     let TPLong = (Close - Lowest) / (Open - Lowest) || 0
 
     if (OC == "Infinity") {
