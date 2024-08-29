@@ -297,17 +297,17 @@ function PositionV1() {
             }))
         }
     }
-    useEffect(() => {
+    // useEffect(() => {
 
-        userData.userName && handleGetAllBotByUserID()
+    //     userData.userName && handleGetAllBotByUserID()
 
-    }, [userData.userName]);
+    // }, [userData.userName]);
 
-    useEffect(() => {
-        if (openAddLimit.dataChange || openAddMarket.dataChange || confirmCloseAllPosition.dataChange) {
-            handleRefreshData(undefined, false)
-        }
-    }, [openAddLimit, openAddMarket, confirmCloseAllPosition]);
+    // useEffect(() => {
+    //     if (openAddLimit.dataChange || openAddMarket.dataChange || confirmCloseAllPosition.dataChange) {
+    //         handleRefreshData(undefined, false)
+    //     }
+    // }, [openAddLimit, openAddMarket, confirmCloseAllPosition]);
 
     return (
         // <div>
