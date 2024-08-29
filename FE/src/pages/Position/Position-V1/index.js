@@ -203,7 +203,7 @@ function PositionV1() {
 
     const handleGetAllBotByUserID = () => {
 
-        getAllBotOnlyApiKeyByUserID(userData._id,"ByBitV1")
+        getAllBotOnlyApiKeyByUserID(userData._id, "ByBitV1")
             .then(res => {
                 const data = res.data.data;
                 const newData = data?.map(item => (
@@ -307,167 +307,167 @@ function PositionV1() {
         if (openAddLimit.dataChange || openAddMarket.dataChange || confirmCloseAllPosition.dataChange) {
             handleRefreshData(undefined, false)
         }
-    }, [openAddLimit, openAddMarket,confirmCloseAllPosition]);
+    }, [openAddLimit, openAddMarket, confirmCloseAllPosition]);
 
     return (
-        <div>
-            <AddBreadcrumbs list={["Position"]} />
+        // <div>
+        //     <AddBreadcrumbs list={["Position"]} />
 
-            <div className={styles.position}>
+        //     <div className={styles.position}>
 
-                <div className={styles.positionHeader}>
-                    {/* <FormControl className={styles.positionHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
-                        <Select
-                            value={botTypeSelected}
-                            size="small"
-                        >
-                            {
-                                botTypeList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl> */}
+        //         <div className={styles.positionHeader}>
+        //             {/* <FormControl className={styles.positionHeaderItem}>
+        //                 <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
+        //                 <Select
+        //                     value={botTypeSelected}
+        //                     size="small"
+        //                 >
+        //                     {
+        //                         botTypeList.map(item => (
+        //                             <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+        //                         ))
+        //                     }
+        //                 </Select>
+        //             </FormControl> */}
 
-                    <FormControl className={styles.positionHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Bot</FormLabel>
-                        <Select
-                            value={botSelected}
-                            size="small"
-                            onChange={e => {
-                                const value = e.target.value;
-                                setBotSelected(value);
-                                handleFilterAll({
-                                    name: "botID",
-                                    value
-                                })
-                            }}
-                        >
-                            {
-                                botList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl>
-
-
-
-                    <div className={styles.refreshBtn}>
-                        {botList.length > 0 &&
-                            <Button
-                                variant="contained"
-                                size="small"
-                                color="info"
-                                onClick={() => {
-                                    handleRefreshData()
-                                }}
-                            >
-                                Refresh
-                            </Button>}
-                        {positionData.length > 0 &&
-                            <Button
-                                variant="contained"
-                                size="small"
-                                color="error"
-                                style={{ marginLeft: "12px" }}
-                                onClick={() => {
-                                    setConfirmCloseAllPosition({
-                                        isOpen: true,
-                                        dataChange: false
-                                    })
-                                }}
-                            >
-                                Close All
-                            </Button>}
-                    </div>
-                </div>
-
-                <div className={styles.positionTable}>
-
-                    <DataGridCustom
-                        setDataTableChange={setDataTableChange}
-                        tableRows={positionData}
-                        tableColumns={tableColumns}
-                        checkboxSelection={false}
-                        columnVisibilityModel={
-                            {
-                                "Price": false,
-                                "Quantity": false,
-                                "Time": false,
-                                "TimeUpdated": false,
-                            }
-                        }
-                    />
-                </div>
-            </div>
-
-            {
-                openAddLimit.isOpen && positionData.find(item => item.id == openAddLimit.data?.id) && (
-                    <AddLimit
-                        onClose={(data) => {
-                            setOpenAddLimit({
-                                ...openAddLimit,
-                                ...data
-                            })
-                        }}
-                        positionData={openAddLimit.data}
-                    />
-                )
-            }
-
-            {
-                openAddMarket.isOpen && positionData.find(item => item.id == openAddMarket.data?.id) && (
-                    <AddMarket
-                        onClose={(data) => {
-                            setOpenAddMarket({
-                                ...openAddMarket,
-                                ...data
-                            })
-                        }}
-                        positionData={openAddMarket.data}
-                    />
-                )
-            }
-
-            {
-                confirmCloseAllPosition.isOpen && (
-                    <DialogCustom
-                        backdrop
-                        open={true}
-                        onClose={() => {
-                            setConfirmCloseAllPosition({
-                                dataChange: false,
-                                isOpen: false
-                            })
-                        }}
-                        onSubmit={async () => {
-                            const res = await closeAllPosition(botList.slice(1))
-                            const { message } = res.data
-
-                            dispatch(addMessageToast({
-                                status: 200,
-                                message,
-                            }))
-                            setConfirmCloseAllPosition({
-                                dataChange: true,
-                                isOpen: false
-                            })
-                        }}
-                        dialogTitle="The action requires confirmation"
-                        submitBtnColor="error"
-                        submitBtnText="Close All"
-                        reserveBtn
-                        position="center"
-                    >
-                        <p style={{ textAlign: "center" }}>Do you want to close all position of bots?</p>
-                    </DialogCustom >
-                )
-            }
-        </div >
+        //             <FormControl className={styles.positionHeaderItem}>
+        //                 <FormLabel className={styles.formLabel}>Bot</FormLabel>
+        //                 <Select
+        //                     value={botSelected}
+        //                     size="small"
+        //                     onChange={e => {
+        //                         const value = e.target.value;
+        //                         setBotSelected(value);
+        //                         handleFilterAll({
+        //                             name: "botID",
+        //                             value
+        //                         })
+        //                     }}
+        //                 >
+        //                     {
+        //                         botList.map(item => (
+        //                             <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+        //                         ))
+        //                     }
+        //                 </Select>
+        //             </FormControl>
 
 
+
+        //             <div className={styles.refreshBtn}>
+        //                 {botList.length > 0 &&
+        //                     <Button
+        //                         variant="contained"
+        //                         size="small"
+        //                         color="info"
+        //                         onClick={() => {
+        //                             handleRefreshData()
+        //                         }}
+        //                     >
+        //                         Refresh
+        //                     </Button>}
+        //                 {positionData.length > 0 &&
+        //                     <Button
+        //                         variant="contained"
+        //                         size="small"
+        //                         color="error"
+        //                         style={{ marginLeft: "12px" }}
+        //                         onClick={() => {
+        //                             setConfirmCloseAllPosition({
+        //                                 isOpen: true,
+        //                                 dataChange: false
+        //                             })
+        //                         }}
+        //                     >
+        //                         Close All
+        //                     </Button>}
+        //             </div>
+        //         </div>
+
+        //         <div className={styles.positionTable}>
+
+        //             <DataGridCustom
+        //                 setDataTableChange={setDataTableChange}
+        //                 tableRows={positionData}
+        //                 tableColumns={tableColumns}
+        //                 checkboxSelection={false}
+        //                 columnVisibilityModel={
+        //                     {
+        //                         "Price": false,
+        //                         "Quantity": false,
+        //                         "Time": false,
+        //                         "TimeUpdated": false,
+        //                     }
+        //                 }
+        //             />
+        //         </div>
+        //     </div>
+
+        //     {
+        //         openAddLimit.isOpen && positionData.find(item => item.id == openAddLimit.data?.id) && (
+        //             <AddLimit
+        //                 onClose={(data) => {
+        //                     setOpenAddLimit({
+        //                         ...openAddLimit,
+        //                         ...data
+        //                     })
+        //                 }}
+        //                 positionData={openAddLimit.data}
+        //             />
+        //         )
+        //     }
+
+        //     {
+        //         openAddMarket.isOpen && positionData.find(item => item.id == openAddMarket.data?.id) && (
+        //             <AddMarket
+        //                 onClose={(data) => {
+        //                     setOpenAddMarket({
+        //                         ...openAddMarket,
+        //                         ...data
+        //                     })
+        //                 }}
+        //                 positionData={openAddMarket.data}
+        //             />
+        //         )
+        //     }
+
+        //     {
+        //         confirmCloseAllPosition.isOpen && (
+        //             <DialogCustom
+        //                 backdrop
+        //                 open={true}
+        //                 onClose={() => {
+        //                     setConfirmCloseAllPosition({
+        //                         dataChange: false,
+        //                         isOpen: false
+        //                     })
+        //                 }}
+        //                 onSubmit={async () => {
+        //                     const res = await closeAllPosition(botList.slice(1))
+        //                     const { message } = res.data
+
+        //                     dispatch(addMessageToast({
+        //                         status: 200,
+        //                         message,
+        //                     }))
+        //                     setConfirmCloseAllPosition({
+        //                         dataChange: true,
+        //                         isOpen: false
+        //                     })
+        //                 }}
+        //                 dialogTitle="The action requires confirmation"
+        //                 submitBtnColor="error"
+        //                 submitBtnText="Close All"
+        //                 reserveBtn
+        //                 position="center"
+        //             >
+        //                 <p style={{ textAlign: "center" }}>Do you want to close all position of bots?</p>
+        //             </DialogCustom >
+        //         )
+        //     }
+        // </div >
+
+        <p style={{ textAlign: "center", marginTop: "12px" }}>Coming soon...</p>
     );
 }
 
