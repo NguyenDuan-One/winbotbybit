@@ -531,7 +531,7 @@ function Bot() {
                         tableRows={botList}
                         tableColumns={tableColumns}
                         disableMultipleRowSelection
-                        checkboxSelection={false}
+                        // checkboxSelection={false}
                     />
                 </div>
             </div>

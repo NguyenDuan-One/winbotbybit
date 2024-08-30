@@ -1152,7 +1152,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                     }
                                 }
 
-                                if (topicMain === "position") {
+                                else if (topicMain === "position") {
 
                                     const size = Math.abs(dataMain.size)
 
