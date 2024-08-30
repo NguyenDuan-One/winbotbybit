@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import DialogCustom from "../../../../../components/DialogCustom";
-import { closeLimit, getPriceLimitCurrent } from "../../../../../services/positionService";
+import { closeLimit, getPriceLimitCurrent } from "../../../../../services/positionV1Service";
 import { addMessageToast } from "../../../../../store/slices/Toast";
 import styles from "../../../../Bot/components/AddBot/AddBot.module.scss"
 
@@ -27,9 +27,13 @@ function AddLimit({
 
         try {
             const res = await closeLimit({
-                positionData,
+                positionData: {
+                    ...positionData,
+                    Symbol: `${positionData.Symbol}USDT`,
+                },
                 Quantity: positionData.Quantity,
-                Price: priceCurrent
+                Price: priceCurrent,
+
             })
             const { status, message } = res.data
 
@@ -61,7 +65,7 @@ function AddLimit({
     const handleGetPriceCurrent = async () => {
         try {
             const symbol = positionData.Symbol
-            const res = await getPriceLimitCurrent(symbol)
+            const res = await getPriceLimitCurrent(`${symbol}USDT`)
             const { status, message, data: resData } = res.data
             if (status === 200) {
                 setPriceCurrent(resData)
@@ -94,7 +98,7 @@ function AddLimit({
             submitBtnColor="warning"
         >
             {
-               <form className={styles.dialogForm}>
+                <form className={styles.dialogForm}>
                     <FormControl className={styles.formControl}>
                         <FormLabel className={styles.label}>Price</FormLabel>
                         <TextField
@@ -102,7 +106,7 @@ function AddLimit({
                             type="number"
                             size="small"
                             value={priceCurrent}
-                            onChange = {e=>{
+                            onChange={e => {
                                 setPriceCurrent(e.target.value)
                             }}
                         />

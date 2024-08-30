@@ -39,7 +39,7 @@ const PositionController = {
     //                 });
 
     //                 return client.getPositionInfo({
-    //                     category: 'linear',
+    //                     category: 'spot',
     //                     settleCoin: "USDT"
     //                     // symbol: positionData.Symbol
     //                 }).then(async response => {
@@ -267,7 +267,7 @@ const PositionController = {
                 const botID = dataBotItem.value
 
                 return client.getPositionInfo({
-                    category: 'linear',
+                    category: 'spot',
                     settleCoin: "USDT"
                     // symbol: positionData.Symbol
                 }).then(async response => {
@@ -317,7 +317,7 @@ const PositionController = {
                     while (index < list.length) {
                         const batch = list.slice(index, index + batchSize);
 
-                        const res = await client.batchSubmitOrders("linear", batch)
+                        const res = await client.batchSubmitOrders("spot", batch)
 
                         await delay(1000)
                         index += batchSize
@@ -337,10 +337,12 @@ const PositionController = {
             });
 
             await client.getKline({
-                category: 'linear',
+                category: 'spot',
                 symbol,
                 interval: '1',
             }).then(response => {
+                console.log(response.result);
+                
                 const priceCurrent = response.result.list[0]?.[4]
                 res.customResponse(200, "Get Price Current Successful", priceCurrent);
             }).catch(err => {
@@ -364,7 +366,7 @@ const PositionController = {
         });
         client
             .submitOrder({
-                category: 'linear',
+                category: 'spot',
                 symbol: positionData.Symbol,
                 side: positionData.Side === "Sell" ? "Buy" : "Sell",
                 positionIdx: 0,
@@ -405,7 +407,7 @@ const PositionController = {
         });
         client
             .submitOrder({
-                category: 'linear',
+                category: 'spot',
                 symbol,
                 side: positionData.Side === "Sell" ? "Buy" : "Sell",
                 positionIdx: 0,

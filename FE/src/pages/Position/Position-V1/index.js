@@ -133,17 +133,20 @@ function PositionV1() {
             type: "actions",
             maxWidth: 100,
             flex: window.innerWidth <= 740 ? undefined : 1,
-            renderCell: (params) => (
-                <>
+            renderCell: (params) => {
+                const Symbol = params.row["Symbol"]
+                return <>
                     {
-                        params.value && (
-                            <CheckIcon />
+                        Symbol !== "USDT" && (
+                            params.value && (
+                                <CheckIcon />
+                            )
                         )
                     }
                 </>
-            )
-
+            }
         },
+
         {
             field: 'Actions',
             type: "actions",
@@ -151,44 +154,49 @@ function PositionV1() {
             headerName: 'Active',
             renderCell: params => {
                 const rowData = params.row; // Dữ liệu của hàng hiện tại
+                const Symbol = rowData["Symbol"]
                 return (
-                    <div >
-                        {
-                            <Button
-                                variant="contained"
-                                size="small"
-                                color="inherit"
-                                style={{
-                                    margin: "0 6px"
-                                }}
-                                onClick={() => {
-                                    setOpenAddLimit({
-                                        isOpen: true,
-                                        dataChange: "",
-                                        data: rowData
-                                    })
-                                }}
-                            >
-                                Limit
-                            </Button>
-                        }
-                        <Button
-                            variant="contained"
-                            size="small"
-                            style={{
-                                margin: "0 6px"
-                            }}
-                            onClick={() => {
-                                setOpenAddMarket({
-                                    isOpen: true,
-                                    dataChange: "",
-                                    data: rowData
-                                })
-                            }}
-                        >
-                            Market
-                        </Button>
-                    </div>
+                    <>
+                        {Symbol !== "USDT" && (
+                            <div >
+                                {
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        color="inherit"
+                                        style={{
+                                            margin: "0 6px"
+                                        }}
+                                        onClick={() => {
+                                            setOpenAddLimit({
+                                                isOpen: true,
+                                                dataChange: "",
+                                                data: rowData
+                                            })
+                                        }}
+                                    >
+                                        Limit
+                                    </Button>
+                                }
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    style={{
+                                        margin: "0 6px"
+                                    }}
+                                    onClick={() => {
+                                        setOpenAddMarket({
+                                            isOpen: true,
+                                            dataChange: "",
+                                            data: rowData
+                                        })
+                                    }}
+                                >
+                                    Market
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 )
 
             },
