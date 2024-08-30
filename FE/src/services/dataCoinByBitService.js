@@ -30,6 +30,9 @@ export const getSpotTotal = async (botID) => {
 export const createStrategies = async (data) => {
     return await api.post("/dataCoinByBit/createStrategies", data)
 }
+export const getTotalFutureSpotByBot = async (botListId) => {
+    return await api.post("/dataCoinByBit/getTotalFutureSpotByBot", {botListId})
+}
 
 // UPDATE
 export const updateStrategiesByID = async ({ id, data }) => {

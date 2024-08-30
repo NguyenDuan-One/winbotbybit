@@ -11,7 +11,7 @@ import styles from "./Bot.module.scss"
 import { useDispatch, useSelector } from 'react-redux';
 import { addMessageToast } from '../../store/slices/Toast';
 import DialogCustom from '../../components/DialogCustom';
-import { getTotalFutureSpot } from '../../services/dataCoinByBitService';
+import { getTotalFutureSpot, getTotalFutureSpotByBot } from '../../services/dataCoinByBitService';
 import { formatNumber } from '../../functions';
 import { getAllBotType } from '../../services/botTypeService';
 
@@ -229,6 +229,7 @@ function Bot() {
     const [openEditMultiple, setOpenEditMultiple] = useState(false);
     const [confirmActiveBot, setConfirmActiveBot] = useState(false);
     const [totalFutureSpot, setTotalFutureSpot] = useState(0);
+    const totalFutureSpotOfMeDefault = useRef(0)
 
     const checkMyBotRef = useRef(true)
     const checkBotTypeRef = useRef("All")
@@ -384,6 +385,8 @@ function Bot() {
             const { data: resData } = res.data
 
             setTotalFutureSpot(resData)
+            totalFutureSpotOfMeDefault.current = resData
+
 
         }
         catch (err) {
@@ -395,22 +398,26 @@ function Bot() {
     }
 
     const handleGetTotalFutureSpotByBot = async (botListData) => {
-        console.log(botListData);
-        
 
-        // try {
-        //     const res = await getTotalFutureSpotByBot(userData._id)
-        //     const { data: resData } = res.data
+        if (botListData.length > 0) {
 
-        //     setTotalFutureSpot(resData)
+            try {
+                const res = await getTotalFutureSpotByBot(botListData)
+                const { data: resData } = res.data
 
-        // }
-        // catch (err) {
-        //     dispatch(addMessageToast({
-        //         status: 500,
-        //         message: "Get Total Future-Spot Error",
-        //     }))
-        // }
+                setTotalFutureSpot(resData)
+
+            }
+            catch (err) {
+                dispatch(addMessageToast({
+                    status: 500,
+                    message: "Get Total Future-Spot Error",
+                }))
+            }
+        }
+        else {
+            setTotalFutureSpot(totalFutureSpotOfMeDefault.current)
+        }
     }
 
 
@@ -550,7 +557,7 @@ function Bot() {
                         setDataTableChange={handleGetTotalFutureSpotByBot}
                         tableRows={botList}
                         tableColumns={tableColumns}
-                        // checkboxSelection={false}
+                    // checkboxSelection={false}
                     />
                 </div>
             </div>

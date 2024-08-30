@@ -261,7 +261,7 @@ const dataCoinByBitController = {
 
             const {  botListId } = req.body
 
-            const resultAll = await Promise.allSettled(botListId.map(async botData => dataCoinByBitController.getFutureSpotBE(botData._id)))
+            const resultAll = await Promise.allSettled(botListId.map(async botID => dataCoinByBitController.getFutureSpotBE(botID)))
 
             if (resultAll.some(item => item?.value?.future && item?.value?.spotTotal)) {
                 res.customResponse(200, "Get Total Future-Spot By Bot Successful", resultAll.reduce((pre, cur) => {

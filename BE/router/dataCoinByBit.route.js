@@ -13,6 +13,7 @@ router.get('/getTotalFutureSpot/:id', MiddlewareController.verifyToken, dataCoin
 router.get('/getSpotTotal/:id', MiddlewareController.verifyToken, dataCoinByBitController.getSpotTotal)
 
 router.post('/createStrategies', MiddlewareController.verifyToken, dataCoinByBitController.createStrategies)
+router.post('/getTotalFutureSpotByBot', MiddlewareController.verifyToken, dataCoinByBitController.getTotalFutureSpotByBot)
 
 router.put('/updateStrategies/:id', MiddlewareController.verifyToken, dataCoinByBitController.updateStrategiesByID)
 router.post('/updateStrategiesMultiple', MiddlewareController.verifyToken, dataCoinByBitController.updateStrategiesMultiple)
