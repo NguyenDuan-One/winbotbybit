@@ -866,7 +866,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                         const topicMain = dataCoin.topic
                         const dataMainAll = dataCoin.data
 
-                        ApiKey && SecretKey && await Promise.allSettled(dataMainAll.forEach(async dataMain => {
+                        ApiKey && SecretKey && await Promise.allSettled(dataMainAll.map(async dataMain => {
 
                             if (dataMain.category == "linear") {
 

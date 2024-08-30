@@ -256,6 +256,28 @@ const dataCoinByBitController = {
             res.status(500).json({ message: error.message });
         }
     },
+    getTotalFutureSpotByBot: async (req, res) => {
+        try {
+
+            const {  botListId } = req.body
+
+            const resultAll = await Promise.allSettled(botListId.map(async botData => dataCoinByBitController.getFutureSpotBE(botData._id)))
+
+            if (resultAll.some(item => item?.value?.future && item?.value?.spotTotal)) {
+                res.customResponse(200, "Get Total Future-Spot By Bot Successful", resultAll.reduce((pre, cur) => {
+                    return pre + (+cur?.value?.future || 0) + (+cur?.value?.spotTotal || 0)
+                }, 0))
+            }
+            else {
+                res.customResponse(400, "Get Total Future-Spot By Bot Failed", "");
+            }
+
+        }
+
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    },
     // CREATE
     createStrategies: async (req, res) => {
 

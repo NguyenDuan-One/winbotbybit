@@ -394,6 +394,25 @@ function Bot() {
         }
     }
 
+    const handleGetTotalFutureSpotByBot = async (botListData) => {
+        console.log(botListData);
+        
+
+        // try {
+        //     const res = await getTotalFutureSpotByBot(userData._id)
+        //     const { data: resData } = res.data
+
+        //     setTotalFutureSpot(resData)
+
+        // }
+        // catch (err) {
+        //     dispatch(addMessageToast({
+        //         status: 500,
+        //         message: "Get Total Future-Spot Error",
+        //     }))
+        // }
+    }
+
 
     const handleGetAllBotType = async () => {
         try {
@@ -527,10 +546,10 @@ function Bot() {
                 </div>
                 <div className={styles.botTableContainerData}>
                     <DataGridCustom
-                        // setDataTableChange={setDataTableChange}
+
+                        setDataTableChange={handleGetTotalFutureSpotByBot}
                         tableRows={botList}
                         tableColumns={tableColumns}
-                        disableMultipleRowSelection
                         // checkboxSelection={false}
                     />
                 </div>
