@@ -877,12 +877,12 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                 const botSymbolMissID = `${botID}-${symbol}`
 
-                                // if (orderStatus === "Filled") {
-                                //     console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
-                                // }
-                                // if (orderStatus === "PartiallyFilled") {
-                                //     console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID( ${botName} - ${dataMain.side} - ${symbol} - ${strategy.Candlestick} ):`, dataMain.qty));
-                                // }
+                                if (orderStatus === "Filled") {
+                                    console.log(changeColorConsole.greenBright(`[V] Filled OrderID ( ${botName} - ${dataMain.side} - ${symbol} ):`, orderID));
+                                }
+                                if (orderStatus === "PartiallyFilled") {
+                                    console.log(changeColorConsole.blueBright(`[V] PartiallyFilled OrderID( ${botName} - ${dataMain.side} - ${symbol} - ${strategy.Candlestick} ):`, dataMain.qty));
+                                }
 
                                 if (topicMain === "order") {
 

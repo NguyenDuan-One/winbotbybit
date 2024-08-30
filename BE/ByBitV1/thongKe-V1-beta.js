@@ -159,7 +159,7 @@ const tinhOC = (symbol, dataAll = []) => {
             const Highest = +data.high
             const Lowest = +data.low
 
-            vol += (+data.turnover)
+            vol += (+data.turnoverD)
             if (index === 0) {
                 OCNotPercent = Highest - Open
                 OC = OCNotPercent / Open

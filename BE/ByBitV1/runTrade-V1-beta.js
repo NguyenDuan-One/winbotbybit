@@ -9,6 +9,8 @@ const changeColorConsole = require('cli-color');
 const TelegramBot = require('node-telegram-bot-api');
 const { getAllSymbolMarginBE, getAllStrategiesActiveMarginBE } = require('../controllers/margin');
 const { getAllSymbolSpotBE, getAllStrategiesActiveSpotBE, deleteStrategiesItemSpotBE } = require('../controllers/spot');
+const { createPositionBE, getPositionBySymbol, deletePositionBE, updatePositionBE } = require('../controllers/positionV1');
+
 
 const { RestClientV5, WebsocketClient } = require('bybit-api');
 
@@ -402,40 +404,13 @@ const handleSubmitOrderTP = async ({
                 console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} ) failed `, response.retMsg, price))
                 delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
 
-                // if (missState) {
-                //     console.log(changeColorConsole.yellowBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} )`))
-                //     updatePositionBE({
-                //         newDataUpdate: {
-                //             Miss: true,
-                //             TimeUpdated: new Date()
-                //         },
-                //         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                //     }).then(message => {
-                //         console.log(message);
-                //     }).catch(err => {
-                //         console.log("ERROR Position TP:", err)
-                //     })
-                // }
+            
             }
         })
         .catch((error) => {
             console.log(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} ) error `, error)
             delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
 
-            // if (missState) {
-            //     console.log(changeColorConsole.redBright(`[X] Không thể xử lý MISS ( ${botName} - ${side} - ${symbol} )`))
-            //     updatePositionBE({
-            //         newDataUpdate: {
-            //             Miss: true,
-            //             TimeUpdated: new Date()
-            //         },
-            //         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-            //     }).then(message => {
-            //         console.log(message);
-            //     }).catch(err => {
-            //         console.log("ERROR Position TP:", err)
-            //     })
-            // }
             console.log("ERROR Order TP:", error)
         });
 }
@@ -691,17 +666,17 @@ const handleCancelOrderTP = async ({
 
                 if (gongLai && !missTPDataBySymbol[botSymbolMissID].gongLai) {
                     missTPDataBySymbol[botSymbolMissID].gongLai = true
-                    // missTPDataBySymbol[botSymbolMissID]?.orderIDToDB && updatePositionBE({
-                    //     newDataUpdate: {
-                    //         Miss: true,
-                    //         TimeUpdated: new Date()
-                    //     },
-                    //     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                    // }).then(message => {
-                    //     console.log(message);
-                    // }).catch(err => {
-                    //     console.log(err)
-                    // })
+                    missTPDataBySymbol[botSymbolMissID]?.orderIDToDB && updatePositionBE({
+                        newDataUpdate: {
+                            Miss: true,
+                            TimeUpdated: new Date()
+                        },
+                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                    }).then(message => {
+                        console.log(message);
+                    }).catch(err => {
+                        console.log(err)
+                    })
                     // resetMissData({
                     //     botID,
                     //     symbol
@@ -1030,35 +1005,35 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                     Symbol: symbol,
                                                     Side: dataMain.side,
                                                     Quantity,
-                                                    Price: openTrade,
+                                                    TradeType: strategy.tradeType
                                                 }
 
                                                 console.log(`\n[Saving->Mongo] Position When Filled OC ( ${botName} - ${dataMain.side} - ${symbol} )`);
 
-                                                // await createPositionBE({
-                                                //     ...newDataToDB,
-                                                //     botID,
-                                                // }).then(async data => {
-                                                //     console.log(data.message);
-                                                //     !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
+                                                await createPositionBE({
+                                                    ...newDataToDB,
+                                                    botID,
+                                                }).then(async data => {
+                                                    console.log(data.message);
+                                                    !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
-                                                //     const newID = data.id
-                                                //     if (newID) {
-                                                //         missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
-                                                //     }
-                                                //     else {
-                                                //         await getPositionBySymbol({ symbol, botID }).then(data => {
-                                                //             console.log(data.message);
-                                                //             missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
-                                                //         }).catch(error => {
-                                                //             console.log("ERROR getPositionBySymbol:", error)
+                                                    const newID = data.id
+                                                    if (newID) {
+                                                        missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
+                                                    }
+                                                    else {
+                                                        await getPositionBySymbol({ symbol, botID }).then(data => {
+                                                            console.log(data.message);
+                                                            missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
+                                                        }).catch(error => {
+                                                            console.log("ERROR getPositionBySymbol:", error)
 
-                                                //         })
-                                                //     }
+                                                        })
+                                                    }
 
-                                                // }).catch(err => {
-                                                //     console.log("ERROR createPositionBE:", err)
-                                                // })
+                                                }).catch(err => {
+                                                    console.log("ERROR createPositionBE:", err)
+                                                })
                                             }
 
                                             // Create TP
@@ -1164,16 +1139,16 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                                 missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
-                                                // if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                                //     deletePositionBE({
-                                                //         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                                //     }).then(message => {
-                                                //         console.log(`[...] Delete Position ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
-                                                //         console.log(message);
-                                                //     }).catch(err => {
-                                                //         console.log("ERROR deletePositionBE:", err)
-                                                //     })
-                                                // }
+                                                if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+                                                    deletePositionBE({
+                                                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                                    }).then(message => {
+                                                        console.log(`[...] Delete Position ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
+                                                        console.log(message);
+                                                    }).catch(err => {
+                                                        console.log("ERROR deletePositionBE:", err)
+                                                    })
+                                                }
 
                                                 console.log(`[...] Reset All ( ${botName} - ${side} - ${symbol} - ${strategy.Candlestick} )`);
 
@@ -1220,17 +1195,17 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                             if (missTPDataBySymbol[botSymbolMissID]?.sizeTotal - missTPDataBySymbol[botSymbolMissID].size > 0) {
                                                 missTPDataBySymbol[botSymbolMissID].gongLai = true
-                                                // updatePositionBE({
-                                                //     newDataUpdate: {
-                                                //         Miss: true,
-                                                //         TimeUpdated: new Date()
-                                                //     },
-                                                //     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                                // }).then(message => {
-                                                //     console.log(message);
-                                                // }).catch(err => {
-                                                //     console.log("ERROR updatePositionBE:", err)
-                                                // })
+                                                updatePositionBE({
+                                                    newDataUpdate: {
+                                                        Miss: true,
+                                                        TimeUpdated: new Date()
+                                                    },
+                                                    orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                                }).then(message => {
+                                                    console.log(message);
+                                                }).catch(err => {
+                                                    console.log("ERROR updatePositionBE:", err)
+                                                })
                                                 // resetMissData({
                                                 //     botID,
                                                 //     symbol,
@@ -1268,6 +1243,10 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                         const side = dataMain.side
                                         const openTrade = +dataMain.execPrice  //Gia khop lenh
 
+                                        const size = Math.abs(dataMain.size)
+
+                                        missTPDataBySymbol[botSymbolMissID].sizeTotal = size
+
                                         const missSize = size - missTPDataBySymbol[botSymbolMissID].size
 
                                         const Quantity = side === "Buy" ? size : (size * -1)
@@ -1278,37 +1257,36 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 Symbol: symbol,
                                                 Side: side,
                                                 Quantity,
-                                                Price: openTrade,
-                                                // Pnl: dataMain.unrealisedPnl,
+                                                TradeType: strategy.tradeType
                                             }
 
                                             console.log(`\n[Saving->Mongo] Position When Check Miss ( ${botName} - ${side} - ${symbol} )`);
 
-                                            // await createPositionBE({
-                                            //     ...newDataToDB,
-                                            //     botID,
-                                            // }).then(async data => {
-                                            //     console.log(data.message);
+                                            await createPositionBE({
+                                                ...newDataToDB,
+                                                botID,
+                                            }).then(async data => {
+                                                console.log(data.message);
 
-                                            //     const newID = data.id
+                                                const newID = data.id
 
-                                            //     !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
+                                                !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
 
-                                            //     if (newID) {
-                                            //         missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
-                                            //     }
-                                            //     else {
-                                            //         await getPositionBySymbol({ symbol, botID }).then(data => {
-                                            //             console.log(data.message);
-                                            //             missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
-                                            //         }).catch(error => {
-                                            //             console.log("ERROR getPositionBySymbol:", error)
-                                            //         })
-                                            //     }
+                                                if (newID) {
+                                                    missTPDataBySymbol[botSymbolMissID].orderIDToDB = newID
+                                                }
+                                                else {
+                                                    await getPositionBySymbol({ symbol, botID }).then(data => {
+                                                        console.log(data.message);
+                                                        missTPDataBySymbol[botSymbolMissID].orderIDToDB = data.id
+                                                    }).catch(error => {
+                                                        console.log("ERROR getPositionBySymbol:", error)
+                                                    })
+                                                }
 
-                                            // }).catch(err => {
-                                            //     console.log("ERROR createPositionBE:", err)
-                                            // })
+                                            }).catch(err => {
+                                                console.log("ERROR createPositionBE:", err)
+                                            })
                                         }
 
                                         if (!missTPDataBySymbol[botSymbolMissID]?.gongLai) {
@@ -1350,16 +1328,16 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                                 // handleSubmitOrderTP(dataInput)
 
-                                                // updatePositionBE({
-                                                //     newDataUpdate: {
-                                                //         Miss: true
-                                                //     },
-                                                //     orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                                // }).then(message => {
-                                                //     console.log(message);
-                                                // }).catch(err => {
-                                                //     console.log("ERROR updatePositionBE:", err)
-                                                // })
+                                                updatePositionBE({
+                                                    newDataUpdate: {
+                                                        Miss: true
+                                                    },
+                                                    orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                                }).then(message => {
+                                                    console.log(message);
+                                                }).catch(err => {
+                                                    console.log("ERROR updatePositionBE:", err)
+                                                })
                                                 sendMessageWithRetry({
                                                     messageText: teleText,
                                                     telegramID,
@@ -1438,53 +1416,21 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                             }
                             // User cancel vị thế ( Market )
                             if (dataMain.orderType === "Market") {
-                                const side = dataMain.side
+                                
                                 console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế (Market) - ( ${symbol} )`)
 
-                                // const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
-
-                                // listMiss?.length > 0 && await handleCancelAllOrderTP({
-                                //     items: listMiss.map((orderIdTPData) => ({
-                                //         ApiKey,
-                                //         SecretKey,
-                                //         strategyID: orderIdTPData?.strategyID,
-                                //         symbol,
-                                //         side: dataMain.side,
-                                //         orderId: orderIdTPData?.orderID,
-                                //         botID,
-                                //         botName
-                                //     }))
-                                // })
-
-
-                                // if (missTPDataBySymbol[botSymbolMissID]?.orderID) {
-                                //     console.log(`[...] Cancel Position MISS`);
-                                //     handleCancelOrderTP(
-                                //         {
-                                //             strategyID,
-                                //             symbol: strategy.symbol,
-                                //             side,
-                                //             orderId: missTPDataBySymbol[botSymbolMissID].orderID,
-                                //             candle: strategy.Candlestick,
-                                //             ApiKey,
-                                //             SecretKey,
-                                //             botName,
-                                //             botID
-                                //         }
-                                //     )
-                                // }
-
-                                // if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
-                                //     await deletePositionBE({
-                                //         orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
-                                //     }).then(message => {
-                                //         console.log(message);
-                                //     }).catch(err => {
-                                //         console.log("ERROR deletePositionBE:", err)
-                                //     })
-                                // }
+                                if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
+                                    await deletePositionBE({
+                                        orderID: missTPDataBySymbol[botSymbolMissID].orderIDToDB
+                                    }).then(message => {
+                                        console.log(message);
+                                    }).catch(err => {
+                                        console.log("ERROR deletePositionBE:", err)
+                                    })
+                                }
 
                                 resetMissData({ botID, symbol })
+
 
                             }
 
