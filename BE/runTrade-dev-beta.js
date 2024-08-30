@@ -1169,6 +1169,10 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             const side = dataMain.side
                                             const openTrade = +dataMain.entryPrice  //Gia khop lenh
 
+                                            const size = Math.abs(dataMain.size)
+
+                                            missTPDataBySymbol[botSymbolMissID].sizeTotal = size
+
                                             const missSize = size - missTPDataBySymbol[botSymbolMissID].size
 
                                             const Quantity = side === "Buy" ? size : (size * -1)

@@ -2035,7 +2035,6 @@ socketRealtime.on('delete', async (newData) => {
             const strategyID = strategiesData.value
             const botID = strategiesData.botID._id
             const botName = strategiesData.botID.botName
-            const Candlestick = strategiesData.Candlestick.split("")[0]
 
             const side = strategiesData.PositionSide === "Long" ? "Buy" : "Sell"
 
@@ -2052,28 +2051,27 @@ socketRealtime.on('delete', async (newData) => {
                 botID
             }
 
-            !listOrderOC[strategiesData.Candlestick] && (listOrderOC[strategiesData.Candlestick] = {});
-            !listOrderOC[strategiesData.Candlestick][botID] && (listOrderOC[strategiesData.Candlestick][botID] = {});
-            !listOrderOC[strategiesData.Candlestick][botID].listOC && (listOrderOC[strategiesData.Candlestick][botID] = {
+            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && listOrderTP.push({
+                ...cancelDataObject,
+                orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
+                gongLai: true
+            })
+
+            !listOrderOC[botID] && (listOrderOC[botID] = {});
+            !listOrderOC[botID].listOC && (listOrderOC[botID] = {
                 listOC: {},
                 ApiKey,
                 SecretKey,
             });
-            allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderLinkId && (listOrderOC[strategiesData.Candlestick][botID].listOC[strategyID] = {
+
+            allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderLinkId && (listOrderOC[botID].listOC[strategyID] = {
                 strategyID,
-                candle: strategiesData.Candlestick,
                 symbol,
                 side,
                 botName,
                 botID,
                 orderLinkId: allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderLinkId
             });
-
-            allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID && listOrderTP.push({
-                ...cancelDataObject,
-                orderId: allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]?.TP?.orderID,
-                gongLai: true
-            })
 
             // handleCancelOrderTP({
             //     ...cancelDataObject,
@@ -2083,7 +2081,7 @@ socketRealtime.on('delete', async (newData) => {
 
 
             delete allStrategiesByBotIDAndStrategiesID[botID]?.[strategyID]
-            delete allStrategiesByCandleAndSymbol[symbol]?.[Candlestick]?.[strategyID]
+            delete allStrategiesByCandleAndSymbol[symbol]?.[strategyID]
         }
     }))
 
