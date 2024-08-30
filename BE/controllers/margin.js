@@ -424,7 +424,7 @@ const dataCoinByBitController = {
                         type: "update",
                         data: [{
                             ...newData,
-                            value: `${parentID}-${strategiesID}`,
+                            value: `MARGIN-${parentID}-${strategiesID}`,
                             symbol
                         }]
                     })

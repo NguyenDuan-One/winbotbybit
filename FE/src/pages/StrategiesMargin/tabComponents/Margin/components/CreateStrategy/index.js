@@ -400,7 +400,7 @@ function CreateStrategy({
                                 ))
                             }
                         </TextField>
-                        {errors.PositionSide?.type === 'required' && <p className="formControlErrorLabel">The Position field is required.</p>}
+                        {!positionSideValue && <p className="formControlErrorLabel">The Position field is required.</p>}
                     </FormControl>
 
 

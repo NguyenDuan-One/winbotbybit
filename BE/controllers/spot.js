@@ -426,7 +426,7 @@ const dataCoinByBitController = {
                         type: "update",
                         data: [{
                             ...newData,
-                            value: `${parentID}-${strategiesID}`,
+                            value: `SPOT-${parentID}-${strategiesID}`,
                             symbol
                         }]
                     })

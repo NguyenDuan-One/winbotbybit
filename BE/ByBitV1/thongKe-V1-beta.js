@@ -218,16 +218,19 @@ const tinhOC = (symbol, dataAll = []) => {
         const OCLongRound = roundNumber(OCLong)
         const TPLongRound = roundNumber(TPLong)
 
+
         if (OCRound >= 1 && TPRound > 60) {
             // if (OCRound >= 1) {
+            // console.log("TPRound > 60", TPRound, typeof TPRound, TPRound > 60);
             const ht = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCRound}% - TP: ${TPRound}% - VOL: ${formatNumberString(vol)}`)
             messageList.push(ht)
-
             console.log(ht, new Date().toLocaleTimeString());
             console.log(dataAll);
         }
+
         if (OCLongRound <= -1 && TPLongRound > 60) {
             // if (OCLongRound <= -1) {
+            // console.log("TPLongRound > 60", TPLongRound, typeof TPLongRound, TPLongRound > 60);
             const htLong = (`${symbolObject[symbol]} | <b>${symbol.replace("USDT", "")}</b> - OC: ${OCLongRound}% - TP: ${TPLongRound}% - VOL: ${formatNumberString(vol)}`)
             messageList.push(htLong)
             console.log(htLong, new Date().toLocaleTimeString());
@@ -365,7 +368,7 @@ try {
             }
             trichMauDataArray[symbol] = []
         })
-    }, 4000)
+    }, 3000)
 
     setTimeout(() => {
         cron.schedule('0 */3 * * *', async () => {
