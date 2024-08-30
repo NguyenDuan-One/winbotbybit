@@ -83,6 +83,7 @@ function EditApi({
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>ApiKey</FormLabel>
                     <TextField
+                        defaultValue={botData.ApiKey}
                         {...register("ApiKey", { required: true })}
                         size="small"
                     />
@@ -93,6 +94,7 @@ function EditApi({
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>SecretKey</FormLabel>
                     <TextField
+                        defaultValue={botData.SecretKey}
                         {...register("SecretKey", { required: true })}
                         size="small"
                     />

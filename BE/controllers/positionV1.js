@@ -1,5 +1,5 @@
 const { RestClientV5 } = require('bybit-api');
-const PositionModel = require('../models/position.model');
+const PositionV1Model = require('../models/positionV1.model');
 
 const PositionController = {
 
@@ -16,7 +16,7 @@ const PositionController = {
     getAllPosition: async (req, res) => {
         try {
             const { botListID } = req.body
-            const data = await PositionModel.find({ botID: { $in: botListID } }).populate("botID")
+            const data = await PositionV1Model.find({ botID: { $in: botListID } }).populate("botID")
             // const data = await BotApiModel.find({ botID })
             res.customResponse(res.statusCode, "Get All Position Successful", data);
         } catch (err) {
@@ -44,7 +44,7 @@ const PositionController = {
     //                     // symbol: positionData.Symbol
     //                 }).then(async response => {
 
-    //                     const dataPosition = await PositionModel.find({ botID: dataBotItem.value }).populate("botID")
+    //                     const dataPosition = await PositionV1Model.find({ botID: dataBotItem.value }).populate("botID")
 
     //                     const viTheList = response.result.list;
 
@@ -119,7 +119,7 @@ const PositionController = {
     //                         }
     //                     }
     //                     else {
-    //                         return PositionModel.deleteMany({ botID: dataBotItem.value })
+    //                         return PositionV1Model.deleteMany({ botID: dataBotItem.value })
     //                     }
     //                 }).catch(error => {
     //                     console.log("Error", error);
@@ -127,7 +127,7 @@ const PositionController = {
     //                 });
     //             }));
 
-    //             const newData = await PositionModel.find({ botID: { $in: botListID.map(item => item.value) } }).populate("botID")
+    //             const newData = await PositionV1Model.find({ botID: { $in: botListID.map(item => item.value) } }).populate("botID")
 
     //             res.customResponse(200, "Refresh Position Successful", newData);
     //         }
@@ -139,6 +139,7 @@ const PositionController = {
     //         res.status(500).json({ message: err.message });
     //     }
     // },
+
 
     updatePL: async (req, res) => {
         try {
@@ -158,18 +159,15 @@ const PositionController = {
 
                     const botID = dataBotItem.value
 
-                    return client.getPositionInfo({
-                        category: 'linear',
-                        settleCoin: "USDT"
-                        // symbol: positionData.Symbol
+                    return client.getWalletBalance({
+                        accountType: "UNIFIED"
                     }).then(async response => {
 
 
-                        const viTheList = response.result.list;
-
+                        const viTheList = response.result.list.flatMap(item => item.coin);
 
                         if (viTheList?.length > 0) {
-                            const dataPosition = await PositionModel.find({ botID: botID }).populate("botID")
+                            const dataPosition = await PositionV1Model.find({ botID: botID }).populate("botID")
 
                             const dataPositionObject = dataPosition.reduce((pre, cur) => {
                                 pre[`${botID}-${cur.Symbol}`] = cur
@@ -178,26 +176,27 @@ const PositionController = {
 
                             const dataAll = await Promise.allSettled((viTheList.map(async viTheListItem => {
 
-                                const Symbol = viTheListItem.symbol
+                                const Symbol = viTheListItem.coin
                                 const positionID = `${botID}-${Symbol}`
                                 const positionData = dataPositionObject[positionID]
 
                                 let data = {
-                                    Pnl: viTheListItem.unrealisedPnl,
-                                    Side: viTheListItem.side,
-                                    Price: +viTheListItem.avgPrice,
+                                    usdValue: viTheListItem.usdValue,
+                                    Quantity: viTheListItem.walletBalance,
+                                    borrowAmount: viTheListItem.borrowAmount,
                                     Symbol,
-                                    Quantity: viTheListItem.size,
 
                                     botID,
                                     botName: dataBotItem?.name,
-                                    botData: dataBotItem
+                                    botData: dataBotItem,
                                 }
                                 if (positionData?._id) {
                                     data = {
                                         ...data,
                                         _id: positionData?._id,
+                                        Side: positionData.side,
                                         Time: positionData?.Time,
+                                        TradeType: positionData?.TradeType,
                                         TimeUpdated: new Date(),
                                         Miss: positionData.Miss,
                                     }
@@ -224,10 +223,10 @@ const PositionController = {
 
                             const positionOld = Object.values(dataPositionObject)
 
-                            positionOld.length > 0 && await PositionModel.deleteMany({ _id: { $in: positionOld.map(item => item._id) } })
+                            positionOld.length > 0 && await PositionV1Model.deleteMany({ _id: { $in: positionOld.map(item => item._id) } })
                         }
                         else {
-                            return await PositionModel.deleteMany({ botID: botID })
+                            return await PositionV1Model.deleteMany({ botID: botID })
                         }
 
 
@@ -248,6 +247,7 @@ const PositionController = {
             res.status(500).json({ message: err.message });
         }
     },
+
 
     closeAllPosition: async (req, res) => {
         try {
@@ -417,7 +417,7 @@ const PositionController = {
             .then(async (response) => {
                 if (response.retCode == 0) {
 
-                    const result = await PositionModel.updateOne({ Symbol: symbol, botID: positionData.botID }, {
+                    const result = await PositionV1Model.updateOne({ Symbol: symbol, botID: positionData.botID }, {
                         $set: {
                             Miss: false,
                             TimeUpdated: new Date()
@@ -455,7 +455,7 @@ const PositionController = {
 
     getPositionBySymbol: async ({ symbol, botID }) => {
         try {
-            const data = await PositionModel.findOne({
+            const data = await PositionV1Model.findOne({
                 Symbol: symbol,
                 botID: botID
             })
@@ -481,7 +481,7 @@ const PositionController = {
     createPositionBE: async (newData) => {
         try {
 
-            const newBot = new PositionModel({
+            const newBot = new PositionV1Model({
                 ...newData,
                 Time: new Date(),
                 TimeUpdated: new Date()
@@ -513,7 +513,7 @@ const PositionController = {
     }) => {
         try {
 
-            const result = await PositionModel.updateOne({ _id: orderID }, {
+            const result = await PositionV1Model.updateOne({ _id: orderID }, {
                 $set: newDataUpdate
             });
 
@@ -532,7 +532,7 @@ const PositionController = {
     deletePositionBE: async ({ orderID }) => {
         try {
 
-            const result = await PositionModel.deleteOne({ _id: orderID })
+            const result = await PositionV1Model.deleteOne({ _id: orderID })
 
             if (result.deletedCount && result.deletedCount !== 0) {
                 return "[Mongo] Delete Position Successful"

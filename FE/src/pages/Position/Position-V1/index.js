@@ -5,13 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { getAllBotOnlyApiKeyByUserID } from "../../../services/botService";
 import DataGridCustom from "../../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
-import { closeAllPosition, updatePL } from "../../../services/positionService";
 import { addMessageToast } from "../../../store/slices/Toast";
 import { useDispatch, useSelector } from "react-redux";
 
 import DialogCustom from "../../../components/DialogCustom";
 import AddLimit from "./components/AddLimit";
 import AddMarket from "./components/AddMarket";
+import { closeAllPosition, updatePL } from "../../../services/positionV1Service";
 
 function PositionV1() {
 
@@ -44,6 +44,7 @@ function PositionV1() {
             field: 'Symbol',
             headerName: 'Symbol',
             minWidth: 150,
+            maxWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
 
         },
@@ -52,12 +53,12 @@ function PositionV1() {
             headerName: 'Bot',
             minWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
-
         },
         {
             field: 'Side',
             headerName: 'Side',
             minWidth: 150,
+            maxWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
             type: "actions",
             renderCell: (params) => {
@@ -69,30 +70,48 @@ function PositionV1() {
         },
 
         {
-            field: 'Price',
-            headerName: 'Price',
-            minWidth: 170,
+            field: 'TradeType',
+            headerName: 'TradeType',
+            minWidth: 150,
+            maxWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
+            renderCell: (params) => {
+                return <p> {params.value && (params.value == "Margin" ? "🍁" : "🍀")} {params.value}</p>
+            }
         },
         {
             field: 'Quantity',
             headerName: 'Quantity',
-            minWidth: 150,
+            maxWidth: 170,
+            minWidth: 170,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: (params) => {
                 return <p style={{
-                    color: params.value > 0 ? "green" : "red"
+                    color: params.value >= 0 ? "green" : "red"
                 }}>{params.value}</p>
             }
         },
         {
-            field: 'Pnl',
-            headerName: 'Pnl',
+            field: 'usdValue',
+            headerName: 'USDT',
             minWidth: 150,
+            maxWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: (params) => {
                 return <p style={{
-                    color: params.value > 0 ? "green" : "red"
+                    color: params.value >= 0 ? "green" : "red"
+                }}>{params.value}</p>
+            }
+        },
+        {
+            field: 'borrowAmount',
+            headerName: 'Borrow',
+            minWidth: 150,
+            maxWidth: 150,
+            flex: window.innerWidth <= 740 ? undefined : 1,
+            renderCell: (params) => {
+                return <p style={{
+                    color: params.value >= 0 ? "green" : "red"
                 }}>{params.value}</p>
             }
         },
@@ -270,11 +289,12 @@ function PositionV1() {
                         botData: item.botData,
                         Symbol: item.Symbol,
                         Side: item.Side,
-                        Price: item.Price,
+                        usdValue: (+item.usdValue).toFixed(3),
+                        Quantity: (+item.Quantity).toFixed(3),
+                        borrowAmount: (+item.borrowAmount).toFixed(3),
+                        TradeType: item.TradeType,
                         Time: new Date(item.Time).toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }),
                         TimeUpdated: new Date(item.TimeUpdated).toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }),
-                        Quantity: item.Quantity,
-                        Pnl: (+item.Pnl).toFixed(4),
                         Miss: item.Miss,
                     }
                 )).filter(item => (item.Pnl) != 0) : []
@@ -297,177 +317,176 @@ function PositionV1() {
             }))
         }
     }
-    // useEffect(() => {
+    useEffect(() => {
 
-    //     userData.userName && handleGetAllBotByUserID()
+        userData.userName && handleGetAllBotByUserID()
 
-    // }, [userData.userName]);
+    }, [userData.userName]);
 
-    // useEffect(() => {
-    //     if (openAddLimit.dataChange || openAddMarket.dataChange || confirmCloseAllPosition.dataChange) {
-    //         handleRefreshData(undefined, false)
-    //     }
-    // }, [openAddLimit, openAddMarket, confirmCloseAllPosition]);
+    useEffect(() => {
+        if (openAddLimit.dataChange || openAddMarket.dataChange || confirmCloseAllPosition.dataChange) {
+            handleRefreshData(undefined, false)
+        }
+    }, [openAddLimit, openAddMarket, confirmCloseAllPosition]);
+
 
     return (
-        // <div>
-        //     <AddBreadcrumbs list={["Position"]} />
+        <div>
+            <AddBreadcrumbs list={["Position"]} />
 
-        //     <div className={styles.position}>
+            <div className={styles.position}>
 
-        //         <div className={styles.positionHeader}>
-        //             {/* <FormControl className={styles.positionHeaderItem}>
-        //                 <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
-        //                 <Select
-        //                     value={botTypeSelected}
-        //                     size="small"
-        //                 >
-        //                     {
-        //                         botTypeList.map(item => (
-        //                             <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-        //                         ))
-        //                     }
-        //                 </Select>
-        //             </FormControl> */}
+                <div className={styles.positionHeader}>
+                    {/* <FormControl className={styles.positionHeaderItem}>
+                        <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
+                        <Select
+                            value={botTypeSelected}
+                            size="small"
+                        >
+                            {
+                                botTypeList.map(item => (
+                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl> */}
 
-        //             <FormControl className={styles.positionHeaderItem}>
-        //                 <FormLabel className={styles.formLabel}>Bot</FormLabel>
-        //                 <Select
-        //                     value={botSelected}
-        //                     size="small"
-        //                     onChange={e => {
-        //                         const value = e.target.value;
-        //                         setBotSelected(value);
-        //                         handleFilterAll({
-        //                             name: "botID",
-        //                             value
-        //                         })
-        //                     }}
-        //                 >
-        //                     {
-        //                         botList.map(item => (
-        //                             <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-        //                         ))
-        //                     }
-        //                 </Select>
-        //             </FormControl>
+                    <FormControl className={styles.positionHeaderItem}>
+                        <FormLabel className={styles.formLabel}>Bot</FormLabel>
+                        <Select
+                            value={botSelected}
+                            size="small"
+                            onChange={e => {
+                                const value = e.target.value;
+                                setBotSelected(value);
+                                handleFilterAll({
+                                    name: "botID",
+                                    value
+                                })
+                            }}
+                        >
+                            {
+                                botList.map(item => (
+                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                ))
+                            }
+                        </Select>
+                    </FormControl>
 
 
 
-        //             <div className={styles.refreshBtn}>
-        //                 {botList.length > 0 &&
-        //                     <Button
-        //                         variant="contained"
-        //                         size="small"
-        //                         color="info"
-        //                         onClick={() => {
-        //                             handleRefreshData()
-        //                         }}
-        //                     >
-        //                         Refresh
-        //                     </Button>}
-        //                 {positionData.length > 0 &&
-        //                     <Button
-        //                         variant="contained"
-        //                         size="small"
-        //                         color="error"
-        //                         style={{ marginLeft: "12px" }}
-        //                         onClick={() => {
-        //                             setConfirmCloseAllPosition({
-        //                                 isOpen: true,
-        //                                 dataChange: false
-        //                             })
-        //                         }}
-        //                     >
-        //                         Close All
-        //                     </Button>}
-        //             </div>
-        //         </div>
+                    <div className={styles.refreshBtn}>
+                        {botList.length > 0 &&
+                            <Button
+                                variant="contained"
+                                size="small"
+                                color="info"
+                                onClick={() => {
+                                    handleRefreshData()
+                                }}
+                            >
+                                Refresh
+                            </Button>}
+                        {positionData.length > 0 &&
+                            <Button
+                                variant="contained"
+                                size="small"
+                                color="error"
+                                style={{ marginLeft: "12px" }}
+                                onClick={() => {
+                                    setConfirmCloseAllPosition({
+                                        isOpen: true,
+                                        dataChange: false
+                                    })
+                                }}
+                            >
+                                Close All
+                            </Button>}
+                    </div>
+                </div>
 
-        //         <div className={styles.positionTable}>
+                <div className={styles.positionTable}>
 
-        //             <DataGridCustom
-        //                 setDataTableChange={setDataTableChange}
-        //                 tableRows={positionData}
-        //                 tableColumns={tableColumns}
-        //                 checkboxSelection={false}
-        //                 columnVisibilityModel={
-        //                     {
-        //                         "Price": false,
-        //                         "Quantity": false,
-        //                         "Time": false,
-        //                         "TimeUpdated": false,
-        //                     }
-        //                 }
-        //             />
-        //         </div>
-        //     </div>
+                    <DataGridCustom
+                        setDataTableChange={setDataTableChange}
+                        tableRows={positionData}
+                        tableColumns={tableColumns}
+                        checkboxSelection={false}
+                        columnVisibilityModel={
+                            {
+                                "Price": false,
+                                "Time": false,
+                                "TimeUpdated": false,
+                            }
+                        }
+                    />
+                </div>
+            </div>
 
-        //     {
-        //         openAddLimit.isOpen && positionData.find(item => item.id == openAddLimit.data?.id) && (
-        //             <AddLimit
-        //                 onClose={(data) => {
-        //                     setOpenAddLimit({
-        //                         ...openAddLimit,
-        //                         ...data
-        //                     })
-        //                 }}
-        //                 positionData={openAddLimit.data}
-        //             />
-        //         )
-        //     }
+            {
+                openAddLimit.isOpen && positionData.find(item => item.id == openAddLimit.data?.id) && (
+                    <AddLimit
+                        onClose={(data) => {
+                            setOpenAddLimit({
+                                ...openAddLimit,
+                                ...data
+                            })
+                        }}
+                        positionData={openAddLimit.data}
+                    />
+                )
+            }
 
-        //     {
-        //         openAddMarket.isOpen && positionData.find(item => item.id == openAddMarket.data?.id) && (
-        //             <AddMarket
-        //                 onClose={(data) => {
-        //                     setOpenAddMarket({
-        //                         ...openAddMarket,
-        //                         ...data
-        //                     })
-        //                 }}
-        //                 positionData={openAddMarket.data}
-        //             />
-        //         )
-        //     }
+            {
+                openAddMarket.isOpen && positionData.find(item => item.id == openAddMarket.data?.id) && (
+                    <AddMarket
+                        onClose={(data) => {
+                            setOpenAddMarket({
+                                ...openAddMarket,
+                                ...data
+                            })
+                        }}
+                        positionData={openAddMarket.data}
+                    />
+                )
+            }
 
-        //     {
-        //         confirmCloseAllPosition.isOpen && (
-        //             <DialogCustom
-        //                 backdrop
-        //                 open={true}
-        //                 onClose={() => {
-        //                     setConfirmCloseAllPosition({
-        //                         dataChange: false,
-        //                         isOpen: false
-        //                     })
-        //                 }}
-        //                 onSubmit={async () => {
-        //                     const res = await closeAllPosition(botList.slice(1))
-        //                     const { message } = res.data
+            {
+                confirmCloseAllPosition.isOpen && (
+                    <DialogCustom
+                        backdrop
+                        open={true}
+                        onClose={() => {
+                            setConfirmCloseAllPosition({
+                                dataChange: false,
+                                isOpen: false
+                            })
+                        }}
+                        onSubmit={async () => {
+                            const res = await closeAllPosition(botList.slice(1))
+                            const { message } = res.data
 
-        //                     dispatch(addMessageToast({
-        //                         status: 200,
-        //                         message,
-        //                     }))
-        //                     setConfirmCloseAllPosition({
-        //                         dataChange: true,
-        //                         isOpen: false
-        //                     })
-        //                 }}
-        //                 dialogTitle="The action requires confirmation"
-        //                 submitBtnColor="error"
-        //                 submitBtnText="Close All"
-        //                 reserveBtn
-        //                 position="center"
-        //             >
-        //                 <p style={{ textAlign: "center" }}>Do you want to close all position of bots?</p>
-        //             </DialogCustom >
-        //         )
-        //     }
-        // </div >
+                            dispatch(addMessageToast({
+                                status: 200,
+                                message,
+                            }))
+                            setConfirmCloseAllPosition({
+                                dataChange: true,
+                                isOpen: false
+                            })
+                        }}
+                        dialogTitle="The action requires confirmation"
+                        submitBtnColor="error"
+                        submitBtnText="Close All"
+                        reserveBtn
+                        position="center"
+                    >
+                        <p style={{ textAlign: "center" }}>Do you want to close all position of bots?</p>
+                    </DialogCustom >
+                )
+            }
+        </div >
 
-        <p style={{ textAlign: "center", marginTop: "12px" }}>Coming soon...</p>
     );
 }
 

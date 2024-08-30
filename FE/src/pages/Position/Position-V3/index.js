@@ -81,7 +81,7 @@ function PositionV3() {
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: (params) => {
                 return <p style={{
-                    color: params.value > 0 ? "green" : "red"
+                    color: params.value >= 0 ? "green" : "red"
                 }}>{params.value}</p>
             }
         },
@@ -92,7 +92,7 @@ function PositionV3() {
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: (params) => {
                 return <p style={{
-                    color: params.value > 0 ? "green" : "red"
+                    color: params.value >= 0 ? "green" : "red"
                 }}>{params.value}</p>
             }
         },

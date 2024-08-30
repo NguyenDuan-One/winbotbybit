@@ -9,6 +9,7 @@ const dataCoinByBitRouter = require('./dataCoinByBit.route');
 const roleRouter = require('./role.route');
 const groupRouter = require('./group.route');
 const positionRouter = require('./position.route');
+const positionV1Router = require('./positionV1.route');
 const spotRouter = require('./spot.route');
 const marginRouter = require('./margin.route');
 const scannerRouter = require('./scanner.route');
@@ -24,6 +25,7 @@ router.use('/margin', marginRouter);
 router.use('/role', roleRouter);
 router.use('/group', groupRouter);
 router.use('/position', positionRouter);
+router.use('/positionV1', positionV1Router);
 router.use('/scanner', scannerRouter);
 router.use('/coin', coinRouter);
 

@@ -13,10 +13,10 @@ function PositionAll() {
     }
 
     return (
-        <div>
+        <div style={{ marginBottom: "6px" }}>
 
             <Tabs value={location.pathname.split("/")[1]} onChange={handleChangeTab}>
-                <Tab label="V1" value="PositionV1"></Tab>
+                {/* <Tab label="V1" value="PositionV1"></Tab> */}
                 <Tab label="V3" value="PositionV3" ></Tab>
             </Tabs>
         </div>
