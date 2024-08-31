@@ -12,6 +12,7 @@ import DialogCustom from "../../../components/DialogCustom";
 import AddLimit from "./components/AddLimit";
 import AddMarket from "./components/AddMarket";
 import { closeAllPosition, updatePL } from "../../../services/positionV1Service";
+import { formatNumber } from "../../../functions";
 
 function PositionV1() {
 
@@ -297,9 +298,9 @@ function PositionV1() {
                         botData: item.botData,
                         Symbol: item.Symbol,
                         Side: item.Side,
-                        usdValue: (+item.usdValue).toFixed(3),
-                        Quantity: (+item.Quantity).toFixed(3),
-                        borrowAmount: (+item.borrowAmount).toFixed(3),
+                        usdValue: formatNumber(+item.usdValue),
+                        Quantity: formatNumber(+item.Quantity),
+                        borrowAmount: formatNumber(+item.borrowAmount),
                         TradeType: item.TradeType,
                         Time: new Date(item.Time).toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }),
                         TimeUpdated: new Date(item.TimeUpdated).toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }),

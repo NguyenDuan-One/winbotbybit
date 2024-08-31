@@ -1,4 +1,3 @@
-import RestoreIcon from '@mui/icons-material/Restore';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import StarIcon from '@mui/icons-material/Star';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
@@ -23,11 +22,12 @@ import { getAllBotActiveByUserID } from '../../services/botService';
 import { setTotalFuture } from '../../store/slices/TotalFuture';
 import useDebounce from '../../hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
-import { setStrategiesTempData } from '../../store/slices/StrategiesTemp';
 
-function Strategies() {
+function StrategiesTemp() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
+
+    const strategiesTempData = useSelector(state => state.strategiesTempSlice.dataList)
 
 
     const SCROLL_INDEX = 5
@@ -163,56 +163,15 @@ function Strategies() {
                     ...newData
                 ]
                 setBotList(newMain)
-                handleGetAllStrategies(newData)
 
             })
             .catch(error => {
             }
             )
     }
-    const handleGetTotalFutureByBot = async () => {
+ 
 
-        try {
-            const res = await getTotalFutureByBot(userData._id)
-            const { status, message, data: resData } = res.data
 
-            dispatch(setTotalFuture({
-                total: resData || 0
-            }))
-
-            // if (status !== 200) {
-            //     dispatch(addMessageToast({
-            //         status,
-            //         message
-            //     }))
-            // }
-
-        }
-        catch (err) {
-            dispatch(addMessageToast({
-                status: 500,
-                message: "Get Total Future Error",
-            }))
-        }
-    }
-
-    const handleDataTree = (data) => {
-        const newDataCheckTree = data.map(item => (
-            {
-                ...item,
-                bookmarkList: item?.bookmarkList || [],
-                children: item?.children.length > 0 ? item?.children.map(itemChild => (
-                    {
-                        ...itemChild,
-                        value: `${item._id}-${itemChild._id}`,
-                        volume24h: item?.volume24h,
-
-                    }
-                )) : item?.children
-            }
-        ))
-        return newDataCheckTree
-    }
 
     const handleGetAllStrategies = async (botListInput = botList.slice(1), filterStatus = false) => {
 
@@ -229,12 +188,12 @@ function Strategies() {
         try {
             window.scrollTo(0, 0)
 
-            const res = await getAllStrategies(botListInput?.map(item => item?.value))
-            const { status, message, data: resData } = res.data
-
-            const newDataCheckTree = handleDataTree(resData)
+            const newDataCheckTree = strategiesTempData
 
             dataCheckTreeDefaultRef.current = newDataCheckTree
+
+            console.log(newDataCheckTree);
+            
 
             !filterStatus ? setDataCheckTree(newDataCheckTree) : handleFilterAll()
         }
@@ -248,30 +207,7 @@ function Strategies() {
     }
 
 
-    const handleSyncSymbol = async () => {
-        if (!loadingUploadSymbol) {
-            try {
-                setLoadingUploadSymbol(true)
-                const res = await syncSymbol()
-                const { status, message, data: resData } = res.data
 
-                dispatch(addMessageToast({
-                    status: status,
-                    message: message,
-                }))
-
-                handleGetAllStrategies()
-                setLoadingUploadSymbol(false)
-            }
-            catch (err) {
-                setLoadingUploadSymbol(false)
-                dispatch(addMessageToast({
-                    status: 500,
-                    message: "Sync Error",
-                }))
-            }
-        }
-    }
 
     const handleFilterAll = () => {
         filterQuantityRef.current = []
@@ -348,7 +284,7 @@ function Strategies() {
     useEffect(() => {
         if (userData.userName) {
             handleGetAllBotByUserID()
-            handleGetTotalFutureByBot()
+            handleGetAllStrategies()
         }
 
     }, [userData.userName]);
@@ -610,33 +546,7 @@ function Strategies() {
             </div>
 
             <div className={styles.strategiesBtnAction}>
-                <Tooltip title="Restore Config" placement="left">
-                    <div className={styles.strategiesBtnActionItem}
-                        onClick={() => {
-                            navigate("/StrategiesTemp")
-                            dispatch(setStrategiesTempData(dataCheckTreeDefaultRef.current))
-                        }}
-                    >
-
-                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
-                            <RestoreIcon />
-                        </Avatar>
-                    </div>
-                </Tooltip>
-                <Tooltip title="Sync Symbol" placement="left">
-                    <div className={styles.strategiesBtnActionItem}
-                        onClick={handleSyncSymbol}
-                    >
-
-                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }} >
-
-                            {
-                                !loadingUploadSymbol ? <CloudSyncIcon /> : <CircularProgress style={{ width: "50%", height: "50%" }} color='inherit' />
-                            }
-
-                        </Avatar>
-                    </div>
-                </Tooltip>
+                
                 <Tooltip title="Edit" placement="left">
 
                     <div className={styles.strategiesBtnActionItem}
@@ -652,24 +562,7 @@ function Strategies() {
                         </Avatar>
                     </div>
                 </Tooltip>
-                <Tooltip title="Add" placement="left">
-
-                    <div
-                        className={styles.strategiesBtnActionItem}
-                        onClick={() => {
-                            setOpenCreateStrategy(openCreateStrategy => ({
-                                ...openCreateStrategy,
-                                isOpen: true,
-                                symbolValueInput: Object.values(dataCheckTreeSelectedSymbolRef.current)
-                            }))
-                        }}
-                    >
-                        <Avatar variant='circular' sx={{ bgcolor: "#0a58ca" }}>
-                            <AddIcon
-                            />
-                        </Avatar>
-                    </div>
-                </Tooltip>
+              
 
                 {dataTreeViewIndex <= dataCheckTree.length && <KeyboardDoubleArrowDownIcon className={styles.scrollDownIcon} />}
             </div>
@@ -720,4 +613,4 @@ function Strategies() {
     );
 }
 
-export default Strategies;
+export default StrategiesTemp;

@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const totalFutureSlice = createSlice({
-    name: 'toast',
+    name: 'totalFuture',
     initialState: {
         total: false,
     },

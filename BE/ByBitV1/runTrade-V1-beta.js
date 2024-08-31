@@ -451,12 +451,12 @@ const moveOrderTP = async ({
             }
             else {
                 console.log(changeColorConsole.yellowBright(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} ) failed `, response.retMsg))
-                allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+                // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
             }
         })
         .catch((error) => {
             console.log(`[!] Move Order TP ( ${botName} - ${side} - ${symbol} ) error `, error)
-            allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
+            // allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.orderID = ""
         });
 
 }
@@ -1558,8 +1558,8 @@ const Main = async () => {
             if (cur.symbol.includes("USDT")) {
                 pre[cur.symbol] = {
                     priceScale: cur.priceScale,
-                    minOrderQty: cur.minOrderQty,
-                    maxOrderQty: cur.maxOrderQty,
+                    minOrderQty: +cur.minOrderQty,
+                    maxOrderQty: +cur.maxOrderQty,
                 }
             }
             return pre
@@ -1650,11 +1650,10 @@ const Main = async () => {
                     priceOrderOC = coinCurrent + coinCurrent * strategy.OrderChange / 100
                 }
 
-                qty = (strategy.Amount / +priceOrderOC).toFixed(0)
+                qty = (strategy.Amount / +priceOrderOC)
 
-
-                qty < digitAllCoinObject[symbol]?.minOrderQty && (qty = digitAllCoinObject[symbol].minOrderQty);
-                qty > digitAllCoinObject[symbol]?.maxOrderQty && (qty = digitAllCoinObject[symbol].maxOrderQty);
+                // qty < digitAllCoinObject[symbol]?.minOrderQty && (qty = digitAllCoinObject[symbol].minOrderQty);
+                // qty > digitAllCoinObject[symbol]?.maxOrderQty && (qty = digitAllCoinObject[symbol].maxOrderQty);
 
                 const dataInput = {
                     strategy,
@@ -1662,7 +1661,7 @@ const Main = async () => {
                     ApiKey,
                     SecretKey,
                     symbol,
-                    qty,
+                    qty: qty.toFixed(0),
                     side,
                     price: roundPrice({
                         price: priceOrderOC,
@@ -1675,6 +1674,9 @@ const Main = async () => {
                     coinOpen,
                     isLeverage: symbolTradeTypeObject[symbol] === "Spot" ? 0 : 1
                 }
+
+                console.log(dataInput.qty);
+
 
                 if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {
 
@@ -1694,15 +1696,17 @@ const Main = async () => {
                         priceOrderOCNew = coinCurrent + coinCurrent * strategy.OrderChange / 100
                     }
 
-                    const qtyNew = (strategy.Amount / +priceOrderOCNew).toFixed(0)
+                    const qtyNew = (strategy.Amount / +priceOrderOCNew)
 
                     dataInput.price = roundPrice({
                         price: priceOrderOCNew,
                         tickSize: digitAllCoinObject[symbol]?.priceScale
                     })
 
-                    qtyNew < digitAllCoinObject[symbol]?.minOrderQty && (dataInput.qty = digitAllCoinObject[symbol].minOrderQty);
-                    qtyNew > digitAllCoinObject[symbol]?.maxOrderQty && (dataInput.qty = digitAllCoinObject[symbol].maxOrderQty);
+                    // qtyNew < digitAllCoinObject[symbol]?.minOrderQty && (qtyNew = digitAllCoinObject[symbol].minOrderQty);
+                    // qtyNew > digitAllCoinObject[symbol]?.maxOrderQty && (qtyNew = digitAllCoinObject[symbol].maxOrderQty);
+
+                    dataInput.qty = qtyNew.toFixed(0)
 
                     if (qtyNew > 0) {
                         handleSubmitOrder(dataInput)
@@ -2457,7 +2461,8 @@ socketRealtime.on('sync-symbol', async (newData) => {
             if (cur.symbol.includes("USDT")) {
                 pre[cur.symbol] = {
                     priceScale: cur.priceScale,
-                    minOrderQty: cur.minOrderQty,
+                    minOrderQty: +cur.minOrderQty,
+                    maxOrderQty: +cur.maxOrderQty,
                 }
             }
             return pre

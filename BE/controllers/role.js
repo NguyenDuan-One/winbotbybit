@@ -25,25 +25,21 @@ const RoleController = {
             ]
 
             const TraderRole = {
-                name: "SuperAdmin",
                 list: listRoleDefault
             }
             const ManagerTraderRole = {
-                name: "SuperAdmin",
                 list: [
                     ...TraderRole.list,
                     "Users"
                 ]
             }
             const AdminRole = {
-                name: "SuperAdmin",
                 list: [
                     ...ManagerTraderRole.list,
                     "Groups"
                 ]
             }
             const SuperAdminRole = {
-                name: "SuperAdmin",
                 list: [
                     ...AdminRole.list,
                     "BotTypes",
@@ -87,7 +83,7 @@ const RoleController = {
             const result = await RoleModel.updateMany(
                 {},
                 { "$addToSet": { roleList: [
-                    "Spot","Margin","Scanner","PositionV3","PositionV1"
+                    // "Spot","Margin","Scanner","PositionV3","PositionV1"
                 ] } },
             );
 

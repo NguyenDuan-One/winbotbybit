@@ -132,7 +132,9 @@ function MainLayout({ children }) {
                 const res = await getByRoleName(resUserData?.roleName || "")
                 const { data: resData } = res.data
 
-                const newRoleList = resData.roleList
+                const newRoleList = resData.roleList.concat([
+                    "StrategiesTemp"
+                ])
 
                 const routeCurrent = location.pathname.replace("/", "")
                 if (!newRoleList.includes(routeCurrent) && routeCurrent) {
