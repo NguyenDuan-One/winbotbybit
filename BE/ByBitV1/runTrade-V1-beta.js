@@ -121,6 +121,7 @@ const Digit = async () => {// proScale
                         symbol: e.symbol,
                         priceScale: e.priceFilter.tickSize,
                         minOrderQty: e.lotSizeFilter.minOrderQty,
+                        maxOrderQty: e.lotSizeFilter.maxOrderQty,
                     })
                 }
             })
@@ -230,7 +231,7 @@ const handleSubmitOrder = async ({
 
                 }
                 else {
-                    console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} ) failed: `, response.retMsg, price))
+                    console.log(changeColorConsole.yellowBright(`\n[!] Ordered OC ( ${botName} - ${side} - ${symbol} ) failed: `, response.retMsg, price, qty))
                     delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
                     delete listOCByCandleBot[botID].listOC[strategyID]
 
@@ -404,7 +405,7 @@ const handleSubmitOrderTP = async ({
                 console.log(changeColorConsole.yellowBright(`[!] Order TP ${missState ? "( MISS )" : ''} - ( ${botName} - ${side} - ${symbol} ) failed `, response.retMsg, price))
                 delete allStrategiesByBotIDAndOrderID[botID][orderLinkId]
 
-            
+
             }
         })
         .catch((error) => {
@@ -479,10 +480,10 @@ const handleMoveOrderTP = async ({
 
         let TPNew
         if (strategy.PositionSide === "Long") {
-            TPNew = TPOld - strategy.digit
+            TPNew = TPOld - digitAllCoinObject[symbol]?.priceScale
         }
         else {
-            TPNew = TPOld + strategy.digit
+            TPNew = TPOld + digitAllCoinObject[symbol]?.priceScale
         }
 
         allStrategiesByBotIDAndStrategiesID[botID][strategyID].TP.price = TPNew
@@ -492,7 +493,7 @@ const handleMoveOrderTP = async ({
             symbol,
             price: roundPrice({
                 price: TPNew,
-                tickSize: strategy.digit
+                tickSize: digitAllCoinObject[symbol]?.priceScale
             }),
             orderId: allStrategiesByBotIDAndStrategiesID[botID][strategyID]?.TP.orderID,
             side: sideText,
@@ -1065,9 +1066,9 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 }),
                                                 price: roundPrice({
                                                     price: TPNew,
-                                                    tickSize: strategy.digit
+                                                    tickSize: digitAllCoinObject[symbol]?.priceScale
                                                 }),
-                                                // price:(Math.floor(TPNew / strategy.digit) * strategy.digit).toString(),
+                                                // price:(Math.floor(TPNew / digitAllCoinObject[symbol]?.priceScale) * digitAllCoinObject[symbol]?.priceScale).toString(),
                                                 side: strategy.PositionSide === "Long" ? "Sell" : "Buy",
                                                 ApiKey,
                                                 SecretKey,
@@ -1075,8 +1076,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 botID
                                             }
 
-                                            console.log("dataInput.Qty",dataInput.qty);
-                                            
+                                            console.log("dataInput.Qty", dataInput.qty);
+
 
                                             handleSubmitOrderTP(dataInput)
 
@@ -1421,7 +1422,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                             }
                             // User cancel vị thế ( Market )
                             if (dataMain.orderType === "Market") {
-                                
+
                                 console.log(`[...] User ( ${botName} ) Clicked Close Vị Thế (Market) - ( ${symbol} )`)
 
                                 if (missTPDataBySymbol[botSymbolMissID]?.orderIDToDB) {
@@ -1516,7 +1517,7 @@ const Main = async () => {
     listKline = [...new Set(allSymbolRes.map(symbolData => {
         const symbol = symbolData.value
         trichMauOCListObject[symbol] = {
-            preTime: 0    
+            preTime: 0
         }
         symbolTradeTypeObject[symbol] = symbolData.type
 
@@ -1558,6 +1559,7 @@ const Main = async () => {
                 pre[cur.symbol] = {
                     priceScale: cur.priceScale,
                     minOrderQty: cur.minOrderQty,
+                    maxOrderQty: cur.maxOrderQty,
                 }
             }
             return pre
@@ -1590,8 +1592,7 @@ const Main = async () => {
 
                 const strategyID = strategy.value
 
-                strategy.digit = digitAllCoinObject[symbol]?.priceScale
-                strategy.minOrderQty = digitAllCoinObject[symbol]?.minOrderQty
+                digitAllCoinObject[symbol]?.priceScale
 
                 const botID = strategy.botID._id
                 const botName = strategy.botID.botName
@@ -1652,20 +1653,20 @@ const Main = async () => {
                 qty = (strategy.Amount / +priceOrderOC).toFixed(0)
 
 
+                qty < digitAllCoinObject[symbol]?.minOrderQty && (qty = digitAllCoinObject[symbol].minOrderQty);
+                qty > digitAllCoinObject[symbol]?.maxOrderQty && (qty = digitAllCoinObject[symbol].maxOrderQty);
+
                 const dataInput = {
                     strategy,
                     strategyID,
                     ApiKey,
                     SecretKey,
                     symbol,
-                    qty: roundPrice({
-                        price: qty,
-                        tickSize: strategy.minOrderQty
-                    }),
+                    qty,
                     side,
                     price: roundPrice({
                         price: priceOrderOC,
-                        tickSize: strategy.digit
+                        tickSize: digitAllCoinObject[symbol]?.priceScale
                     }),
                     botName,
                     botID,
@@ -1697,12 +1698,11 @@ const Main = async () => {
 
                     dataInput.price = roundPrice({
                         price: priceOrderOCNew,
-                        tickSize: strategy.digit
+                        tickSize: digitAllCoinObject[symbol]?.priceScale
                     })
-                    dataInput.qty = roundPrice({
-                        price: qtyNew,
-                        tickSize: strategy.digit
-                    })
+
+                    qtyNew < digitAllCoinObject[symbol]?.minOrderQty && (dataInput.qty = digitAllCoinObject[symbol].minOrderQty);
+                    qtyNew > digitAllCoinObject[symbol]?.maxOrderQty && (dataInput.qty = digitAllCoinObject[symbol].maxOrderQty);
 
                     if (qtyNew > 0) {
                         handleSubmitOrder(dataInput)

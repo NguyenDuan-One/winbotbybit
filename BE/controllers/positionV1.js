@@ -166,6 +166,9 @@ const PositionController = {
 
                         const viTheList = response.result.list.flatMap(item => item.coin);
 
+                        console.log(viTheList);
+                        
+
                         if (viTheList?.length > 0) {
                             const dataPosition = await PositionV1Model.find({ botID: botID }).populate("botID")
 
@@ -176,14 +179,14 @@ const PositionController = {
 
                             const dataAll = await Promise.allSettled((viTheList.map(async viTheListItem => {
 
-                                const usdValue = viTheListItem.usdValue
+                                const Quantity = viTheListItem.walletBalance
                                 const Symbol = viTheListItem.coin
                                 const positionID = `${botID}-${Symbol}`
                                 const positionData = dataPositionObject[positionID]
 
                                 let data = {
-                                    usdValue,
-                                    Quantity: viTheListItem.walletBalance,
+                                    usdValue:viTheListItem.usdValue,
+                                    Quantity,
                                     borrowAmount: viTheListItem.borrowAmount,
                                     Symbol,
 
@@ -211,7 +214,7 @@ const PositionController = {
                                         TimeUpdated: new Date(),
                                         Miss: true,
                                     }
-                                    const resNew = usdValue >= 1 && await PositionController.createPositionBE(data)
+                                    const resNew = Math.abs(Quantity) >= 1 && await PositionController.createPositionBE(data)
                                     data = {
                                         ...data,
                                         _id: resNew?.id || positionID,
@@ -222,7 +225,7 @@ const PositionController = {
                                 return data
                             })))
 
-                            newData = newData.concat(dataAll.map(data => data.value).filter(data => data.usdValue >= 1))
+                            newData = newData.concat(dataAll.map(data => data.value).filter(data => Math.abs(data.Quantity) >= 1))
 
                             const positionOld = Object.values(dataPositionObject)
 
