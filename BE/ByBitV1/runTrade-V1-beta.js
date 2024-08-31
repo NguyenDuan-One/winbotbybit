@@ -51,7 +51,7 @@ var haOCFunc = ""
 // -------  ------------
 
 var allStrategiesByCandleAndSymbol = {}
-var listPricePreOne = {}
+var symbolTradeTypeObject = {}
 var trichMauOCListObject = {}
 var trichMauTPListObject = {}
 
@@ -946,6 +946,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                             const orderID = dataMain.orderLinkId
                             const orderStatus = dataMain.orderStatus
 
+
                             const botSymbolMissID = `${botID}-${symbol}`
 
                             if (orderStatus === "Filled") {
@@ -1005,7 +1006,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                     Symbol: symbol,
                                                     Side: dataMain.side,
                                                     Quantity,
-                                                    TradeType: strategy.tradeType
+                                                    TradeType: symbolTradeTypeObject[symbol]
                                                 }
 
                                                 console.log(`\n[Saving->Mongo] Position When Filled OC ( ${botName} - ${dataMain.side} - ${symbol} )`);
@@ -1057,7 +1058,11 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 strategy,
                                                 strategyID,
                                                 symbol,
-                                                qty,
+                                                // qty,
+                                                qty: roundPrice({
+                                                    price: qty - strategy.minOrderQty,
+                                                    tickSize: strategy.minOrderQty
+                                                }),
                                                 price: roundPrice({
                                                     price: TPNew,
                                                     tickSize: strategy.digit
@@ -1070,8 +1075,8 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 botID
                                             }
 
-                                            console.log("dataInput", dataInput);
-
+                                            console.log("dataInput.Qty",dataInput.qty);
+                                            
 
                                             handleSubmitOrderTP(dataInput)
 
@@ -1257,7 +1262,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                                 Symbol: symbol,
                                                 Side: side,
                                                 Quantity,
-                                                TradeType: strategy.tradeType
+                                                TradeType: symbolTradeTypeObject[symbol]
                                             }
 
                                             console.log(`\n[Saving->Mongo] Position When Check Miss ( ${botName} - ${side} - ${symbol} )`);
@@ -1508,12 +1513,16 @@ const Main = async () => {
         ...allRes[3].value || [],
     ]
 
-    listKline = [...new Set(allSymbolRes.map(symbol => {
+    listKline = [...new Set(allSymbolRes.map(symbolData => {
+        const symbol = symbolData.value
         trichMauOCListObject[symbol] = {
-            preTime: 0,
+            preTime: 0    
         }
+        symbolTradeTypeObject[symbol] = symbolData.type
+
         return `kline.1.${symbol}`
     }))]
+
 
 
     getAllConfigRes.forEach(strategyItem => {
@@ -1576,12 +1585,10 @@ const Main = async () => {
 
             if (checkConditionBot(strategy) && strategy.IsActive && !updatingAllMain) {
 
-                // console.log("strategy.Amount", strategy.Amount);
-                // console.log("strategy.OrderChange", strategy.OrderChange);
+                console.log("strategy.Amount", strategy.Amount);
+                console.log("strategy.OrderChange", strategy.OrderChange);
 
                 const strategyID = strategy.value
-
-                strategy.tradeType = strategyID.includes("SPOT") ? "Spot" : "Margin"
 
                 strategy.digit = digitAllCoinObject[symbol]?.priceScale
                 strategy.minOrderQty = digitAllCoinObject[symbol]?.minOrderQty
@@ -1665,7 +1672,7 @@ const Main = async () => {
                     telegramID,
                     telegramToken,
                     coinOpen,
-                    isLeverage: strategy.tradeType === "Spot" ? 0 : 1
+                    isLeverage: symbolTradeTypeObject[symbol] === "Spot" ? 0 : 1
                 }
 
                 if (!allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.orderID && !allStrategiesByBotIDAndStrategiesID?.[botID]?.[strategyID]?.OC?.ordering) {

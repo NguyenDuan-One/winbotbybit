@@ -1217,7 +1217,7 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
                                             }
 
                                             if (!missTPDataBySymbol[botSymbolMissID]?.gongLai) {
-                                                if (missSize > 0 && !missTPDataBySymbol[botSymbolMissID]?.orderID) {
+                                                if (missSize > 0) {
 
 
                                                     const teleText = `<b>⚠️ [ MISS ] | ${symbol.replace("USDT", "")}</b> - ${side} - Bot: ${botName} - PnL: ${dataMain.unrealisedPnl} \n`
@@ -1318,11 +1318,33 @@ const handleSocketBotApiList = async (botApiListInput = {}) => {
 
                                     missTPDataBySymbol[botSymbolMissID]?.timeOutFunc && clearTimeout(missTPDataBySymbol[botSymbolMissID].timeOutFunc)
 
+                                    // const listMiss = missTPDataBySymbol[botSymbolMissID]?.orderIDOfListTP
+
+                                    // listMiss?.length > 0 && await handleCancelAllOrderTP({
+                                    //     items: listMiss.map((orderIdTPData) => ({
+                                    //         ApiKey,
+                                    //         SecretKey,
+                                    //         strategyID: orderIdTPData?.strategyID,
+                                    //         symbol,
+                                    //         side: dataMain.side,
+                                    //         orderId: orderIdTPData?.orderID,
+                                    //         botID,
+                                    //         botName
+                                    //     }))
+                                    // })
+
+                                    !missTPDataBySymbol[botSymbolMissID] && resetMissData({ botID, symbol })
+
+                                    // missTPDataBySymbol[botSymbolMissID].orderIDOfListTP = []
+
+                                    // missTPDataBySymbol[botSymbolMissID].orderIDOfListTP.push({
+                                    //     orderID: dataMain.orderId,
+                                    // })
+
                                     const newSize = Math.abs(dataMain.qty)
 
                                     missTPDataBySymbol[botSymbolMissID].size = newSize
                                     missTPDataBySymbol[botSymbolMissID].sizeTotal = newSize
-
 
                                     missTPDataBySymbol[botSymbolMissID].gongLai = false
 

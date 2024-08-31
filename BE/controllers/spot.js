@@ -1289,7 +1289,10 @@ const dataCoinByBitController = {
         try {
             const result = await SpotModel.find().sort({ "label": 1 });
 
-            return result.map(item => item.value)
+            return result.map(item => ({
+                value: item.value,
+                type: "Spot"
+            }))
 
         } catch (err) {
             return []

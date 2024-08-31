@@ -305,7 +305,7 @@ function PositionV1() {
                         TimeUpdated: new Date(item.TimeUpdated).toLocaleString("vi-vn", { timeZone: 'Asia/Ho_Chi_Minh' }),
                         Miss: item.Miss,
                     }
-                )).filter(item => (item.Pnl) != 0) : []
+                )) : []
                 setPositionData(data)
                 setBotSelected("All")
                 positionDataDefault.current = data

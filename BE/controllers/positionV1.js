@@ -176,12 +176,13 @@ const PositionController = {
 
                             const dataAll = await Promise.allSettled((viTheList.map(async viTheListItem => {
 
+                                const usdValue = viTheListItem.usdValue
                                 const Symbol = viTheListItem.coin
                                 const positionID = `${botID}-${Symbol}`
                                 const positionData = dataPositionObject[positionID]
 
                                 let data = {
-                                    usdValue: viTheListItem.usdValue,
+                                    usdValue,
                                     Quantity: viTheListItem.walletBalance,
                                     borrowAmount: viTheListItem.borrowAmount,
                                     Symbol,
@@ -190,6 +191,7 @@ const PositionController = {
                                     botName: dataBotItem?.name,
                                     botData: dataBotItem,
                                 }
+
                                 if (positionData?._id) {
                                     data = {
                                         ...data,
@@ -209,17 +211,18 @@ const PositionController = {
                                         TimeUpdated: new Date(),
                                         Miss: true,
                                     }
-                                    const resNew = await PositionController.createPositionBE(data)
+                                    const resNew = usdValue >= 1 && await PositionController.createPositionBE(data)
                                     data = {
                                         ...data,
                                         _id: resNew?.id || positionID,
                                     }
 
                                 }
+
                                 return data
                             })))
 
-                            newData = newData.concat(dataAll.map(data => data.value))
+                            newData = newData.concat(dataAll.map(data => data.value).filter(data => data.usdValue >= 1))
 
                             const positionOld = Object.values(dataPositionObject)
 
@@ -341,8 +344,7 @@ const PositionController = {
                 symbol,
                 interval: '1',
             }).then(response => {
-                console.log(response.result);
-                
+
                 const priceCurrent = response.result.list[0]?.[4]
                 res.customResponse(200, "Get Price Current Successful", priceCurrent);
             }).catch(err => {

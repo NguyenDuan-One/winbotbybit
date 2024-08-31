@@ -403,11 +403,12 @@ const PositionController = {
             secret: positionData.botData.SecretKey,
             syncTimeBeforePrivateRequests: true,
         });
+        const side = positionData.Side === "Sell" ? "Buy" : "Sell"
         client
             .submitOrder({
                 category: 'linear',
                 symbol,
-                side: positionData.Side === "Sell" ? "Buy" : "Sell",
+                side,
                 positionIdx: 0,
                 orderType: 'Limit',
                 qty: Quantity,
@@ -415,6 +416,7 @@ const PositionController = {
                 reduceOnly: true
             })
             .then(async (response) => {
+                
                 if (response.retCode == 0) {
 
                     const result = await PositionModel.updateOne({ Symbol: symbol, botID: positionData.botID }, {
@@ -442,7 +444,15 @@ const PositionController = {
 
                 }
                 else {
-                    res.customResponse(400, response.retMsg);
+                    if(response.retCode == 110017)
+                    {
+                        const text = side === "Sell" ? "cao hơn" : "thấp hơn"
+                        res.customResponse(400, `Giá TP không được ${text} giá TP hiện tại`);
+                    }
+                    else 
+                    {
+                        res.customResponse(400, response.retMsg);
+                    }
                 }
             })
             .catch((error) => {
