@@ -1,38 +1,21 @@
-import { Button } from "@mui/material";
-import { Helmet } from "react-helmet";
-import { NavLink } from "react-router-dom";
 
 function NotFound() {
     return (
-        <div style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: "column"
-        }}>
-            <Helmet title={`404 | CyberBot`} />
-            <div style={{
-                margin: "auto",
-                textAlign: "center"
-            }}>
-                <p style={{
-                    fontSize: "10rem",
-                    letterSpacing: "6px"
-                }}>404</p>
-                <p style={{
-                    fontSize: "2rem",
-                    opacity: ".6",
-                    margin: "0 0 24px"
-                }}>Not Found</p>
-                <NavLink to="/">
-                    <Button variant="contained" size="large">BACK TO HOME</Button>
-                </NavLink>
+
+        <div className="flex items-center flex-col justify-center lg:flex-row py-28 px-6 md:px-24 md:py-20 lg:py-32 gap-16 lg:gap-28">
+            <div className="w-full lg:w-1/2">
+                <img className="hidden lg:block" src="/Group-192-2.png" alt="" />
+                <img className="hidden md:block lg:hidden" src="/Group-193.png" alt="" />
+                <img className="md:hidden" src="/Group-198.png" alt="" />
             </div>
-        </div >
-    );
+            <div className="w-full lg:w-1/2">
+                <h1 className="py-4 text-3xl lg:text-4xl font-extrabold text-gray-800">Looks like you've found the doorway to the great nothing</h1>
+                <p className="py-4 text-base text-gray-800">The content you’re looking for doesn’t exist. Either it was removed, or you mistyped the link.</p>
+                <p className="py-2 text-base text-gray-800">Sorry about that! Please visit our hompage to get where you need to go.</p>
+                <a href='/'><button  className="w-full lg:w-auto my-4 border rounded-md px-1 sm:px-16 py-5 bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-opacity-50">Go back to Homepage</button></a>
+            </div>
+        </div>
+    )
 }
 
 export default NotFound;

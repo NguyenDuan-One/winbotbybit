@@ -22,6 +22,8 @@ const RoleController = {
                 "Coin",
                 "Positions",
                 "Order",
+                "Spot",
+                "PositionV3"
             ]
 
             const TraderRole = {

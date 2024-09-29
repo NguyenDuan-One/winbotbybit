@@ -2,8 +2,7 @@ import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import logoImage from "../../../../assets/logo.png"
 import avatar from "../../../../assets/avatar.jpg"
 import avatarAdmin from "../../../../assets/admin.jpg"
-import DensityMediumIcon from '@mui/icons-material/DensityMedium';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
 import Avatar from '@mui/material/Avatar';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -14,6 +13,7 @@ import styles from "./Heading.module.scss"
 import { formatNumber, removeLocalStorage } from "../../../../functions";
 import { useSelector } from "react-redux";
 import SwitchUserModal from './components/SwitchUserModal';
+import { Margin } from '@mui/icons-material';
 
 function Heading({
     toggleSidebar,
@@ -34,6 +34,10 @@ function Heading({
         navigate("/login")
     }
 
+    const handleMenu = () => {
+        navigate("/menu")
+    }
+
     const routeName = useMemo(() => {
         return location.pathname.split("/")[1]
     }, [location])
@@ -43,27 +47,32 @@ function Heading({
         <div className={styles.heading}>
             <NavLink className={styles.headingLogo} to="/">
                 <img src={logoImage} />
-                <span className={styles.text}>CyberBot</span>
+                <span className={styles.text}>WinBot</span>
             </NavLink>
-            <DensityMediumIcon
+            {/* <DensityMediumIcon
                 className={styles.navbar}
                 onClick={toggleSidebar}
-            />
-            {
+            /> */}
+            {/* {
                 routeName === "Strategies" &&
                 <p className={styles.totalMoneyFutureBot}>{formatNumber(Number.parseFloat((+totalFuture || 0)))} $</p>
-            }
-            <div className={styles.headingInfor} >
+            } */}
+            <div className={styles.headingInfor}>
                 <div className={styles.avatar} onClick={(e) => {
-                    setAvatarDetailState(e.currentTarget)
+                    handleMenu()
                 }}>
-                    <Avatar src={userData?.roleName !== "SuperAdmin" ? avatar : avatarAdmin} style = {{width:"36px"}}/>
-                    <div className={styles.name}>
+                    <Avatar src={userData?.roleName !== "SuperAdmin" ? avatar : avatarAdmin} style={{ width: "40px" }} />
+                    <div className="d-block ml-2">
+                            <p className="text-md font-bold">{userData?.userName || "User"}</p>
+                            <p className="text-xs ">{userData.roleName}</p>
+                    </div>
+                    {/* <div className={styles.name}>
                         <span>{userData?.userName || "User"}</span>
                         <ArrowDropDownIcon />
-                    </div>
+                       
+                    </div> */}
                 </div>
-                <Popover
+                {/* <Popover
                     open={avatarDetailState}
                     anchorEl={avatarDetailState}
                     onClose={() => {
@@ -117,7 +126,7 @@ function Heading({
                             </div>
                         </div>
                     </div>
-                </Popover>
+                </Popover> */}
             </div>
 
             {

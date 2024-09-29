@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createNewUser } from "../../../../services/userService";
 import { addMessageToast } from "../../../../store/slices/Toast";
 import { getAllGroup } from "../../../../services/groupService";
+import BottomSheetModal from '../../../../components/BottomSheetModal';
 
 function AddGroup({
     onClose,
@@ -125,7 +126,7 @@ function AddGroup({
     }, [userData.userName]);
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitAddGroup)}
@@ -134,7 +135,7 @@ function AddGroup({
 
             <form className={styles.dialogForm}>
 
-                <FormControl className={styles.formControl}>
+                <FormControl key="formAddUserName" className={styles.formControl}>
                     <FormLabel className={styles.label}>Username</FormLabel>
                     <TextField
                         error={errors.userName?.type === 'required'}
@@ -146,7 +147,7 @@ function AddGroup({
 
                 </FormControl>
 
-                <FormControl className={styles.formControl}>
+                <FormControl key="formAddPassWord" className={styles.formControl}>
                     <FormLabel className={styles.label}>Password</FormLabel>
                     <TextField
                         error={errors.password?.type === 'required'}
@@ -174,8 +175,8 @@ function AddGroup({
 
                 </FormControl>
 
-                <FormControl className={styles.formControl}>
-                    <FormLabel className={styles.label}>Role</FormLabel>
+                <FormControl key="formAddRole" className={styles.formControl}>
+                    <FormLabel  className={styles.label}>Role</FormLabel>
                     <Select
                         size="small"
                         className={styles.select}
@@ -197,7 +198,7 @@ function AddGroup({
 
                 {
                     roleNameSelected !== "Admin" && (
-                        <FormControl className={styles.formControl}>
+                        <FormControl key="formAddGroup" className={styles.formControl}>
                             <FormLabel className={styles.label}>Group</FormLabel>
                             <Select
                                 size="small"
@@ -217,7 +218,7 @@ function AddGroup({
                     )
                 }
 
-                <FormControl className={styles.formControl}>
+                <FormControl key="formAddActive" className={styles.formControl}>
                     <FormLabel className={styles.label}>Active</FormLabel>
                     <Switch
                         {...register("isActive",)}
@@ -226,7 +227,7 @@ function AddGroup({
 
             </form>
 
-        </DialogCustom >
+        </BottomSheetModal >
     );
 }
 

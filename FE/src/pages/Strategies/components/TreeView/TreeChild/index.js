@@ -5,12 +5,13 @@ import { deleteStrategiesItem, updateStrategiesByID } from '../../../../../servi
 import { addMessageToast } from '../../../../../store/slices/Toast';
 import { useDispatch } from 'react-redux';
 import DialogCustom from '../../../../../components/DialogCustom';
+import IOSSwitch from '../../../../../components/SwitchCustomer';
 import { memo, useCallback, useState } from 'react';
 import { TableRow, TableCell, Switch } from '@mui/material';
 import UpdateStrategy from '../../UpdateStrategy';
 import clsx from 'clsx';
 import { formatNumberString, handleCheckAllCheckBox } from '../../../../../functions';
-
+import FormControlLabel from '@mui/material/FormControlLabel';
 function TreeChild({
     treeData,
     treeNode,
@@ -206,64 +207,71 @@ function TreeChild({
                         display: "flex",
                         alignItems: "center",
                         color: "#3277d5",
-                        marginLeft: "-10px "
+                        
                     }}>
-                        <Switch
-                            size='small'
-                            checked={treeNode.IsActive}
-                            onChange={(e) => {
-                                handleActiveStrategy({
-                                    id: treeNode._id,
-                                    parentID: treeData._id,
-                                    symbol: treeData.value,
-                                    newData: { ...treeNode, IsActive: e.target.checked }
-                                })
-                            }}
+
+                        <FormControlLabel className='!mr-2'
+                            control={<IOSSwitch sx={{ m: 0 }} checked={treeNode.IsActive}
+                                onChange={(e) => {
+                                    handleActiveStrategy({
+                                        id: treeNode._id,
+                                        parentID: treeData._id,
+                                        symbol: treeData.value,
+                                        newData: { ...treeNode, IsActive: e.target.checked }
+                                    })
+                                }} />}
+                        //label="iOS style"
                         />
+                        <button className='btn bg-blue-500 px-1 rounded-lg'>
+                            <EditIcon
+                                className="text-white"
+                                onClick={e => {
+                                    e.preventDefault()
+                                    setOpenUpdateStrategy({
+                                        ...openUpdateStrategy,
+                                        isOpen: true,
+                                        data: {
+                                            treeNode: {
+                                                ...treeNode,
+                                                parentID: treeData._id,
+                                            },
+                                            symbolValue: treeData.value
+                                        }
+                                    })
+                                }}
+                                style={{
+                                    marginLeft: "3px"
+                                }}
+                            />
+                        </button>
                         {
                             !treeNode.IsActive && (
-                                <DeleteOutlineIcon
-                                    className={styles.icon}
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        setOpenDeleteTreeItem({
-                                            isOpen: true,
-                                            data: {
-                                                id: treeNode._id,
-                                                parentID: treeData._id
-                                            }
-                                        })
-                                    }}
-                                    
-                                />
+                                <button className='btn bg-blue-500 px-2 ml-2 rounded-lg'>
+                                    <DeleteOutlineIcon
+                                        className="text-white"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            setOpenDeleteTreeItem({
+                                                isOpen: true,
+                                                data: {
+                                                    id: treeNode._id,
+                                                    parentID: treeData._id
+                                                }
+                                            })
+                                        }}
+
+                                    />
+                                </button>
+
                             )
                         }
-                        <EditIcon
-                            className={styles.icon}
-                            onClick={e => {
-                                e.preventDefault()
-                                setOpenUpdateStrategy({
-                                    ...openUpdateStrategy,
-                                    isOpen: true,
-                                    data: {
-                                        treeNode: {
-                                            ...treeNode,
-                                            parentID: treeData._id,
-                                        },
-                                        symbolValue: treeData.value
-                                    }
-                                })
-                            }} 
-                            style={{
-                                marginLeft: "3px"
-                            }}
-                            />
+
                     </div>
                 </TableCell>
                 <TableCell
                     className={styles.tableBodyCell}
                     style={{
-                        minWidth: "120px",
+                        minWidth: "50px",
                         whiteSpace: "nowrap",
                     }}>
                     {treeNode?.botID?.botName}
@@ -301,11 +309,9 @@ function TreeChild({
                         })
                     }}
                 >
-                    <p>Are you remove this item?</p>
+                    <p>Bạn có chắc chắn muốn xóa?</p>
                 </DialogCustom>
-
             }
-
 
             {
                 openUpdateStrategy.isOpen &&

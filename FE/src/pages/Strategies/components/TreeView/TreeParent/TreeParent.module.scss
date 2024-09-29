@@ -1,15 +1,12 @@
 .treeParent {
     margin-top: 12px;
-
     .label {
         font-weight: bold;
         color: black;
-        border: 1px solid lightgrey;
         padding: 3px;
         border-radius: 6px;
         margin-left: 6px;
     }
-
 
     .tableHeadCell,
     .tableBodyCell {
@@ -101,12 +98,12 @@
     .treeParent {
         .label {
 
-            font-size: 1.1rem;
+            font-size: 1rem;
 
         }
 
         .tableHeadCell {
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
     }
 }

@@ -9,6 +9,7 @@ import { copyMultipleStrategiesToBot, copyMultipleStrategiesToSymbol, deleteStra
 import { verifyTokenVIP } from '../../../../services/authService';
 import { getUserByID } from '../../../../services/userService';
 import { getAllBotActive } from '../../../../services/botService';
+import BottomSheetModal from '../../../../components/BottomSheetModal';
 
 function EditMulTreeItem({
     onClose,
@@ -882,7 +883,7 @@ function EditMulTreeItem({
     }, [radioValue]);
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={true}
             onClose={() => { closeDialog(false) }}
             dialogTitle='Bulk'
@@ -930,7 +931,7 @@ function EditMulTreeItem({
                 handleElementWhenChangeRatio()
             }
 
-        </DialogCustom>);
+        </BottomSheetModal>);
 }
 
 export default EditMulTreeItem;

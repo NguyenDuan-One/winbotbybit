@@ -3,42 +3,30 @@ import Heading from "./components/Heading";
 import SideBar from "./components/SideBar";
 import styles from "./Mainlayout.module.scss"
 import { Helmet } from "react-helmet";
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import LocalMallIcon from '@mui/icons-material/LocalMall';
-import ViewInArIcon from '@mui/icons-material/ViewInAr';
-import { memo, useEffect, useState } from "react";
+import HomeIcon from '@mui/icons-material/Home';
+import { memo, useMemo, useEffect, useState } from "react";
 import clsx from "clsx";
 import { useDispatch, useSelector } from "react-redux";
-import { Breadcrumbs, Typography } from "@mui/material";
+import { Breadcrumbs, dividerClasses, Typography } from "@mui/material";
 import { verifyLogin } from "../../services/authService";
 import { getByRoleName } from "../../services/roleService";
 import { getUserByID } from "../../services/userService";
 import { addMessageToast } from "../../store/slices/Toast";
-import { removeLocalStorage } from "../../functions";
+import { formatNumber, removeLocalStorage } from "../../functions";
 import { setUserDataLocal } from "../../store/slices/UserData";
-
+import SettingsIcon from '@mui/icons-material/Settings';
+import MenuIcon from '@mui/icons-material/Menu';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import DnsIcon from '@mui/icons-material/Dns';
 function MainLayout({ children }) {
-
-    const linkList = [
-        {
-            linK: "/Bots",
-            name: "Bots",
-            icon: <SmartToyIcon className={styles.icon} />
-        },
-        {
-            linK: "/Strategies",
-            name: "Strategies V3",
-            icon: <LocalMallIcon className={styles.icon} />
-        },
-
-        {
-            linK: "/PositionV3",
-            name: "Positions",
-            icon: <ViewInArIcon className={styles.icon} />
-        },
-
+    const [active, setActive] = useState(0)
+    const Menus = [
+        { name: "Home", icon: <HomeIcon></HomeIcon>, dis: "translate-x-0", linK: "/" },
+        { name: "Server", icon: <DnsIcon></DnsIcon>, dis: "translate-x-16", linK: "/Bots" },
+        { name: "Config", icon: <SettingsIcon></SettingsIcon>, dis: "translate-x-32", linK: "/Strategies" },
+        { name: "Position", icon: <MonetizationOnIcon></MonetizationOnIcon>, dis: "translate-x-48", linK: "/PositionV1" },
+        { name: "Menu", icon: <MenuIcon></MenuIcon>, dis: "translate-x-64", linK: "/Menu" }
     ]
-
     const location = useLocation()
 
     const dispatch = useDispatch()
@@ -53,56 +41,85 @@ function MainLayout({ children }) {
         location.pathname.split("/")[1]
     )
 
-
     const toggleSidebar = () => {
-        setMarginLeft(marginLeft ? "" : "300px")
+        setMarginLeft(marginLeft ? "" : "600px")
     }
 
     const handleBreadcrumbs = () => {
-        return <Breadcrumbs
-            aria-label="breadcrumb"
-            style={{
-                fontWeight: 450,
-                marginBottom: "12px"
-            }}
-        >
+        return <div className="flex justify-between items-center"  
+        style={{
+            fontWeight: 470,
+            marginTop: "16px",
+            padding: "10px",
+            background: "#FFFFFF",
+            whiteSpace: 'nowrap'
+        }}>
+            <div>
+                <Breadcrumbs
+                    aria-label="breadcrumb"
+                   
+                >
 
-            {
-                listBreadcrumbs.map((value, index) => {
-                    if (index === 0) {
-                        return <Link
-                            to="/"
-                            style={{ fontSize: ".9rem", opacity: .5 }}
-                            key={index}
-                        >
-                            Home
-                        </Link>
-                    }
-                    else if (index === listBreadcrumbs.length - 1) {
-                        return <Typography
-                            color="text.primary"
-                            style={{
-                                color: "black",
-                                opacity: ".8",
-                                fontSize: ".9rem"
-                            }}
-                            key={index}
-                        >{value}</Typography>
+                    {
+                        listBreadcrumbs.map((value, index) => {
+                            if (index === 0) {
+                                return <Link
+                                    to="/"
+                                    style={{ fontSize: ".9rem", opacity: .6 }}
+                                    key={index}
+                                >
+                                    <div style={{
+                                        display: "flex"
+                                    }}>
+                                        <HomeIcon style={{
+                                            marginRight: "5px",
+                                            marginTop: "-2px"
+                                        }}></HomeIcon> Home
+                                    </div>
 
-                    }
-                    else {
-                        return <Link
-                            to={`/${value}`}
-                            style={{ fontSize: ".9rem", opacity: .5 }}
-                            key={index}
-                        >
-                            {value}
-                        </Link>
-                    }
-                })
-            }
+                                </Link>
+                            }
+                            else if (index === listBreadcrumbs.length - 1) {
+                                return <div className="flex justify-between items-center">
+                                    <div>
+                                        <Typography
+                                            color="text.primary"
+                                            style={{
+                                                color: "black",
+                                                opacity: ".8",
 
-        </Breadcrumbs>
+                                            }}
+                                            key={index}
+                                        >{value}</Typography>
+                                    </div>
+
+                                </div>
+
+
+
+                            }
+                            else {
+                                return <Link
+                                    to={`/${value}`}
+                                    style={{ opacity: .6 }}
+                                    key={index}
+                                >
+                                    {value}
+                                </Link>
+                            }
+                        })
+                    }
+
+                </Breadcrumbs>
+            </div>
+
+            <div>
+                {
+                    routeName === "Strategies" &&
+                    <span className="font-sans text-lg font-bold text-yellow-500">{formatNumber(Number.parseFloat((+totalFuture || 0)))} $</span>
+                }
+            </div>
+        </div>
     }
 
     const navigate = useNavigate()
@@ -132,15 +149,7 @@ function MainLayout({ children }) {
                 const res = await getByRoleName(resUserData?.roleName || "")
                 const { data: resData } = res.data
 
-                const newRoleList = resData.roleList.concat([
-                    "StrategiesTemp"
-                ])
-
-                const routeCurrent = location.pathname.replace("/", "")
-                if (!newRoleList.includes(routeCurrent) && routeCurrent) {
-                    navigate("/")
-                }
-                setRoleList(newRoleList || [])
+                setRoleList(resData.roleList || [])
             }
 
         } catch (error) {
@@ -160,79 +169,119 @@ function MainLayout({ children }) {
     useEffect(() => {
         window.innerWidth <= 740 && setMarginLeft("")
         window.scrollTo(0, 0)
-       
     }, [location]);
 
+    const routeName = useMemo(() => {
+        return location.pathname.split("/")[1]
+    }, [location])
+
+    const totalFuture = useSelector(state => state.totalFutureSlice.total)
 
     return (
-        <div
-            className={styles.mainlayout}
+        <div className={styles.mainlayout}
             style={{
                 "--marginLeft": marginLeft
             }}
         >
-            <Helmet title={`${getRouteName() || "Dashboard"} | CyberBot`} />
+            <Helmet title={`${getRouteName() || "Dashboard"} | BybitBot`} />
+            {/* hearde */}
             <div className={styles.heading}>
                 <Heading
                     toggleSidebar={toggleSidebar}
                     userData={userData}
                 />
             </div>
+            {/* end hearder */}
             <div
                 className={styles.body}
                 onClick={() => {
                     window.innerWidth <= 740 && setMarginLeft("")
                 }}>
-                <SideBar
+                {/* <SideBar
                     openSidebar={marginLeft}
                     roleList={roleList}
-                />
+                /> */}
+                {/* main */}
                 <div className={styles.content}>
                     <div className={styles.contentMain}>
                         <div className={styles.title}>
-                            <p style={{
-                                fontSize: "1.5rem",
-                                fontWeight: "500",
-                                color: "#012970",
-                                marginBottom: "6px"
-                            }}>{getRouteName()}</p>
                             {
-                                <div role="presentation"  >
-                                    {location.pathname !== "/" && (
+                                <div className={`${location.pathname !== "/" && location.pathname !== "menu" ? "pt-0" : ""} d-flex `} role="presentation"  >
+                                    {location.pathname !== "/" && location.pathname.toLowerCase() !== "/menu" && (
                                         handleBreadcrumbs()
+
                                     )}
+
                                 </div>
+
                             }
                         </div>
                         <div style={{
                             backgroundColor: "white",
                             padding: "12px",
                             borderRadius: "5px",
-                            boxShadow: "0px 0 30px rgba(1, 41, 112, 0.1)"
+                            boxShadow: "0px 0 30px rgba(1, 41, 112, 0.1)",
+                            height: "90vh",
+
                         }}>
                             <Outlet />
                         </div>
                     </div>
                     <div className={styles.footer}>
-                        © Copyright <b>CYBER TEAM</b>. All Rights Reserved
+
                     </div>
                 </div>
+                {/* end main */}
+
             </div>
 
             <div className={styles.footerLink}>
-                {
-                    linkList.map(item => (
+                <div className='w-100 h-100 bg-red mt-10'>
+                    <div className="bg-zinc-800 max-h-[4.4rem] px-6 rounded-t-xl">
+                        <ul className="flex relative ">
+                            <span
+                                className={`bg-zinc-600 duration-500 ${Menus[active].dis} border-4 border-white h-16 w-16 absolute
+                                  -top-5 rounded-full text-center
+                                  pt-3`}>
+                                <span className="text-xl duration-500 -mt-6 text-white">{Menus[active].icon}</span>
+                                <span
+                                    className="w-3.5 h-3.5 bg-transparent absolute top-4 -left-[18px] 
+                                                 rounded-tr-[11px] shadow-myShadow1"
+                                ></span>
+                                <span
+                                    className="w-3.5 h-3.5 bg-transparent absolute top-4 -right-[18px] 
+                                             rounded-tl-[11px] shadow-myShadow2"
+                                ></span>
+                            </span>
+                            {Menus.map((menu, i) => (
+                                <li key={i} className="w-16">
+                                    <NavLink
+                                        //className="flex flex-col text-center pt-6"
+                                        className={({ isActive }) => clsx("flex flex-col text-center pt-6")}
 
-                        <NavLink
-                            className={({ isActive }) => clsx(styles.footerLinkItem, isActive ? styles.active : undefined)}
-                            to={item.linK}
-                            key={item.linK}
-                        >
-                            {item.icon}
-                            <p className={styles.footerLinkItemName}>{item.name}</p>
-                        </NavLink>
-                    ))
-                }
+                                        onClick={() => setActive(i)}
+                                        to={menu.linK}
+                                        key={menu.linK}
+                                    >
+                                        <span
+                                            className={`text-xl cursor-pointer duration-500 text-white
+                                                        ${i === active && "-mt-6 text-white"}`}
+                                        >
+                                            {menu.icon}
+                                        </span>
+
+                                        <span className={`${active === i
+                                            ? "translate-y-4 duration-700 opacity-100 text-white"
+                                            : "opacity-0 translate-y-10 text-white"
+                                            } `}>
+                                            {menu.name}
+                                        </span>
+                                    </NavLink>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
             </div>
 
         </div>

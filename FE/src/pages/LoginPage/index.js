@@ -3,15 +3,13 @@ import styles from "./LoginPage.module.scss"
 import logoImage from "../../assets/logo.png"
 import { Button, FormControl, FormLabel, InputAdornment, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
-import api from "../../utils/api";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../store/slices/Toast";
-import { login, signUp } from "../../services/authService";
+import { login } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet';
 import { setUserDataLocal } from '../../store/slices/UserData';
-import { useEffect } from 'react';
-
+import { styled } from '@mui/system';
 function LoginPage() {
 
     const {
@@ -54,32 +52,52 @@ function LoginPage() {
         }
     }
 
-    useEffect(()=>{
-        localStorage.getItem('tk_crypto') && navigate("/")
-    },[])
-    
+    const CustomTextField = styled(TextField)({
+        '& .MuiInputBase-input': {
+            color: '#ecebeb', // Custom text color
+        },
+        '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+                borderColor: '#ecebeb',
+            },
+            '&:hover fieldset': {
+                borderColor: '#ecebeb',
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: '#ecebeb',
+            },
+            borderRadius: '8px',
+        },
+    });
+
     return (
         <div className={styles.loginPage} onKeyDown={e => {
             if (e.key === "Enter") {
                 handleSubmit(handleLogin)()
             }
         }}>
-            <Helmet title={`Login | CyberBot`} />
+            <Helmet title={`Login`} />
+
             <div className={styles.loginPageBody}>
-                <div className={styles.headingLogo} >
-                    <img src={logoImage} style={{ width: "50px" }} />
-                    <span className={styles.text}>CyberBot</span>
-                </div>
+
                 <form className={styles.form}>
-                    <div className={styles.formTitle}>
-                        <p className={styles.textMain}>Login to Your Account</p>
-                        <p style={{ opacity: .9 }}>Enter your username & password to login</p>
+                    <div className={styles.formWellCome}>
+                        <div className={styles.headingLogo} >
+                            <img src={logoImage} style={{ width: "100px" }} />
+                            {/* <span className={styles.text}>WinBot</span> */}
+                        </div>
+
+                        <div className={styles.formTitle}>
+                            <p className={styles.textMain}>Hello, Friend!</p>
+                            <p style={{ opacity: .9, textAlign: 'left' }}>Wellcome to WinBot</p>
+                        </div>
                     </div>
 
                     <div className={styles.formData}>
+                        <p className={styles.textHeaderWhite}>Sign In</p>
                         <FormControl className={styles.formControl}>
                             <FormLabel className={styles.label}>Username</FormLabel>
-                            <TextField
+                            <CustomTextField
                                 error={errors.userName?.type === 'required'}
                                 size="small"
                                 {...register("userName", { required: true, minLength: 5 })}
@@ -91,7 +109,7 @@ function LoginPage() {
 
                         <FormControl className={styles.formControl}>
                             <FormLabel className={styles.label}>Password</FormLabel>
-                            <TextField
+                            <CustomTextField
                                 error={errors.password?.type === 'required'}
                                 type="password"
                                 size="small"
@@ -119,14 +137,14 @@ function LoginPage() {
                         <Button
                             onClick={handleSubmit(handleLogin)}
                             variant="contained"
-                            style={{ marginTop: "16px" }}>
+                            style={{ marginTop: "16px",background:"#97caef" }}>
                             Login
                         </Button>
                     </div>
 
                 </form>
 
-                <p>© Copyright by <b>CYBER TEAM</b></p>
+
             </div>
         </div>
     );

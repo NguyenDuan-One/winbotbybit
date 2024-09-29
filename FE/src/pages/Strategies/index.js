@@ -1,13 +1,7 @@
-import RestoreIcon from '@mui/icons-material/Restore';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import StarIcon from '@mui/icons-material/Star';
-import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
-import CloudSyncIcon from '@mui/icons-material/CloudSync';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import { MenuItem, Select, TextField, Avatar, Checkbox, CircularProgress, FormLabel, FormControl, Tooltip } from '@mui/material';
+
+import { MenuItem, Select, TextField, Avatar, Checkbox, CircularProgress, FormLabel, FormControl, Tooltip, Button } from '@mui/material';
 import AddBreadcrumbs from '../../components/BreadcrumbsCutom';
-import FilterListIcon from '@mui/icons-material/FilterList';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from "./Strategies.module.scss"
 import { getAllStrategies, getTotalFutureByBot, syncSymbol } from '../../services/dataCoinByBitService';
@@ -24,7 +18,13 @@ import { setTotalFuture } from '../../store/slices/TotalFuture';
 import useDebounce from '../../hooks/useDebounce';
 import { useNavigate } from 'react-router-dom';
 import { setStrategiesTempData } from '../../store/slices/StrategiesTemp';
-
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import SaveAsIcon from '@mui/icons-material/SaveAs';
+import RestoreIcon from '@mui/icons-material/Restore';
 function Strategies() {
 
     const userData = useSelector(state => state.userDataSlice.userData)
@@ -294,17 +294,13 @@ function Strategies() {
 
             return acc;
         }, []);
-
-
         setDataCheckTree(listData)
         handleCheckAllCheckBox(false)
-
     }
 
 
     const handleScrollData = () => {
         const dataTreeViewIndexTemp = dataTreeViewIndex + SCROLL_INDEX
-
         const scrollY = window.scrollY;
         const scrollHeight = document.documentElement.scrollHeight;
         const windowHeight = window.innerHeight;
@@ -315,7 +311,6 @@ function Strategies() {
             if (scrollPercentage >= 70) {
                 setDataTreeViewIndex(newIndex)
             }
-
         }
         else {
             window.removeEventListener('scroll', handleScrollData)
@@ -386,21 +381,18 @@ function Strategies() {
         }
     }, [openCreateStrategy.dataChange, openEditTreeItemMultipleDialog.dataChange]);
 
+    const [showMoreSearch, setShowMoreSearch] = useState(true)
+
+    function changeMoreSearch() {
+        setShowMoreSearch(!showMoreSearch)
+    }
 
     return (
         <div className={styles.strategies}>
             <AddBreadcrumbs list={["Strategies"]} />
 
-            <div
-                style={{
-                    display: "flex",
-                    flexWrap: "wrap-reverse",
-                    alignItems: "flex-start",
-                    borderBottom: "1px solid var(--borderColor)",
-                    paddingBottom: "24px",
-                }}>
-
-                <div className={styles.strategiesFilter}>
+            <div className='W-100 grid lg:grid-cols-2 md:grid-cols-1 gap-2 items-center'>
+                <div className="flex gap-2">
                     <TextField
                         value={searchKey}
                         size="small"
@@ -410,99 +402,137 @@ function Strategies() {
                         }}
                         className={styles.strategiesFilterInput}
                     />
-                    <FilterListIcon
-                        style={{
-                            fontSize: "2rem",
-                            margin: "0 12px",
-                            cursor: "pointer"
-                        }}
-                        onClick={() => {
-                            setOpenFilterDialog(true)
-                        }}
-                    />
+                    <button className='btn bg-blue-500 rounded-lg' onClick={() => {
+                        setOpenFilterDialog(true)
+                    }}>
+                        <ManageSearchIcon
+                            style={{
+                                fontSize: "2rem",
+                                margin: "0 12px",
+                                cursor: "pointer",
+                                color: "#fff"
+                            }} />
+                    </button>
+
+                    <button className='btn bg-blue-500 rounded-lg'  onClick={changeMoreSearch}>
+                        <MoreVertIcon
+                            style={{
+                                fontSize: "2rem",
+                                margin: "0 12px",
+                                cursor: "pointer",
+                                color: "#fff"
+                            }}
+                           
+                        />
+                    </button>
+
                     {filterQuantityRef.current.length ? <p>{filterQuantityRef.current.length} filters</p> : ""}
                 </div>
 
-                <div className={styles.strategiesHeader}>
-                    {/* <FormControl className={styles.strategiesHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
-                        <Select
-                            value={botTypeSelectedRef.current}
-                            size="small"
-                            onChange={e => {
-                                const value = e.target.value;
-                                botTypeSelectedRef.current = value
-                                handleFilterAll()
-                            }}
-                        >
-                            {
-                                botTypeList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl> */}
+                {
+                    showMoreSearch && <div className='grid grid-cols-3 gap-2'>
+                        {/* <FormControl className={styles.strategiesHeaderItem}>
+                    <FormLabel className={styles.formLabel}>Bot Type</FormLabel>
+                    <Select
+                        value={botTypeSelectedRef.current}
+                        size="small"
+                        onChange={e => {
+                            const value = e.target.value;
+                            botTypeSelectedRef.current = value
+                            handleFilterAll()
+                        }}
+                    >
+                        {
+                            botTypeList.map(item => (
+                                <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                            ))
+                        }
+                    </Select>
+                </FormControl> */}
 
-                    <FormControl className={styles.strategiesHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Bot</FormLabel>
-                        <Select
-                            value={botSelectedRef.current}
-                            size="small"
-                            onChange={e => {
-                                const value = e.target.value;
-                                botSelectedRef.current = value
-                                handleFilterAll()
-                            }}
-                        >
-                            {
-                                botList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl>
+                        <FormControl className={styles.strategiesHeaderItem}>
+                            <FormLabel className={styles.formLabel}>VPS</FormLabel>
+                            <Select
+                                value={botSelectedRef.current}
+                                size="small"
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    botSelectedRef.current = value
+                                    handleFilterAll()
+                                }}
+                            >
+                                {
+                                    botList.map(item => (
+                                        <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
 
-                    <FormControl className={styles.strategiesHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Position</FormLabel>
-                        <Select
-                            value={positionSideSelectedRef.current}
-                            size="small"
-                            onChange={e => {
-                                const value = e.target.value;
-                                positionSideSelectedRef.current = value
-                                handleFilterAll()
-                            }}
-                        >
-                            {
-                                positionSideList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl>
+                        <FormControl className={styles.strategiesHeaderItem}>
+                            <FormLabel className={styles.formLabel}>Vị thế</FormLabel>
+                            <Select
+                                value={positionSideSelectedRef.current}
+                                size="small"
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    positionSideSelectedRef.current = value
+                                    handleFilterAll()
+                                }}
+                            >
+                                {
+                                    positionSideList.map(item => (
+                                        <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
 
-                    <FormControl className={styles.strategiesHeaderItem}>
-                        <FormLabel className={styles.formLabel}>Candle</FormLabel>
-                        <Select
-                            value={candlestickSelectedRef.current}
-                            size="small"
-                            onChange={e => {
-                                const value = e.target.value;
-                                candlestickSelectedRef.current = value
-                                handleFilterAll()
-                            }}
-                        >
-                            {
-                                candlestickList.map(item => (
-                                    <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl>
+                        <FormControl className={styles.strategiesHeaderItem}>
+                            <FormLabel className={styles.formLabel}>Khung thời gian</FormLabel>
+                            <Select
+                                value={candlestickSelectedRef.current}
+                                size="small"
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    candlestickSelectedRef.current = value
+                                    handleFilterAll()
+                                }}
+                            >
+                                {
+                                    candlestickList.map(item => (
+                                        <MenuItem value={item.value} key={item.value}>{item.name}</MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
 
+
+                    </div>
+                }
+                <div className='flex gap-5'>
+                    <Button className='w-[60px] text-center !bg-blue-500 !rounded-xl' variant="contained" onClick={() => {
+                        setOpenCreateStrategy(openCreateStrategy => ({
+                            ...openCreateStrategy,
+                            isOpen: true,
+                            symbolValueInput: Object.values(dataCheckTreeSelectedSymbolRef.current)
+                        }))
+                    }}><ControlPointIcon/></Button>
+                    <Button className='w-[60px] text-center !bg-blue-500 !rounded-xl' variant="contained" onClick={() => {
+                        dataCheckTreeSelectedRef.current.length > 0 && setOpenEditTreeItemMultipleDialog({
+                            dataChange: false,
+                            isOpen: true
+                        })
+                    }}><EditNoteIcon/></Button>
+                    <Button className='w-[60px] text-center !bg-blue-500 !rounded-xl' variant="contained" onClick={handleSyncSymbol}><SaveAsIcon/></Button>
+                    <Button className='!rounded-xl !bg-blue-500' variant="contained" color="info" onClick={() => {
+                        navigate("/StrategiesTemp")
+                        dispatch(setStrategiesTempData(dataCheckTreeDefaultRef.current))
+                    }}><RestoreIcon></RestoreIcon></Button>
                 </div>
-
-
+                {
+                    !loadingUploadSymbol ? <></> : <span>Đang trong quá trình đồng bộ...</span>
+                }
             </div>
             <div className={styles.strategiesData}>
 
@@ -552,7 +582,7 @@ function Strategies() {
                         fontWeight: "bold",
                         color: "black",
                         fontSize: "1.1rem"
-                    }}>All</span> <span style={{
+                    }}>Tất cả</span> <span style={{
                         fontWeight: "600",
                         marginLeft: "6px"
                     }}>( {countTotalActive.countActive} / {countTotalActive.totalItem} )</span>
@@ -565,9 +595,9 @@ function Strategies() {
                                 padding: " 0 6px",
                             }}
                             sx={{
-                                color: "#b5b5b5",
+                                color: "#0666",
                                 '&.Mui-checked': {
-                                    color: "var(--yellowColor)",
+                                    color: "#1975CF",
                                 },
                             }}
                             onClick={e => {
@@ -575,10 +605,10 @@ function Strategies() {
                                 bookmarkCheckRef.current = value
                                 handleFilterAll()
                             }}
-                            icon={<StarBorderIcon />}
-                            checkedIcon={<StarIcon />}
+                            icon={<BookmarkBorderIcon />}
+                            checkedIcon={<BookmarkIcon />}
                         />
-                        <span>Bookmark</span>
+                        <span for="">Danh sách yêu thích</span>
                     </div>
                 </p>}
                 {
@@ -609,7 +639,7 @@ function Strategies() {
                 }
             </div>
 
-            <div className={styles.strategiesBtnAction}>
+            {/* <div className={styles.strategiesBtnAction}>
                 <Tooltip title="Restore Config" placement="left">
                     <div className={styles.strategiesBtnActionItem}
                         onClick={() => {
@@ -672,7 +702,7 @@ function Strategies() {
                 </Tooltip>
 
                 {dataTreeViewIndex <= dataCheckTree.length && <KeyboardDoubleArrowDownIcon className={styles.scrollDownIcon} />}
-            </div>
+            </div> */}
 
 
             {openFilterDialog &&

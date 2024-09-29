@@ -6,6 +6,8 @@ import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import { Checkbox, Table, TableHead, TableRow, TableCell, TableBody, Popover } from "@mui/material";
 import clsx from "clsx";
 import styles from "./TreeParent.module.scss"
@@ -221,7 +223,7 @@ function TreeParent({
         catch (err) {
             dispatch(addMessageToast({
                 status: 500,
-                message: "Add Bookmark Error",
+                message: "Lỗi thêm vào danh sách yêu thích!",
             }))
         }
     }
@@ -251,7 +253,7 @@ function TreeParent({
         catch (err) {
             dispatch(addMessageToast({
                 status: 500,
-                message: "Remove Bookmark Error",
+                message: "Xóa khỏi danh sách yêu thích",
             }))
         }
     }
@@ -285,7 +287,7 @@ function TreeParent({
 
                     }}
                 />
-                <div
+                {/* <div
                     style={{
                         display: "contents"
                     }}
@@ -299,8 +301,8 @@ function TreeParent({
                     <KeyboardArrowUpIcon
                         className={clsx(styles.icon, styles.iconArrow, styles.iconArrowUp)}
                     />
-                </div>
-                <MoreVertIcon
+                </div> */}
+                {/* <MoreVertIcon
                     className={clsx(styles.icon)}
                     onClick={e => {
                         setOpenSettingTreeNode({
@@ -308,31 +310,37 @@ function TreeParent({
 
                         })
                     }}
-                />
+                /> */}
                 <Checkbox
                     defaultChecked={treeData.bookmarkList?.includes(userData._id)}
                     style={{
                         padding: " 0 3px",
+                        borderRadius:"0px"
                     }}
                     sx={{
-                        color: "#b5b5b5",
+                        color: "#0666",
                         '&.Mui-checked': {
-                            color: "var(--yellowColor)",
+                            color: "#1975CF",
                         },
                     }}
                     onClick={e => {
                         e.target.checked ? handleAddToBookmark() : handleRemoveToBookmark()
                     }}
-                    icon={<StarBorderIcon />}
-                    checkedIcon={<StarIcon />}
+                    icon={<BookmarkBorderIcon />}
+                    checkedIcon={<BookmarkIcon />}
                 />
-                <p className={styles.label}>
+                <p className={styles.label} onClick={e => {
+                    e.currentTarget.parentElement.parentElement.classList.toggle(styles.showNoteContent)
+                }}>
                     {treeData.label.split("USDT")[0]}
                     <span style={{
-                        fontWeight: "600",
+                        fontWeight: "500",
                         marginLeft: "3px"
                     }}>( {treeData.children?.filter(item => item.IsActive).length} / {treeData.children.length} )</span>
                 </p>
+
+                <span className='bg-lime-600 mx-2 text-white px-2  rounded-lg' onClick={handleActiveAllTreeItem}>On</span>
+                <span className='bg-red-600 text-white px-2  rounded-lg' onClick={handleUnActiveAllTreeItem}>Off</span>
             </div>
             {
                 treeData.children?.length > 0 && (

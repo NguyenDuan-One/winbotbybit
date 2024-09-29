@@ -1,5 +1,5 @@
 import { DataGrid } from "@mui/x-data-grid";
-
+import {useState} from 'react'
 
 const autosizeOptionsDefault = {
     expand: true,
@@ -18,35 +18,46 @@ function DataGridCustom({
     columnVisibilityModel = {},
     centerCell = false
 }, ref) {
-
-
+   
+    const [filterModel, setFilterModel] = useState({ items: [] });
+    const closeFilterMode = () => {
+        setFilterModel({ items: [] }); // Clears any active filters
+      };
+    
     return (
-
+        <>
+        <button onClick={closeFilterMode}>Close Filter Mode</button>
         <DataGrid
             getRowClassName={params => params.row.OwnBot && "own-bot"}
             disableRowSelectionOnClick
             disableMultipleRowSelection={disableMultipleRowSelection}
             isRowSelectable={params => disabledListRow.length > 0 ? !disabledListRow.includes(params.row.id) : params}
             onRowSelectionModelChange={data => { setDataTableChange(data) }}
+            disableColumnFilter={true}
+            filterModel={filterModel}
             pageSizeOptions={[10, 25, 50]}
             initialState={{
                 pagination: !hideFooter ? { paginationModel: { pageSize: 10 } } : {},
                 columns: { columnVisibilityModel }
             }}
             sx={{
-                ".MuiDataGrid-columnHeaderTitle": {
-                    fontWeight: "bold"
+                "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: "bold",
+                    color:"#fff"
                 },
-                ".MuiDataGrid-cell:focus": {
-                    outline: "none"
+                "& .MuiDataGrid-columnHeader": {
+                    background:"#27272a"
                 },
-                ".MuiDataGrid-columnHeader--alignRight ,.MuiDataGrid-columnHeader--alignRight,.MuiDataGrid-columnHeaderTitleContainer,.MuiDataGrid-columnHeaderDraggableContainer": {
+                "& .MuiDataGrid-cell:focus": {
+                    outline: "none",
+                },
+                "& .MuiDataGrid-columnHeader--alignRight ,.MuiDataGrid-columnHeader--alignRight,.MuiDataGrid-columnHeaderTitleContainer,.MuiDataGrid-columnHeaderDraggableContainer": {
                     flexDirection: "row !important"
                 },
-                ".MuiDataGrid-cell--textRight": {
+                "& .MuiDataGrid-cell--textRight": {
                     textAlign: "left"
                 },
-                ".MuiDataGrid-main": {
+                "& .MuiDataGrid-main": {
                     overflow: "auto"
                 },
                 // ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
@@ -54,10 +65,11 @@ function DataGridCustom({
                 //     justifyContent: centerCell && "center !important",
                 //     textAlign: centerCell && "center !important",
                 // },
-                // " .MuiDataGrid-cell":
-                // {
-                //     marginLeft: "1px"
-                // }
+                "& .MuiDataGrid-cell":
+                {
+                    marginLeft: "1px",
+                    background:"#fff"
+                }
                 // ".MuiDataGrid-columnHeaderTitleContainer, .MuiDataGrid-cell":
                 // {
                 //     justifyContent:"center !important",
@@ -76,8 +88,9 @@ function DataGridCustom({
             autosizeOptions={autosizeOptionsDefault}
             rows={tableRows}
             columns={tableColumns}
-            checkboxSelection={checkboxSelection}
+            checkboxSelection={false}
         />
+        </>
     );
 }
 

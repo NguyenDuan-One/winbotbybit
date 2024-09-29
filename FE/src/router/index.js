@@ -19,7 +19,7 @@ import PositionAll from "../pages/Position"
 import PositionV3 from "../pages/Position/Position-V3"
 import PositionV1 from "../pages/Position/Position-V1"
 import StrategiesTemp from "../pages/StrategiesTemp"
-
+import Menu from "../pages/Menu"
 
 const routeList = [
     {
@@ -108,6 +108,9 @@ const routeList = [
             {
                 path: "MyProfile",
                 element: <MyProfile />,
+            },{
+                path: "Menu",
+                element: <Menu />,
             },
 
         ]

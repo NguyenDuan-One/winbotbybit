@@ -42,7 +42,7 @@ function BotDetail() {
                 <Tab label="Overview" value="Overview" ></Tab>
                 <Tab label="Wallet" value="Wallet"></Tab>
                 <Tab label="Api" value="Api"></Tab>
-                <Tab label="Setting" value="Setting"></Tab>
+                {/* <Tab label="Setting" value="Setting"></Tab> */}
             </Tabs>
             <div style={{
                 marginTop: "24px"

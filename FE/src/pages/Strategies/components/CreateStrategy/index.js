@@ -7,6 +7,8 @@ import clsx from "clsx";
 import { createStrategies, getAllSymbol } from "../../../../services/dataCoinByBitService";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../store/slices/Toast";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
+import { Margin } from "@mui/icons-material";
 
 function CreateStrategy({
     botListInput,
@@ -15,8 +17,8 @@ function CreateStrategy({
 }) {
 
     console.log(symbolValueInput);
-    
-    const formControlMinValue= .1
+
+    const formControlMinValue = .1
     const groupList = [
         {
             name: "Group 1",
@@ -73,7 +75,7 @@ function CreateStrategy({
         formState: { errors, isSubmitted }
     } = useForm();
 
-    const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput  ||  [])
+    const [symbolGroupData, setSymbolGroupData] = useState(symbolValueInput || [])
     const [botList, setBotList] = useState([])
 
     const dataChangeRef = useRef(false)
@@ -119,7 +121,7 @@ function CreateStrategy({
     }
 
     const handleSubmitCreate = async data => {
-        
+
         if (symbolGroupData.length > 0 && botList.length > 0) {
             try {
                 const res = await createStrategies({
@@ -133,7 +135,7 @@ function CreateStrategy({
                     status: status,
                     message: message
                 }))
-                
+
                 if (status === 200) {
                     reset()
                     dataChangeRef.current = true
@@ -150,7 +152,7 @@ function CreateStrategy({
     }
 
     const handleSubmitCreateWithAddMore = async data => {
-        
+
         if (symbolGroupData.length > 0 && botList.length > 0) {
             try {
                 const res = await createStrategies({
@@ -164,7 +166,7 @@ function CreateStrategy({
                     status: status,
                     message: message
                 }))
-                
+
                 if (status === 200) {
                     dataChangeRef.current = true
                 }
@@ -181,7 +183,7 @@ function CreateStrategy({
     const closeDialog = () => {
         onClose({
             isOpen: false,
-            dataChange:dataChangeRef.current
+            dataChange: dataChangeRef.current
         })
         reset()
     }
@@ -192,18 +194,17 @@ function CreateStrategy({
 
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             dialogTitle="Create Strategy"
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitCreate)}
             maxWidth="sm"
-            addMore
-            addMoreFuntion={handleSubmit(handleSubmitCreateWithAddMore)}
+            // addMore
+            // addMoreFuntion={handleSubmit(handleSubmitCreateWithAddMore)}
+            height={70}
         >
-
             <form className={styles.dialogForm}>
-
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>Bots</FormLabel>
                     <Autocomplete
@@ -263,21 +264,41 @@ function CreateStrategy({
                     {isSubmitted && !botList.length && <p className="formControlErrorLabel">The Bot field is required.</p>}
 
                 </FormControl>
+                <div  style={{ alignItems:"center", display:"flex" }}>
+                    <FormControl className={styles.formControl} style={{ flexBasis: "48%" }}>
+                        <RadioGroup
+                            defaultValue="Symbol"
+                            onChange={handleChangeRatio}
+                            style={{
+                                display: "flex",
+                                flexDirection: "row"
+                            }}
+                        >
+                            <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
+                            <FormControlLabel value="Group" control={<Radio />} label="Group" />
+                        </RadioGroup>
+                    </FormControl>
 
-                <FormControl className={styles.formControl} >
-                    <RadioGroup
-                        defaultValue="Symbol"
-                        onChange={handleChangeRatio}
-                        style={{
-                            display: "flex",
-                            flexDirection: "row"
-                        }}
-                    >
-                        <FormControlLabel value="Symbol" control={<Radio />} label="Symbol" />
-                        <FormControlLabel value="Group" control={<Radio />} label="Group" />
-                    </RadioGroup>
-                </FormControl>
+                    <div style={{ flexBasis: "48%", alignItems:"center", display:"flex" }}>
+                        <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
+                            <FormControlLabel control={<Switch
+                                defaultChecked
+                                title="IsActive"
+                                {...register("IsActive")}
+                            />} label="Active"></FormControlLabel>
+                            
+                        </FormControl>
 
+                        <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
+                            <FormControlLabel control={<Switch
+                                title="Nhớ"
+                                {...register("Remember")}
+
+                            />} label="Nhớ"></FormControlLabel>
+                            
+                        </FormControl>
+                    </div>
+                </div>
                 <FormControl className={styles.formControl}>
                     <FormLabel className={styles.label}>{symbolGroupDataList.label === "Group" ? "Group" : "Symbol"}</FormLabel>
                     <Autocomplete
@@ -336,7 +357,6 @@ function CreateStrategy({
                     {isSubmitted && !symbolGroupData.length && <p className="formControlErrorLabel">The {symbolGroupDataList.label} field is required.</p>}
 
                 </FormControl>
-
                 <div className={styles.formMainData}>
                     <FormControl
                         className={clsx(styles.formControl, styles.formMainDataItem)}
@@ -346,8 +366,8 @@ function CreateStrategy({
                             label="Position side"
                             variant="outlined"
                             defaultValue={positionSideList[0].value}
-                            size="medium"
-                            {...register("PositionSide", { required: true,  })}
+                            size="small"
+                            {...register("PositionSide", { required: true, })}
                         >
                             {
 
@@ -362,7 +382,7 @@ function CreateStrategy({
                             select
                             label="Candlestick"
                             defaultValue={candlestickList[0].value}
-                            size="medium"
+                            size="small"
                             {...register("Candlestick", { required: true, })}
                         >
                             {
@@ -380,7 +400,7 @@ function CreateStrategy({
                             label="Order change"
                             variant="outlined"
                             defaultValue={4}
-                            size="medium"
+                            size="small"
                             {...register("OrderChange", { required: true, min: formControlMinValue })}
                         />
                         {errors.OrderChange?.type === 'required' && <p className="formControlErrorLabel">The OC field is required.</p>}
@@ -394,7 +414,7 @@ function CreateStrategy({
                             label="Extended OC percent"
                             variant="outlined"
                             defaultValue={80}
-                            size="medium"
+                            size="small"
                             {...register("ExtendedOCPercent", { required: true, min: formControlMinValue })}
                         />
                         {errors.ExtendedOCPercent?.type === 'required' && <p className="formControlErrorLabel">The Extended field is required.</p>}
@@ -408,7 +428,7 @@ function CreateStrategy({
                             label="Take profit"
                             variant="outlined"
                             defaultValue={50}
-                            size="medium"
+                            size="small"
                             {...register("TakeProfit", { required: true, min: formControlMinValue })}
                         />
                         {errors.TakeProfit?.type === 'required' && <p className="formControlErrorLabel">The TP field is required.</p>}
@@ -422,7 +442,7 @@ function CreateStrategy({
                             label="Reduce take profit"
                             variant="outlined"
                             defaultValue={45}
-                            size="medium"
+                            size="small"
                             {...register("ReduceTakeProfit", { required: true, min: formControlMinValue })}
                         />
                         {errors.ReduceTakeProfit?.type === 'required' && <p className="formControlErrorLabel">The Reduce TP field is required.</p>}
@@ -436,7 +456,7 @@ function CreateStrategy({
                             label="Amount"
                             variant="outlined"
                             defaultValue={100}
-                            size="medium"
+                            size="small"
                             {...register("Amount", { required: true, min: formControlMinValue })}
                         />
                         {errors.Amount?.type === 'required' && <p className="formControlErrorLabel">The Amount field is required.</p>}
@@ -450,7 +470,7 @@ function CreateStrategy({
                             label="Ignore"
                             variant="outlined"
                             defaultValue={85}
-                            size="medium"
+                            size="small"
                             {...register("Ignore", { required: true, min: formControlMinValue })}
                         />
                         {errors.Ignore?.type === 'required' && <p className="formControlErrorLabel">The Ignore field is required.</p>}
@@ -463,7 +483,7 @@ function CreateStrategy({
                             type='number'
                             label="Entry Trailing"
                             variant="outlined"
-                            size="medium"
+                            size="small"
                             {...register("EntryTrailing", { min: formControlMinValue })}
                         />
                         {/* {errors.EntryTrailing?.type === 'required' && <p className="formControlErrorLabel">The Entry Trailing field is required.</p>} */}
@@ -476,7 +496,7 @@ function CreateStrategy({
                             label="Stop Lose"
                             variant="outlined"
                             defaultValue={50}
-                            size="medium"
+                            size="small"
                             {...register("StopLose", { required: true, min: 0.1 })}
                         />
                         {errors.StopLose?.type === 'required' && <p className="formControlErrorLabel">The StopLose field is required.</p>}
@@ -484,7 +504,7 @@ function CreateStrategy({
 
                     </FormControl>
 
-                    <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
+                    {/* <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
 
                         <FormLabel className={styles.label}>IsActive</FormLabel>
                         <Switch
@@ -503,12 +523,10 @@ function CreateStrategy({
                             {...register("Remember")}
 
                         />
-                    </FormControl>
+                    </FormControl> */}
                 </div>
-
-
             </form>
-        </DialogCustom>
+        </BottomSheetModal>
     );
 }
 

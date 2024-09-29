@@ -1,12 +1,13 @@
-import { Button, FormControl, FormLabel, TextField } from "@mui/material";
+import { FormControl, FormLabel, TextField } from "@mui/material";
 import styles from "./AddBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
+
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../store/slices/Toast";
-import { createGroup } from "../../../../services/groupService";
+
 import { createBotType } from "../../../../services/botTypeService";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
 
 function AddBotType({
     onClose
@@ -54,7 +55,7 @@ function AddBotType({
     }
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitAddGroup)}
@@ -90,7 +91,7 @@ function AddBotType({
 
             </form>
 
-        </DialogCustom >
+        </BottomSheetModal >
     );
 }
 

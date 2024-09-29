@@ -73,8 +73,7 @@ function Group() {
                 const checkRole = checkRoleEditable(rowData["roleName"])
                 return (
 
-                    <div
-                    >
+                    <div>
                         <EditIcon
                             className={clsx(styles.icon, !checkRole && styles.iconDisabled)}
                             onClick={e => {

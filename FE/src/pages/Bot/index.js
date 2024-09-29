@@ -14,7 +14,7 @@ import DialogCustom from '../../components/DialogCustom';
 import { getTotalFutureSpot, getTotalFutureSpotByBot } from '../../services/dataCoinByBitService';
 import { formatNumber } from '../../functions';
 import { getAllBotType } from '../../services/botTypeService';
-
+import IOSSwitch from '../../components/SwitchCustomer';
 function Bot() {
 
     const statusList = [
@@ -72,7 +72,7 @@ function Bot() {
                         alignItems: "center",
                         marginLeft: "-10px "
                     }}>
-                        <Switch
+                        <IOSSwitch
                             size='small'
                             disabled={!(botStatus === "Running" || botStatus === "Stopped")}
                             checked={botStatus === "Running"}
@@ -503,7 +503,7 @@ function Bot() {
                 <div className={styles.botFilterListItem}>
 
                     <p className={styles.label}>My Bot</p>
-                    <Switch
+                    <IOSSwitch
                         checked={checkMyBotRef.current}
                         title="My Bot"
                         onChange={e => {

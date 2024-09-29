@@ -2,10 +2,10 @@ import { FormControl, FormLabel, MenuItem, Select, TextField } from "@mui/materi
 import styles from "./AddBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useRef } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
 import { createBot } from "../../../../services/botService";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../store/slices/Toast";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
 
 function AddBot({
     open,
@@ -65,7 +65,7 @@ function AddBot({
     }
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={open}
             onClose={closeDialog}
             onSubmit={handleSubmit(handleSubmitAddBot)}
@@ -109,7 +109,7 @@ function AddBot({
                 </FormControl>
 
             </form>
-        </DialogCustom >
+        </BottomSheetModal >
     );
 }
 

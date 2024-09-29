@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import DialogCustom from "../../../../components/DialogCustom";
 import { Checkbox, MenuItem, Select, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 import { handleCheckAllCheckBox } from '../../../../functions';
+import BottomSheetModal from '../../../../components/BottomSheetModal';
 
 function FilterDialog({
     onClose,
@@ -412,11 +413,11 @@ function FilterDialog({
 
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={true}
             onClose={onClose}
-            dialogTitle='Filter'
-            submitBtnText='Apply'
+            dialogTitle='Lọc chi tiết'
+            submitBtnText='Tìm kiếm'
             maxWidth='sm'
             onSubmit={handleFilter}
             hideCloseBtn
@@ -441,9 +442,9 @@ function FilterDialog({
                                 onClick={addFilterRow}
                             />
                         </TableCell>
-                        <TableCell>Field</TableCell>
-                        <TableCell>Com</TableCell>
-                        <TableCell>Value</TableCell>
+                        <TableCell>Trường</TableCell>
+                        <TableCell>So</TableCell>
+                        <TableCell>Giá trị</TableCell>
                     </TableRow>
 
                 </TableHead>
@@ -459,7 +460,8 @@ function FilterDialog({
                                     <DeleteOutlineIcon
                                         style={{
                                             cursor: "pointer",
-                                            verticalAlign: "bottom"
+                                            verticalAlign: "bottom",
+                                            color:"#E64133"
                                         }}
                                         onClick={() => { deleteFilterRow(indexRow) }}
                                     />
@@ -526,7 +528,7 @@ function FilterDialog({
                 </TableBody>
             </Table>
 
-        </DialogCustom >);
+        </BottomSheetModal >);
 }
 
 export default FilterDialog;

@@ -50,8 +50,7 @@ function DialogCustom({
                     margin: mobileWidth ? "12px" : undefined,
                 }
             }}
-            modal={false}
-        >
+            modal={false}>
             <div className={styles.dialog}>
                 <div className={styles.dialogTitle}>
                     <p className={styles.title}>{dialogTitle}</p>

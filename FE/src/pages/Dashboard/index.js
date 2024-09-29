@@ -1,55 +1,39 @@
-import { Button } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import { closeAllBotForUpCode } from "../../services/dataCoinByBitService";
-import { addMessageToast } from "../../store/slices/Toast";
-import { useState } from "react";
-import DialogCustom from "../../components/DialogCustom";
+import Image from "../../assets/img/hero-img.png";
+import SettingsIcon from '@mui/icons-material/Settings';
 
 function Dashboard() {
-    const dispatch = useDispatch()
-    const userData = useSelector(state => state.userDataSlice.userData)
-    const [confirmOFF, setConfirmOFF] = useState(false);
     return (
-        <div>
-            <p>Dashboard</p>
-            {userData.roleName === "SuperAdmin" && (
-                <Button 
-                variant="contained"
-                 size="large"
-                 color="error"
-                 onClick={() => {
-                    setConfirmOFF(true)
-                }}>OFF All</Button>
-            )}
-            {
-                confirmOFF && (
-                    <DialogCustom
-                        backdrop
-                        open={true}
-                        onClose={() => {
-                            setConfirmOFF(false)
-                        }}
-                        onSubmit={async () => {
-                            const res = await closeAllBotForUpCode()
-                            const { message } = res.data
-
-                            dispatch(addMessageToast({
-                                status: 200,
-                                message,
-                            }))
-                            setConfirmOFF(false)
-                        }}
-                        dialogTitle="The action requires confirmation"
-                        submitBtnColor="error"
-                        submitBtnText="Off"
-                        reserveBtn
-                        position="center"
-                    >
-                        <p style={{ textAlign: "center" }}>Do you want to off-all?</p>
-                    </DialogCustom >
-                )
-            }
+        <div className='overflow-hidden mt-5'>
+           <div className="text-center"><span className="text-center font-bold text-3xl">WIN BOT</span></div>
+            <section className="py-5 lg:py-10 mb-32">
+                <div className="container mx-auto">
+                    <div className="flex flex-col items-center lg:flex-row gap-x-8">
+                        {/* image */}
+                        <div
+                            className="order-2 lg:order-1"
+                            data-aos="fade-right"
+                            data-aos-offset="400"
+                        >
+                            <img src={Image} alt="casset" />
+                        </div>
+                        {/* text */}
+                        <div
+                            className="order-1 lg:order-2 max-w-[480px]"
+                            data-aos="fade-left"
+                            data-aos-offset="400"
+                        >
+                            <h2 className="text-2xl lg:text-[40px] font-bold leading-normal mb-6">Why you Should choose WinBot</h2>
+                            <p className="mt-6 mb-8 text-slate-600">
+                                Experience the next generation cryptocurrency platform. No
+                                financial borders, extra fees, and fake reviews.
+                            </p>
+                            {/* <button className="btn px-6 bg-orange-500 rounded-xl py-2 text-lg font-semibold text-white">Learn more</button> */}
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
+
     );
 }
 

@@ -7,6 +7,7 @@ import { updateStrategiesByID } from "../../../../services/dataCoinByBitService"
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../store/slices/Toast";
 import { useRef } from "react";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
 
 function UpdateStrategy({
     onClose,
@@ -78,7 +79,7 @@ function UpdateStrategy({
 
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             dialogTitle="Update Strategy"
             open={true}
             onClose={() => { closeDialog() }}
@@ -274,7 +275,7 @@ function UpdateStrategy({
 
 
             </form>
-        </DialogCustom>
+        </BottomSheetModal>
     );
 }
 
