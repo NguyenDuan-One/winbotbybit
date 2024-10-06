@@ -138,11 +138,11 @@ function Menu() {
             name: "Vị thế",
             icon: <ViewInArIcon className={styles.icon} />
         },
-        // {
-        //     linK: "/Order",
-        //     name: "Order",
-        //     icon: <ViewInArIcon className={styles.icon} />
-        // },
+        {
+            linK: "/Order",
+            name: "Order",
+            icon: <ViewInArIcon className={styles.icon} />
+        },
     ]
 
     return (
@@ -282,7 +282,7 @@ function Menu() {
 
 
 
-            <div class="text-gray-600 body-font bg-gray-100 h-screen flex justify-center items-center h-100">
+            <div class="text-gray-600 body-font bg-gray-100 h-screen flex justify-center items-center mt-96">
                 <div class="container px-5 py-24 mx-auto">
                     <div class="flex flex-wrap -m-4 text-center">
                         <div class="p-4 sm:w-1/2 lg:w-1/3 w-full hover:scale-105 duration-500">
