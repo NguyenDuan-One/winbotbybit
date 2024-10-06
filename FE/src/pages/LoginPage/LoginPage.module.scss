@@ -2,7 +2,7 @@
     width: 100vw;
     height: 100svh;
     display: flex;
-    background: #cde7f7;
+    background: #fff;
 
     &Body {
         text-align: center;
@@ -28,8 +28,8 @@
         .formWellCome {
             background-color: rgb(255, 255, 255);
             padding: 28px 28px 32px;
-            background: rgb(239, 243, 246);
-            color: #161879;
+            background: rgb(26, 28, 29);
+            color: #ebebeb;
             border-radius:20px 80px 80px 20px;
             margin-right: 20px;
         }
@@ -43,9 +43,9 @@
         }
 
         .form {
-            background-color: #7ec7f1;
-            background: #7ec7f1;
-            box-shadow: 0px 0 30px rgb(177, 229, 245);
+            background-color: #a7aaac;
+            background: #a7aaac;
+            box-shadow: 0px 0 30px rgb(237, 237, 237);
             margin-bottom: 24px;
             color: #ecebeb;
             display: flex;
@@ -53,7 +53,7 @@
 
             .formTitle {
                 .textMain {
-                    color: #203d9c;
+                    color: #fdfdfd;
                     font-size: 1.6rem;
                     font-weight: 600;
                     margin-bottom: 6px;

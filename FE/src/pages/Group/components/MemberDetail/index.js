@@ -1,7 +1,7 @@
 import CheckIcon from '@mui/icons-material/Check';
 import { useEffect, useMemo, useState } from "react";
 import { getAllUserByUserIDList } from "../../../../services/userService";
-import DialogCustom from "../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import styles from "./MemberDetail.module.scss"
 
@@ -48,7 +48,7 @@ function MemberDetail({
     }, []);
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             dialogTitle="Member Detail"
             open={true}
             onClose={onClose}
@@ -93,7 +93,7 @@ function MemberDetail({
                     ))}
                 </TableBody>
             </Table>
-        </DialogCustom>
+        </BottomSheetModal>
     );
 }
 

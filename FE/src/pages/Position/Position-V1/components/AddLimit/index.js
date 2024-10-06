@@ -2,7 +2,7 @@ import { FormControl, FormLabel, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
-import DialogCustom from "../../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../../components/BottomSheetModal";
 import { closeLimit, getPriceLimitCurrent } from "../../../../../services/positionV1Service";
 import { addMessageToast } from "../../../../../store/slices/Toast";
 import styles from "../../../../Bot/components/AddBot/AddBot.module.scss"
@@ -89,7 +89,7 @@ function AddLimit({
     }, []);
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             dialogTitle="Close Limit"
             open={true}
             onClose={() => { handleClose(false) }}
@@ -127,7 +127,7 @@ function AddLimit({
                     </FormControl>
                 </form>
             }
-        </DialogCustom>
+        </BottomSheetModal>
     );
 }
 

@@ -388,7 +388,7 @@ function Strategies() {
     }
 
     return (
-        <div className={styles.strategies}>
+        <div className={styles.strategies} style={{paddingBottom:"80px"}}>
             <AddBreadcrumbs list={["Strategies"]} />
 
             <div className='W-100 grid lg:grid-cols-2 md:grid-cols-1 gap-2 items-center'>
@@ -402,7 +402,7 @@ function Strategies() {
                         }}
                         className={styles.strategiesFilterInput}
                     />
-                    <button className='btn bg-blue-500 rounded-lg' onClick={() => {
+                    <button className='btn rounded-lg' style={{background: `var(--btnSubmitColor)`}} onClick={() => {
                         setOpenFilterDialog(true)
                     }}>
                         <ManageSearchIcon
@@ -414,7 +414,7 @@ function Strategies() {
                             }} />
                     </button>
 
-                    <button className='btn bg-blue-500 rounded-lg'  onClick={changeMoreSearch}>
+                    <button className='btn rounded-lg' style={{background: `var(--btnSubmitColor)`}} onClick={changeMoreSearch}>
                         <MoreVertIcon
                             style={{
                                 fontSize: "2rem",
@@ -422,7 +422,7 @@ function Strategies() {
                                 cursor: "pointer",
                                 color: "#fff"
                             }}
-                           
+
                         />
                     </button>
 
@@ -451,7 +451,7 @@ function Strategies() {
                 </FormControl> */}
 
                         <FormControl className={styles.strategiesHeaderItem}>
-                            <FormLabel className={styles.formLabel}>VPS</FormLabel>
+                            <FormLabel className={styles.formLabel}>Bots</FormLabel>
                             <Select
                                 value={botSelectedRef.current}
                                 size="small"
@@ -489,7 +489,7 @@ function Strategies() {
                         </FormControl>
 
                         <FormControl className={styles.strategiesHeaderItem}>
-                            <FormLabel className={styles.formLabel}>Khung thời gian</FormLabel>
+                            <FormLabel className={styles.formLabel}>Thời gian</FormLabel>
                             <Select
                                 value={candlestickSelectedRef.current}
                                 size="small"
@@ -511,21 +511,21 @@ function Strategies() {
                     </div>
                 }
                 <div className='flex gap-5'>
-                    <Button className='w-[60px] text-center !bg-blue-500 !rounded-xl' variant="contained" onClick={() => {
+                    <Button className='w-[60px] text-center !rounded-xl' variant="contained" style={{background: `var(--btnSubmitColor)`}} onClick={() => {
                         setOpenCreateStrategy(openCreateStrategy => ({
                             ...openCreateStrategy,
                             isOpen: true,
                             symbolValueInput: Object.values(dataCheckTreeSelectedSymbolRef.current)
                         }))
-                    }}><ControlPointIcon/></Button>
-                    <Button className='w-[60px] text-center !bg-blue-500 !rounded-xl' variant="contained" onClick={() => {
+                    }}><ControlPointIcon /></Button>
+                    <Button className='w-[60px] text-center !rounded-xl' style={{background: `var(--btnSubmitColor)`}} variant="contained" onClick={() => {
                         dataCheckTreeSelectedRef.current.length > 0 && setOpenEditTreeItemMultipleDialog({
                             dataChange: false,
                             isOpen: true
                         })
-                    }}><EditNoteIcon/></Button>
-                    <Button className='w-[60px] text-center !bg-blue-500 !rounded-xl' variant="contained" onClick={handleSyncSymbol}><SaveAsIcon/></Button>
-                    <Button className='!rounded-xl !bg-blue-500' variant="contained" color="info" onClick={() => {
+                    }}><EditNoteIcon /></Button>
+                    <Button className='text-center !rounded-xl' style={{background: `var(--btnSubmitColor)`}} variant="contained" onClick={handleSyncSymbol}><SaveAsIcon /></Button>
+                    <Button className='!rounded-xl' variant="contained" style={{background: `var(--btnSubmitColor)`}} color="info" onClick={() => {
                         navigate("/StrategiesTemp")
                         dispatch(setStrategiesTempData(dataCheckTreeDefaultRef.current))
                     }}><RestoreIcon></RestoreIcon></Button>
@@ -745,8 +745,9 @@ function Strategies() {
                 />
 
             }
-
+           
         </div >
+
     );
 }
 

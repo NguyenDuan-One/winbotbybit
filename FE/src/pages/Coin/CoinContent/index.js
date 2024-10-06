@@ -6,12 +6,12 @@ import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../../store/slices/Toast';
 import { formatNumberString } from '../../../functions';
 import { getAllCoin, syncCoin } from '../../../services/coinService';
-
+import SyncIcon from '@mui/icons-material/Sync';
 function CoinContent() {
     const tableColumns = [
         {
             field: 'stt',
-            headerName: '#',
+            headerName: 'STT',
             maxWidth: 50,
             type: "actions",
             renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
@@ -88,7 +88,7 @@ function CoinContent() {
         <div className={styles.coinContent}>
             <div style={{ display: "flex", "justifyContent": "space-between", alignItems: "center" }}>
                 <TextField
-                    placeholder='Coin Name...'
+                    placeholder='Symbol...'
                     size='small'
                     className={styles.coinInput}
                     onChange={(e) => {
@@ -102,9 +102,9 @@ function CoinContent() {
                         })
                     }}
                 />
-                <Button
-                    variant='contained'
-                    onClick={handleSyncCoin}>Sync</Button>
+                <button
+                   className='px-3 py-2 rounded-lg mb-2' style={{background:"var(--btnSubmitColor)"}}
+                    onClick={handleSyncCoin}><SyncIcon className='text-white'></SyncIcon></button>
             </div>
             <DataGridCustom
                 tableColumns={tableColumns}

@@ -345,7 +345,7 @@ function TreeParent({
             {
                 treeData.children?.length > 0 && (
                     <div className={styles.tableDataContainer}>
-                        <Table className={styles.tableData}>
+                        <Table className={styles.tableData} >
                             <TableHead >
                                 <TableRow>
                                     <TableCell className={styles.tableHeadCell} style={{
@@ -388,13 +388,15 @@ function TreeParent({
                                 </TableBody>
                             }
                         </Table>
+                       
                     </div>
                 )
             }
+             
             {/* {
                 openDeleteTreeSymbolGroup &&
                 <DialogCustom
-                    dialogTitle='The action requires confirmation'
+                    dialogTitle='Cảnh báo'
                     reserveBtn
                     open={openDeleteTreeSymbolGroup}
                     onClose={closeDeleteDialog}
@@ -461,6 +463,7 @@ function TreeParent({
                     </div>
                 </div>
             </Popover>
+           
         </div>
     );
 }

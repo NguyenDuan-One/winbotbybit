@@ -31,6 +31,7 @@
         overflow-x: auto;
         overflow-y: hidden;
         display: none;
+       
     }
 
     .iconArrow {
@@ -58,6 +59,7 @@
 .showNoteContent {
     .tableDataContainer {
         display: block;
+        padding-bottom: 10px;
     }
 
     .iconArrowDown {

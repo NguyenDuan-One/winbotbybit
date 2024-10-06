@@ -7,8 +7,8 @@ import DataGridCustom from "../../../components/DataGridCustom";
 import CheckIcon from '@mui/icons-material/Check';
 import { addMessageToast } from "../../../store/slices/Toast";
 import { useDispatch, useSelector } from "react-redux";
-
-import DialogCustom from "../../../components/DialogCustom";
+import LoopIcon from '@mui/icons-material/Loop';
+import BottomSheetModal from "../../../components/BottomSheetModal";
 import AddLimit from "./components/AddLimit";
 import AddMarket from "./components/AddMarket";
 import { closeAllPosition, updatePL } from "../../../services/positionV1Service";
@@ -34,13 +34,13 @@ function PositionV1() {
     // ]
 
     const tableColumns = [
-        {
-            field: 'stt',
-            headerName: '#',
-            maxWidth: 50,
-            type: "actions",
-            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
-        },
+        // {
+        //     field: 'stt',
+        //     headerName: '#',
+        //     maxWidth: 50,
+        //     type: "actions",
+        //     renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+        // },
         {
             field: 'Symbol',
             headerName: 'Symbol',
@@ -386,16 +386,13 @@ function PositionV1() {
 
                     <div className={styles.refreshBtn}>
                         {botList.length > 0 &&
-                            <Button
-                                variant="contained"
-                                size="small"
-                                color="info"
+                            <button className="bg-blue-600 py-2 px-3 rounded-lg"
                                 onClick={() => {
                                     handleRefreshData()
                                 }}
                             >
-                                Refresh
-                            </Button>}
+                                <LoopIcon className="text-white"></LoopIcon>
+                            </button>}
                         {positionData.length > 0 &&
                             <Button
                                 variant="contained"
@@ -462,7 +459,7 @@ function PositionV1() {
 
             {
                 confirmCloseAllPosition.isOpen && (
-                    <DialogCustom
+                    <BottomSheetModal
                         backdrop
                         open={true}
                         onClose={() => {
@@ -484,14 +481,14 @@ function PositionV1() {
                                 isOpen: false
                             })
                         }}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="error"
                         submitBtnText="Close All"
                         reserveBtn
                         position="center"
                     >
                         <p style={{ textAlign: "center" }}>Do you want to close all position of bots?</p>
-                    </DialogCustom >
+                    </BottomSheetModal >
                 )
             }
         </div >

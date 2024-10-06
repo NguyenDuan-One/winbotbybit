@@ -1,4 +1,4 @@
-import Image from "../../assets/img/hero-img.png";
+import Image from "../../assets/logo.png";
 import SettingsIcon from '@mui/icons-material/Settings';
 
 function Dashboard() {

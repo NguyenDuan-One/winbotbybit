@@ -4,6 +4,7 @@ import avatarAdmin from "../../assets/admin.jpg"
 
 import styles from "./MyProfile.module.scss"
 import AddBreadcrumbs from "../../components/BreadcrumbsCutom";
+import BottomSheetModal from "../../components/BottomSheetModal";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { changePassword } from "../../services/userService";
@@ -11,13 +12,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { addMessageToast } from "../../store/slices/Toast";
 
 
-function MyProfile() {
+function MyProfile({
+    onClose
+}) {
 
     const userData = useSelector(state => state.userDataSlice.userData)
 
     const dispatch = useDispatch()
 
-    const [tabNumber, setTabNumber] = useState("Overview");
+    const [tabNumber, setTabNumber] = useState("ChangePassword");
 
     const handleChangeTab = (e, newValue) => {
         setTabNumber(newValue)
@@ -34,7 +37,6 @@ function MyProfile() {
     const NewPassword = watch('NewPassword', '');
 
     const handleSubmitChangePassword = async data => {
-
         try {
             const res = await changePassword({
                 ...data,
@@ -96,31 +98,29 @@ function MyProfile() {
             case "ChangePassword":
                 return (
                     <form className={styles.overview}>
-
                         <div className={styles.overviewInfo}>
                             <div className={styles.overviewInfoList}>
-
                                 <div className={styles.overviewInfoListItem} style={{ alignItems: "center" }}>
-                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>OldPassword</p>
+                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>Mật khẩu cũ</p>
                                     <FormControl className={styles.formControl}>
                                         <TextField
                                             type="password"
-                                            placeholder="Old Password"
+                                            placeholder="Mật khẩu cũ"
                                             {...register("OldPassword", { required: true })}
 
                                             size="small"
                                         />
-                                        {errors.OldPassword?.type === 'required' && <p className="formControlErrorLabel">The OldPassword field is required.</p>}
+                                        {errors.OldPassword?.type === 'required' && <p className="formControlErrorLabel">Hãy nhập mật khẩu cũ.</p>}
 
                                     </FormControl>
                                 </div>
 
                                 <div className={styles.overviewInfoListItem} style={{ alignItems: "center" }}>
-                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>NewPassword</p>
+                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>Mật khẩu mới</p>
                                     <FormControl className={styles.formControl}>
                                         <TextField
                                             type="password"
-                                            placeholder="New Password"
+                                            placeholder="Mật khẩu mới"
                                             {...register("NewPassword", { required: true, minLength: 5 })}
 
                                             size="small"
@@ -132,11 +132,11 @@ function MyProfile() {
                                 </div>
 
                                 <div className={styles.overviewInfoListItem} style={{ alignItems: "center" }}>
-                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>ConfirmPassword</p>
+                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>Xác nhật mật khẩu.</p>
                                     <FormControl className={styles.formControl}>
                                         <TextField
                                             type="password"
-                                            placeholder="Confirm Password"
+                                            placeholder="Xác nhận mật khẩu"
                                             {...register("ConfirmPassword",
                                                 {
                                                     required: true,
@@ -144,7 +144,6 @@ function MyProfile() {
                                                     validate: value => value === NewPassword || "Password do not match"
                                                 },
                                             )}
-
                                             size="small"
                                         />
                                         {errors.ConfirmPassword?.type === 'required' && <p className="formControlErrorLabel">The ConfirmPassword field is required.</p>}
@@ -154,53 +153,63 @@ function MyProfile() {
                                     </FormControl>
                                 </div>
                             </div>
-
                         </div>
 
-                        <Button
-                            variant="contained"
+                        <button className="px-3 py-2 rounded-lg text-white"
                             style={{
                                 margin: "24px auto 0",
-                                display: "block"
+                                display: "block", 
+                                background:"var(--btnSubmitColor)"
                             }}
                             onClick={handleSubmit(handleSubmitChangePassword)}
-                        >Change Password</Button>
+                        >Thay đổi mật khẩu</button>
                     </form>
                 )
         }
     }
     return (
-        <div className={styles.myProfile}>
-            <AddBreadcrumbs list={["MyProfile"]} />
-            <div className={styles.myProfileInfo}>
-                <Avatar src={userData?.roleName !== "SuperAdmin" ? avatar : avatarAdmin} sx={{ width: 160, height: 160 }}
-                />
-                <p style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 600,
-                    margin: "16px 0 0"
-                }}>{userData?.userName || "User"}</p>
+        <BottomSheetModal
+            open={true}
+            backdrop
+            dialogTitle='Thay đổi mật khẩu'
+            onClose={onClose}
+            submitBtnText='Switch'
+            // onSubmit={handleSwitchUser}
+            hideActionBtn   
+            maxWidth="sm"
+        >
+            <div className={styles.myProfile}>
+                <AddBreadcrumbs list={["MyProfile"]} />
+                <div className={styles.myProfileInfo}>
+                    {/* <Avatar src={userData?.roleName !== "SuperAdmin" ? avatar : avatarAdmin} sx={{ width: 160, height: 160 }}
+                    /> */}
+                    <p style={{
+                        fontSize: "1.5rem",
+                        fontWeight: 600,
+                        margin: "16px 0 0"
+                    }}>{userData?.userName || "User"}</p>
 
-                <p style={{
-                    fontSize: "1.1rem",
-                    fontWeight: 400,
-                    opacity: ".8",
-                    marginTop: "6px"
-                }}>{userData?.roleName}</p>
-            </div>
-            <div className={styles.myProfileChange}>
+                    <p style={{
+                        fontSize: "1.1rem",
+                        fontWeight: 400,
+                        opacity: ".8",
+                        marginTop: "6px"
+                    }}>{userData?.roleName}</p>
+                </div>
+                <div className={styles.myProfileChange}>
 
-                <Tabs value={tabNumber} onChange={handleChangeTab}>
+                    {/* <Tabs value={tabNumber} onChange={handleChangeTab}>
                     <Tab label="Overview" value="Overview" ></Tab>
                     <Tab label="Change Password" value="ChangePassword"></Tab>
-                </Tabs>
-                <div style={{
-                    marginTop: "24px"
-                }}>
-                    {handleTabContent()}
+                </Tabs> */}
+                    <div style={{
+                        marginTop: "0px"
+                    }}>
+                        {handleTabContent()}
+                    </div>
                 </div>
             </div>
-        </div>
+        </BottomSheetModal>
     );
 }
 

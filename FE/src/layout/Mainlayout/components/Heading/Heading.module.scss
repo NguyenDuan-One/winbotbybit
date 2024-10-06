@@ -1,7 +1,7 @@
 .heading {
     display: flex;
     align-items: center;
-    padding: 12px 0 12px 20px;
+    padding: 10px 0 10px 15px;
 
 
     &Logo {
@@ -13,7 +13,7 @@
 
         img {
             max-height: 30px;
-            margin-right: 10px;
+            margin-right: 5px;
         }
 
         .text {
@@ -75,7 +75,7 @@
             font-size: 18px;
             margin-bottom: 3px;
             font-weight: 600;
-            color: #444444;
+            color: #64748B;
             text-transform: capitalize;
         }
 
@@ -91,7 +91,7 @@
             font-size: 14px;
             padding: 10px 15px;
             align-items: center;
-            border-top: 1px solid #0000002b;
+            border-top: 1px solid #64748B;
             transition: .3s;
             cursor: pointer;
 
@@ -106,7 +106,7 @@
             }
 
             &Name {
-                margin-left: 6px;
+                margin-left: 2px;
             }
         }
     }
@@ -116,7 +116,7 @@
     .heading {
 
         &Logo {
-            margin-right: 6px;
+            margin-right: 2px;
             width: fit-content;
 
            

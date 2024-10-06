@@ -169,7 +169,7 @@ function Api() {
                                 confirm: true,
                             })
                         }}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="warning"
                         submitBtnText="update"
                         reserveBtn

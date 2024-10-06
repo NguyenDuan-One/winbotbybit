@@ -23,20 +23,15 @@
         flex: 1;
     }
 
-
-
-
     &Data {
         margin-top: 16px;
-
+        padding-bottom: 0px;
         .bookmarkAll {
             display: flex;
             align-items: center;
             font-weight: 500;
         }
     }
-
-
 
     &BtnAction {
         position: fixed;
@@ -97,7 +92,7 @@
             margin-bottom: 16px;
             flex-basis: 100%;
             justify-content: space-between;
-            height: 90vh;
+            min-height: 90vh;
             &Item {
                 flex: 1
             }

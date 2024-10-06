@@ -45,7 +45,8 @@
     }
     .iconDisabled
     {
-        color: var(--borderColor);
+        background-color: #2f2d2d;
+        background: #2f2d2d;
         cursor:not-allowed;
     }
 }

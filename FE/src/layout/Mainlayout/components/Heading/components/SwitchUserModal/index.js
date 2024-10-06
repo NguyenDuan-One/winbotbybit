@@ -9,7 +9,7 @@ import { Button } from "@mui/material";
 import { loginSwitch } from '../../../../../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { setUserDataLocal } from '../../../../../../store/slices/UserData';
-
+import RepeatIcon from '@mui/icons-material/Repeat';
 function SwitchUserModal({
     onClose
 }) {
@@ -22,7 +22,7 @@ function SwitchUserModal({
 
         {
             field: 'Action',
-            headerName: 'Switch',
+            headerName: 'Change',
             maxWidth: 100,
             minWidth: 100,
             type: "actions",
@@ -45,7 +45,7 @@ function SwitchUserModal({
                             })
                         }}
                     >
-                        <FingerprintIcon style={{ fontSize: "1.7rem" }} />
+                        <RepeatIcon style={{ fontSize: "1.7rem" }} />
                     </span>
                 )
             },
@@ -162,7 +162,7 @@ function SwitchUserModal({
                     navigate(0)
                 }}
             >
-                Back To Main Account
+                Back home
             </Button>}
             {userData.roleName !== "Trader" && <DataGridCustom
                 tableRows={userList}

@@ -900,7 +900,7 @@ function Scanner() {
             {
                 openConfirmDeleteConfig && (
                     <DialogCustom
-                        dialogTitle='The action requires confirmation'
+                        dialogTitle='Cảnh báo'
                         reserveBtn
                         open={true}
                         onClose={() => {

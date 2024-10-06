@@ -49,13 +49,13 @@ function Bot() {
     const roleName = userData?.roleName
 
     const tableColumns = [
-        {
-            field: 'stt',
-            headerName: '#',
-            maxWidth: 30,
-            type: "actions",
-            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
-        },
+        // {
+        //     field: 'stt',
+        //     headerName: '#',
+        //     maxWidth: 30,
+        //     type: "actions",
+        //     renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+        // },
         {
             field: 'activeBot',
             type: "actions",
@@ -72,6 +72,14 @@ function Bot() {
                         alignItems: "center",
                         marginLeft: "-10px "
                     }}>
+                        <button className=' rounded-lg text-center mr-2 py-1 px-2' style={{ background: `var(--btnSubmitColor)` }}>
+                            <DeleteOutlineIcon
+                                className="text-white"
+                                onClick={async () => {
+                                    setOpenDeleteBot(rowData)
+                                }}
+                            />
+                        </button>
                         <IOSSwitch
                             size='small'
                             disabled={!(botStatus === "Running" || botStatus === "Stopped")}
@@ -109,13 +117,7 @@ function Bot() {
                                 }
                             }}
                         />
-                        <DeleteOutlineIcon
-                            className={styles.icon}
-                            style={{ marginLeft: "3px" }}
-                            onClick={async () => {
-                                setOpenDeleteBot(rowData)
-                            }}
-                        />
+
                     </div>
                 )
 
@@ -126,13 +128,12 @@ function Bot() {
         {
             field: 'botName',
             headerName: 'Name',
-            minWidth: 150,
+            minWidth: 120,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: e => {
                 return (
                     <Link to={`Detail/${e.id}`} style={{
-                        color: "var(--blueLightColor)",
-                        textDecoration: "none"
+                        color: "#DC5F00",
                     }
                     } > {e.value}
                     </Link >
@@ -211,7 +212,7 @@ function Bot() {
                         display: botStatus === "PendingApproval" ? "unset" : "none"
                     }}
                 >
-                    Approval
+                    Duyệt
                 </Button >
             )
 
@@ -379,15 +380,11 @@ function Bot() {
     }
 
     const handleGetTotalFutureSpot = async () => {
-
         try {
             const res = await getTotalFutureSpot(userData._id)
             const { data: resData } = res.data
-
             setTotalFutureSpot(resData)
             totalFutureSpotOfMeDefault.current = resData
-
-
         }
         catch (err) {
             dispatch(addMessageToast({
@@ -462,9 +459,29 @@ function Bot() {
     return (
         <div className={styles.bot}>
             <AddBreadcrumbs list={["Bots"]} />
-            <div className={styles.botFilterList}>
+            <div className='flex justify-end'>
+                {/* <p className={styles.label}>My Bot</p> */}
+                <IOSSwitch
+                    checked={checkMyBotRef.current}
+                    title="My Bot"
+                    onChange={e => {
+                        const check = e.target.checked
+                        checkMyBotRef.current = check
+                        checkBotStatusRef.current = "All"
+                        checkBotTypeRef.current = "All"
+                        if (check) {
+                            setBotList(botListDefaultRef.current.filter(bot => bot.userID._id == userData._id))
+                        }
+                        else {
+                            setBotList(botListDefaultRef.current)
+                        }
+                    }}
+                />
+                <b style={{ fontWeight: "bold", fontSize: "1rem", color: `var(--textMoney)`, marginLeft: "10px" }}>Tổng tiền: {formatNumber(totalFutureSpot)} $</b>
+            </div>
+            <div className='flex items-center'>
                 <div className={styles.botFilterListItem}>
-                    <p className={styles.label}>BotType</p>
+                    <p className={styles.label}>Loại bot</p>
                     <Select
                         size="small"
                         className={styles.select}
@@ -482,7 +499,7 @@ function Bot() {
                     </Select>
                 </div>
                 <div className={styles.botFilterListItem}>
-                    <p className={styles.label}>Status</p>
+                    <p className={styles.label}>Trạng thái</p>
                     <Select
                         size="small"
                         className={styles.select}
@@ -500,57 +517,16 @@ function Bot() {
                         }
                     </Select>
                 </div>
-                <div className={styles.botFilterListItem}>
+                <div className='mt-8'>
 
-                    <p className={styles.label}>My Bot</p>
-                    <IOSSwitch
-                        checked={checkMyBotRef.current}
-                        title="My Bot"
-                        onChange={e => {
-                            const check = e.target.checked
-                            checkMyBotRef.current = check
-                            checkBotStatusRef.current = "All"
-                            checkBotTypeRef.current = "All"
-                            if (check) {
-                                setBotList(botListDefaultRef.current.filter(bot => bot.userID._id == userData._id))
-                            }
-                            else {
-                                setBotList(botListDefaultRef.current)
-                            }
-                        }}
-                    />
+                    <button className=' px-3 py-2  text-white rounded-lg font-bold' style={{ background: `var(--btnSubmitColor)` }} onClick={() => {
+                        setOpenAddBot(openAddBot => ({ ...openAddBot, isOpen: true }))
+                    }}>
+                        <AddIcon />
+                    </button>
                 </div>
             </div>
             <div className={styles.botTableContainer}>
-                <div className={styles.botTableContainerTitle}>
-                    <b style={{ fontWeight: "bold", fontSize: "1.2rem" }}>Total: {formatNumber(totalFutureSpot)} $</b>
-                    <div>
-                        {/* {dataTableChange.length > 0 && (
-                            <Button
-                                size="small"
-                                variant="contained"
-                                color="error"
-                                startIcon={<DeleteOutlineIcon />}
-                                style={{ marginRight: "12px" }}
-                                onClick={() => {
-                                    setOpenEditMultiple(dataTableChange.length)
-                                }}
-                            >
-                                Delete
-                            </Button>
-                        )} */}
-                        <Button
-                            size="small"
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={() => {
-                                setOpenAddBot(openAddBot => ({ ...openAddBot, isOpen: true }))
-                            }}
-                        >
-                            Bot
-                        </Button>
-                    </div>
-                </div>
                 <div className={styles.botTableContainerData}>
                     <DataGridCustom
 
@@ -580,7 +556,7 @@ function Bot() {
                             setOpenDeleteBot("")
                         }}
                         onSubmit={handleDeleteBot}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="error"
                         submitBtnText="Delete"
                         reserveBtn
@@ -611,7 +587,7 @@ function Bot() {
                             })
                             setConfirmActiveBot(false)
                         }}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="warning"
                         submitBtnText="DeActive"
                         reserveBtn

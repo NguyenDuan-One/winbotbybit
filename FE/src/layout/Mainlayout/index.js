@@ -46,18 +46,18 @@ function MainLayout({ children }) {
     }
 
     const handleBreadcrumbs = () => {
-        return <div className="flex justify-between items-center"  
-        style={{
-            fontWeight: 470,
-            marginTop: "16px",
-            padding: "10px",
-            background: "#FFFFFF",
-            whiteSpace: 'nowrap'
-        }}>
+        return <div className="flex justify-between items-center"
+            style={{
+                fontWeight: 470,
+                marginTop: "10px",
+                padding: "10px",
+                background: "#FFFFFF",
+                whiteSpace: 'nowrap'
+            }}>
             <div>
                 <Breadcrumbs
                     aria-label="breadcrumb"
-                   
+
                 >
 
                     {
@@ -116,7 +116,7 @@ function MainLayout({ children }) {
             <div>
                 {
                     routeName === "Strategies" &&
-                    <span className="font-sans text-lg font-bold text-yellow-500">{formatNumber(Number.parseFloat((+totalFuture || 0)))} $</span>
+                    <span className="font-sans text-lg font-bold" style={{ color: `var(--textMoney)` }}>{formatNumber(Number.parseFloat((+totalFuture || 0)))} $</span>
                 }
             </div>
         </div>
@@ -183,7 +183,7 @@ function MainLayout({ children }) {
                 "--marginLeft": marginLeft
             }}
         >
-            <Helmet title={`${getRouteName() || "Dashboard"} | BybitBot`} />
+            {/* <Helmet title={`${getRouteName() || "Dashboard"} | WinBot`} /> */}
             {/* hearde */}
             <div className={styles.heading}>
                 <Heading
@@ -221,7 +221,7 @@ function MainLayout({ children }) {
                             padding: "12px",
                             borderRadius: "5px",
                             boxShadow: "0px 0 30px rgba(1, 41, 112, 0.1)",
-                            height: "90vh",
+                            minHeight: "90vh",
 
                         }}>
                             <Outlet />
@@ -237,12 +237,12 @@ function MainLayout({ children }) {
 
             <div className={styles.footerLink}>
                 <div className='w-100 h-100 bg-red mt-10'>
-                    <div className="bg-zinc-800 max-h-[4.4rem] px-6 rounded-t-xl">
+                    <div className="bg-slate-500 max-h-[4.4rem] px-6 rounded-t-xl" style={{ background: `var(--headerColor)` }}>
                         <ul className="flex relative ">
                             <span
-                                className={`bg-zinc-600 duration-500 ${Menus[active].dis} border-4 border-white h-16 w-16 absolute
+                                className={`duration-500 ${Menus[active].dis} border-4 border-white h-16 w-16 absolute
                                   -top-5 rounded-full text-center
-                                  pt-3`}>
+                                  pt-3`} style={{ background: `var(--activeFooter)` }}>
                                 <span className="text-xl duration-500 -mt-6 text-white">{Menus[active].icon}</span>
                                 <span
                                     className="w-3.5 h-3.5 bg-transparent absolute top-4 -left-[18px] 

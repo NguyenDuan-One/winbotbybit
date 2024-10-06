@@ -1,6 +1,6 @@
 import { FormControl, FormLabel, TextField, Select, MenuItem } from "@mui/material";
 import { useDispatch } from "react-redux";
-import DialogCustom from "../../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../../components/BottomSheetModal";
 import { closeMarket } from "../../../../../services/positionService";
 import { addMessageToast } from "../../../../../store/slices/Toast";
 import styles from "../../../../Bot/components/AddBot/AddBot.module.scss"
@@ -45,7 +45,7 @@ function AddMarket({
         })
     }
     return (
-        <DialogCustom
+        <BottomSheetModal
             dialogTitle="Close Market"
             open={true}
             onClose={() => { handleClose(false) }}
@@ -78,7 +78,7 @@ function AddMarket({
 
 
             </form>
-        </DialogCustom>
+        </BottomSheetModal>
     );
 }
 

@@ -286,7 +286,7 @@ function TreeChild({
                 openDeleteTreeItem.isOpen &&
 
                 <DialogCustom
-                    dialogTitle='The action requires confirmation'
+                    dialogTitle='Cảnh báo'
                     reserveBtn
                     open={openDeleteTreeItem.isOpen}
                     onClose={closeDeleteDialog}

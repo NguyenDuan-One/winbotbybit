@@ -4,7 +4,7 @@ import DataGridCustom from "../../components/DataGridCustom";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessageToast } from "../../store/slices/Toast";
 import { getAllUserByRoleName } from "../../services/userService";
-
+import RepeatIcon from '@mui/icons-material/Repeat';
 import { loginSwitch } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { setUserDataLocal } from '../../store/slices/UserData';
@@ -22,7 +22,7 @@ function SwitchUserModal({
 
         {
             field: 'Action',
-            headerName: 'Switch',
+            headerName: 'Change',
             maxWidth: 100,
             minWidth: 100,
             type: "actions",
@@ -45,7 +45,7 @@ function SwitchUserModal({
                             })
                         }}
                     >
-                        <FingerprintIcon style={{ fontSize: "1.7rem" }} />
+                        <RepeatIcon style={{ fontSize: "1.7rem" }} />
                     </span>
                 )
             },

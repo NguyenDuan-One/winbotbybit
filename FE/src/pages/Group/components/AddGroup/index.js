@@ -2,7 +2,7 @@ import { Button, FormControl, FormLabel, TextField } from "@mui/material";
 import styles from "./AddBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../store/slices/Toast";
 import AddMember from "../AddMember";
@@ -61,7 +61,7 @@ function AddGroup({
     }
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitAddGroup)}
@@ -118,7 +118,7 @@ function AddGroup({
                     />
                 )
             }
-        </DialogCustom >
+        </BottomSheetModal >
     );
 }
 

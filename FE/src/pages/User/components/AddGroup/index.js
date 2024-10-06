@@ -3,7 +3,7 @@ import { FormControl, FormLabel, InputAdornment, MenuItem, Select, Switch, TextF
 import styles from "./AddBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useEffect, useMemo, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
+
 import { useDispatch, useSelector } from "react-redux";
 import { createNewUser } from "../../../../services/userService";
 import { addMessageToast } from "../../../../store/slices/Toast";

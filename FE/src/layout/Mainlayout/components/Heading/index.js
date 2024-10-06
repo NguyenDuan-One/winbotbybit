@@ -1,50 +1,35 @@
-import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import logoImage from "../../../../assets/logo.png"
 import avatar from "../../../../assets/avatar.jpg"
 import avatarAdmin from "../../../../assets/admin.jpg"
-
 import Avatar from '@mui/material/Avatar';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { Popover } from "@mui/material";
 import { useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import styles from "./Heading.module.scss"
-import { formatNumber, removeLocalStorage } from "../../../../functions";
-import { useSelector } from "react-redux";
 import SwitchUserModal from './components/SwitchUserModal';
-import { Margin } from '@mui/icons-material';
+import MenuIcon from '@mui/icons-material/Menu';
 
 function Heading({
     toggleSidebar,
     userData
 }, ref) {
 
-    const totalFuture = useSelector(state => state.totalFutureSlice.total)
-
-    const location = useLocation()
-
-    const [avatarDetailState, setAvatarDetailState] = useState(false);
     const [openSwitchUserModal, setOpenSwitchUserModal] = useState(false);
-
     const navigate = useNavigate()
-
-    const handleSignOut = () => {
-        removeLocalStorage()
-        navigate("/login")
-    }
-
     const handleMenu = () => {
         navigate("/menu")
     }
-
+    const location = useLocation()
     const routeName = useMemo(() => {
         return location.pathname.split("/")[1]
     }, [location])
 
-
     return (
         <div className={styles.heading}>
+            <div className="mr-2" onClick={(e) => {
+                    handleMenu()
+                }}>
+                <MenuIcon></MenuIcon>
+            </div>
             <NavLink className={styles.headingLogo} to="/">
                 <img src={logoImage} />
                 <span className={styles.text}>WinBot</span>
@@ -63,13 +48,12 @@ function Heading({
                 }}>
                     <Avatar src={userData?.roleName !== "SuperAdmin" ? avatar : avatarAdmin} style={{ width: "40px" }} />
                     <div className="d-block ml-2">
-                            <p className="text-md font-bold">{userData?.userName || "User"}</p>
-                            <p className="text-xs ">{userData.roleName}</p>
+                        <p className="text-md font-bold">{userData?.userName || "User"}</p>
+                        <p className="text-xs ">{userData.roleName}</p>
                     </div>
                     {/* <div className={styles.name}>
                         <span>{userData?.userName || "User"}</span>
                         <ArrowDropDownIcon />
-                       
                     </div> */}
                 </div>
                 {/* <Popover

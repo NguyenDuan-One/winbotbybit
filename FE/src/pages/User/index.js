@@ -14,6 +14,7 @@ import { deleteMultipleGroup, getAllGroup, getGroupByID } from '../../services/g
 import { deleteUser, getAllUserByGroupID, updateUser } from '../../services/userService';
 import clsx from 'clsx';
 import EditUser from './components/EditUser';
+import IOSSwitch from '../../components/SwitchCustomer';
 
 function Group() {
 
@@ -54,18 +55,45 @@ function Group() {
     const dispatch = useDispatch()
 
     const tableColumns = [
+        // {
+        //     field: 'stt',
+        //     headerName: '#',
+        //     maxWidth: 50,
+        //     type: "actions",
+        //     renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+        // },
         {
-            field: 'stt',
-            headerName: '#',
-            maxWidth: 50,
+            field: 'isActive',
+            headerName: 'Active',
+            maxWidth: 120,
+            minWidth: 10,
             type: "actions",
-            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+            renderCell: (params) => {
+                const rowData = params.row;
+                const userName = rowData["userName"]
+                const roleName = rowData["roleName"]
+                const userID = rowData._id
+                return <IOSSwitch
+                    disabled={!checkRoleEditable(roleName)}
+                    defaultChecked={params.value}
+                    onClick={e => {
+                        handleUpdateUser({
+                            userID,
+                            newData: {
+                                userName,
+                                roleName,
+                                isActive: e.target.checked
+                            }
+                        })
+                    }}
+                />
+            }
         },
         {
             field: 'Action',
             headerName: 'Action',
             maxWidth: 150,
-            minWidth: 120,
+            minWidth: 20,
             type: "actions",
             renderCell: (params) => {
                 const rowData = params.row; // Dữ liệu của hàng hiện tại
@@ -74,29 +102,36 @@ function Group() {
                 return (
 
                     <div>
-                        <EditIcon
-                            className={clsx(styles.icon, !checkRole && styles.iconDisabled)}
-                            onClick={e => {
-                                e.stopPropagation()
-                                checkRole && setOpenEditBot({
-                                    dataChange: "",
-                                    isOpen: true,
-                                    dataInput: rowData
-                                })
-                            }}
-                        />
-                        {!isActive && <DeleteOutlineIcon
-                            className={clsx(styles.icon, !checkRole && styles.iconDisabled)}
-                            style={{
-                                marginLeft: "6px"
-                            }}
-                            onClick={e => {
-                                checkRole && setOpenDeleteUser({
-                                    userID: rowData.id,
-                                    groupID: rowData.groupID?._id,
-                                })
-                            }}
-                        />}
+                        <button className={clsx('bg-blue-600 px-2 py-1 rounded-lg', !checkRole && '!bg-gray-500 px-2 py-1 rounded-lg')}>
+                            <EditIcon
+                                // className={clsx(styles.icon, !checkRole && styles.iconDisabled)}
+                                style={{
+                                    color: "#fff"
+                                }}
+                                onClick={e => {
+                                    e.stopPropagation()
+                                    checkRole && setOpenEditBot({
+                                        dataChange: "",
+                                        isOpen: true,
+                                        dataInput: rowData
+                                    })
+                                }}
+                            />
+                        </button>
+                        {!isActive && <button className={clsx('bg-blue-600 px-2 py-1 rounded-lg', !checkRole && '!bg-gray-500 px-2 py-1 rounded-lg')}>
+                            <DeleteOutlineIcon
+                                style={{
+                                    marginLeft: "5px",
+                                    color: "#fff"
+                                }}
+                                onClick={e => {
+                                    checkRole && setOpenDeleteUser({
+                                        userID: rowData.id,
+                                        groupID: rowData.groupID?._id,
+                                    })
+                                }}
+                            />
+                        </button>}
                     </div>
                 )
 
@@ -121,33 +156,33 @@ function Group() {
             minWidth: 150,
             flex: window.innerWidth <= 740 ? undefined : 1
         },
-        {
-            field: 'isActive',
-            headerName: 'Active',
-            maxWidth: 150,
-            minWidth: 120,
-            type: "actions",
-            renderCell: (params) => {
-                const rowData = params.row;
-                const userName = rowData["userName"]
-                const roleName = rowData["roleName"]
-                const userID = rowData._id
-                return <Switch
-                    disabled={!checkRoleEditable(roleName)}
-                    defaultChecked={params.value}
-                    onClick={e => {
-                        handleUpdateUser({
-                            userID,
-                            newData: {
-                                userName,
-                                roleName,
-                                isActive: e.target.checked
-                            }
-                        })
-                    }}
-                />
-            }
-        },
+        // {
+        //     field: 'isActive',
+        //     headerName: 'Active',
+        //     maxWidth: 150,
+        //     minWidth: 120,
+        //     type: "actions",
+        //     renderCell: (params) => {
+        //         const rowData = params.row;
+        //         const userName = rowData["userName"]
+        //         const roleName = rowData["roleName"]
+        //         const userID = rowData._id
+        //         return <IOSSwitch
+        //             disabled={!checkRoleEditable(roleName)}
+        //             defaultChecked={params.value}
+        //             onClick={e => {
+        //                 handleUpdateUser({
+        //                     userID,
+        //                     newData: {
+        //                         userName,
+        //                         roleName,
+        //                         isActive: e.target.checked
+        //                     }
+        //                 })
+        //             }}
+        //         />
+        //     }
+        // }
     ]
 
     const disabledListRow = useMemo(() => {
@@ -319,7 +354,7 @@ function Group() {
     }
 
     useEffect(() => {
-        userData.userName &&  handleGetAllGroup()
+        userData.userName && handleGetAllGroup()
     }, [userData.userName]);
 
     useEffect(() => {
@@ -330,12 +365,11 @@ function Group() {
     return (
         <div className={styles.bot}>
             <AddBreadcrumbs list={["User"]} />
-
             <div className={styles.botTableContainer}>
                 <div className={styles.botTableContainerTitle}>
                     <div className={styles.filterList}>
                         <div className={styles.filterListItem}>
-                            <p className={styles.label}>Group</p>
+                            <p className={styles.label}>Nhóm</p>
                             <Select
                                 size="small"
                                 className={styles.select}
@@ -357,7 +391,6 @@ function Group() {
                             <div>
                                 {dataTableChange.length > 0 && (
                                     <Button
-                                        size="small"
                                         variant="contained"
                                         color="error"
                                         startIcon={<DeleteOutlineIcon />}
@@ -369,16 +402,11 @@ function Group() {
                                         Delete
                                     </Button>
                                 )}
-                                <Button
-                                    size="small"
-                                    variant="contained"
-                                    startIcon={<AddIcon />}
-                                    onClick={() => {
-                                        setOpenAddBot(openAddBot => ({ ...openAddBot, isOpen: true }))
-                                    }}
-                                >
-                                    User
-                                </Button>
+                                <button className='bg-blue-600 px-3 py-2 rounded-lg' onClick={() => {
+                                    setOpenAddBot(openAddBot => ({ ...openAddBot, isOpen: true }))
+                                }}>
+                                    <AddIcon className='text-white font-bold' />
+                                </button>
                             </div>
                         )
                     }
@@ -423,7 +451,7 @@ function Group() {
                             setOpenDeleteUser(false)
                         }}
                         onSubmit={handleDeleteUser}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="error"
                         submitBtnText="Delete"
                         reserveBtn
@@ -443,12 +471,11 @@ function Group() {
                             setOpenEditMultiple(false)
                         }}
                         onSubmit={handleDeleteRowSelected}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="error"
                         submitBtnText="Delete"
                         reserveBtn
-                        position="center"
-                    >
+                        position="center">
                         <p style={{ textAlign: "center" }}>Do you want to delete {openEditMultiple} groups?</p>
                     </DialogCustom >
                 )

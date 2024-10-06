@@ -3,6 +3,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* src/styles.css */
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('./assets/fonts/PlaywriteDEGrund-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-size: 21px;
+}
+
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('./assets/fonts/Montserrat-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+/* Example of applying the custom font */
+body {
+  font-family: 'MyCustomFont', sans-serif;
+}
 
 * {
   font-size: 16px;
@@ -10,7 +30,7 @@
   padding: 0;
   box-sizing: border-box;
   /* user-select: none; */
-
+  font-family: 'MyCustomFont', sans-serif !important;
   --bgColor: #f6f9ff;
   --blueColor: #012970;
   --yellowColor: #edc655;
@@ -18,6 +38,15 @@
   --borderColor: rgb(231 231 231);
    scrollbar-width: thin;
    scrollbar-color: #4154f1;
+   --textMoney:#ec821f;
+   --modalHearderFooter:#4154f1;
+   --tabColor:#4164f1;
+   --tabBorder:#dedddc;
+   --btnSubmitColor:#4154f1;
+  --btnCancelColor:#ec821f;
+  --headerColor:#4154f1;
+  --headerTable:#4154f1;
+  --activeFooter:#4164f1;
 }
 
 *::-webkit-scrollbar{

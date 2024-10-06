@@ -2,7 +2,7 @@ import { FormControl, FormLabel, MenuItem, Select, TextField } from "@mui/materi
 import styles from "./AddBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useEffect, useMemo, useState } from "react";
-import DialogCustom from "../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUser } from "../../../../services/userService";
 import { addMessageToast } from "../../../../store/slices/Toast";
@@ -126,7 +126,7 @@ function EditUser({
     }, [userData.userName]);
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitUpdateUser)}
@@ -202,7 +202,7 @@ function EditUser({
 
             </form>
 
-        </DialogCustom >
+        </BottomSheetModal >
     );
 }
 

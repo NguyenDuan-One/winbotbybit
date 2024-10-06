@@ -886,7 +886,7 @@ function EditMulTreeItem({
         <BottomSheetModal
             open={true}
             onClose={() => { closeDialog(false) }}
-            dialogTitle='Bulk'
+            dialogTitle='Chỉnh sửa nhiều'
             submitBtnText='Apply'
             maxWidth='sm'
             onSubmit={handleEdit}

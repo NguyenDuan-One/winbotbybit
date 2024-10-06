@@ -222,7 +222,7 @@ function TreeChild({
                                 }} />}
                         //label="iOS style"
                         />
-                        <button className='btn bg-blue-500 px-1 rounded-lg'>
+                        <button className='btn px-1 rounded-lg' style={{background:`var(--btnSubmitColor)`}}>
                             <EditIcon
                                 className="text-white"
                                 onClick={e => {
@@ -246,7 +246,7 @@ function TreeChild({
                         </button>
                         {
                             !treeNode.IsActive && (
-                                <button className='btn bg-blue-500 px-2 ml-2 rounded-lg'>
+                                <button className='btn px-2 ml-2 rounded-lg' style={{background: `var(--btnSubmitColor)`}}>
                                     <DeleteOutlineIcon
                                         className="text-white"
                                         onClick={(e) => {
@@ -294,7 +294,7 @@ function TreeChild({
                 openDeleteTreeItem.isOpen &&
 
                 <DialogCustom
-                    dialogTitle='The action requires confirmation'
+                    dialogTitle='Cảnh báo'
                     reserveBtn
                     open={openDeleteTreeItem.isOpen}
                     onClose={closeDeleteDialog}
@@ -326,6 +326,7 @@ function TreeChild({
                 />
 
             }
+             
         </>
     );
 }

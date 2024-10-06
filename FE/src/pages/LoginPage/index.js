@@ -88,27 +88,27 @@ function LoginPage() {
                         </div>
 
                         <div className={styles.formTitle}>
-                            <p className={styles.textMain}>Hello, Friend!</p>
+                            <p className={styles.textMain}>WINBOT</p>
                             <p style={{ opacity: .9, textAlign: 'left' }}>Wellcome to WinBot</p>
                         </div>
                     </div>
 
                     <div className={styles.formData}>
-                        <p className={styles.textHeaderWhite}>Sign In</p>
+                        <p className={styles.textHeaderWhite}>Đăng nhập</p>
                         <FormControl className={styles.formControl}>
-                            <FormLabel className={styles.label}>Username</FormLabel>
+                            <FormLabel className={styles.label}>Tài khoản</FormLabel>
                             <CustomTextField
                                 error={errors.userName?.type === 'required'}
                                 size="small"
                                 {...register("userName", { required: true, minLength: 5 })}
                             />
-                            {errors.userName?.type === 'required' && <p className="formControlErrorLabel">The Username field is required.</p>}
-                            {errors.userName?.type === 'minLength' && <p className="formControlErrorLabel">Minimum length is 5 characters.</p>}
+                            {errors.userName?.type === 'required' && (<p className="formControlErrorLabel">Hãy nhập tên tài khoản.</p>)}
+                            {errors.userName?.type === 'minLength' && (<p className="formControlErrorLabel">Tối thiểu 5 kí tự.</p>)}
 
                         </FormControl>
 
                         <FormControl className={styles.formControl}>
-                            <FormLabel className={styles.label}>Password</FormLabel>
+                            <FormLabel className={styles.label}>Mật khẩu</FormLabel>
                             <CustomTextField
                                 error={errors.password?.type === 'required'}
                                 type="password"
@@ -130,15 +130,15 @@ function LoginPage() {
                                         </InputAdornment>
                                 }}
                             />
-                            {errors.password?.type === 'required' && <p className="formControlErrorLabel">The Password field is required.</p>}
-                            {errors.password?.type === 'minLength' && <p className="formControlErrorLabel">Minimum length is 5 characters.</p>}
+                            {errors.password?.type === 'required' && (<p className="formControlErrorLabel">Hãy nhập mật khẩu.</p>)}
+                            {errors.password?.type === 'minLength' && (<p className="formControlErrorLabel">Độ dài kí tự lớn hơn 5.</p>)}
 
                         </FormControl>
                         <Button
                             onClick={handleSubmit(handleLogin)}
                             variant="contained"
-                            style={{ marginTop: "16px",background:"#97caef" }}>
-                            Login
+                            style={{ marginTop: "16px",background:"rgb(26, 28, 29)" }}>
+                            Đăng nhập
                         </Button>
                     </div>
 

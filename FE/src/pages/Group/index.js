@@ -21,13 +21,13 @@ function Group() {
     const [openMemberDetail, setOpenMemberDetail] = useState(false);
 
     const tableColumns = [
-        {
-            field: 'stt',
-            headerName: '#',
-            maxWidth: 20,
-            type: "actions",
-            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
-        },
+        // {
+        //     field: 'stt',
+        //     headerName: '#',
+        //     maxWidth: 20,
+        //     type: "actions",
+        //     renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+        // },
         {
             field: 'Action',
             headerName: 'Action',
@@ -43,8 +43,9 @@ function Group() {
                     groupID: rowData.id,
                 }
                 return (
-                    <EditIcon
-                        className={styles.icon}
+                    <button className='py-1 px-2 rounded-lg' style={{background:"var(--btnSubmitColor)"}}>
+                         <EditIcon
+                        className="text-white"
                         onClick={e => {
                             e.stopPropagation()
                             setOpenEditBot({
@@ -59,6 +60,8 @@ function Group() {
                             })
                         }}
                     />
+                    </button>
+                   
                 )
 
             },
@@ -77,21 +80,23 @@ function Group() {
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: (e) => {
                 return (
-                    <div style={{ display: "flex", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}  onClick={(event) => {
+                        event.stopPropagation()
+                        setOpenMemberDetail(e.value);
+                    }}>
                         <p style={{
-                            marginRight: "12px"
+                            marginRight: "12px",
+                            color:"var(--textMoney)",
+                            fontWeight:"bold"
                         }}>{e.value.length}</p>
-                        {
+                        {/* {
                             e.value?.length > 0 && (
                                 <RemoveRedEyeIcon
                                     className={styles.icon}
-                                    onClick={(event) => {
-                                        event.stopPropagation()
-                                        setOpenMemberDetail(e.value);
-                                    }}
+                                   
                                 />
                             )
-                        }
+                        } */}
                     </div>
                 )
             },
@@ -193,29 +198,23 @@ function Group() {
                     <b style={{ fontWeight: "bold" }}></b>
                     <div>
                         {dataTableChange.length > 0 && (
-                            <Button
-                                size="small"
-                                variant="contained"
-                                color="error"
-                                startIcon={<DeleteOutlineIcon />}
-                                style={{ marginRight: "12px" }}
+                            <button className='px-3 py-2 rounded-lg'
+                                style={{ marginRight: "12px", background:"var(--btnSubmitColor)"}}
                                 onClick={() => {
                                     setOpenEditMultiple(dataTableChange.length)
                                 }}
                             >
-                                Delete
-                            </Button>
+                               <DeleteOutlineIcon className='text-white'/>
+                            </button>
                         )}
-                        <Button
-                            size="small"
-                            variant="contained"
-                            startIcon={<AddIcon />}
+                        <button
+                           className='px-3 py-2 rounded-lg' style={{background:'var(--btnSubmitColor)'}}
                             onClick={() => {
                                 setOpenAddBot(openAddBot => ({ ...openAddBot, isOpen: true }))
                             }}
                         >
-                            Group
-                        </Button>
+                            <AddIcon className='text-white'/>
+                        </button>
                     </div>
                 </div>
                 <div className={styles.botTableContainerData}>
@@ -237,7 +236,7 @@ function Group() {
                             setOpenEditMultiple(false)
                         }}
                         onSubmit={handleDeleteRowSelected}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="error"
                         submitBtnText="Delete"
                         reserveBtn

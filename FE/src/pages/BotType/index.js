@@ -18,13 +18,13 @@ function BotType() {
 
 
     const tableColumns = [
-        {
-            field: 'stt',
-            headerName: '#',
-            maxWidth: 50,
-            type: "actions",
-            renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
-        },
+        // {
+        //     field: 'stt',
+        //     headerName: '#',
+        //     maxWidth: 50,
+        //     type: "actions",
+        //     renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
+        // },
         // {
         //     field: 'Action',
         //     headerName: 'Action',
@@ -200,7 +200,7 @@ function BotType() {
                             setOpenEditMultiple(false)
                         }}
                         onSubmit={handleDeleteRowSelected}
-                        dialogTitle="The action requires confirmation"
+                        dialogTitle="Cảnh báo"
                         submitBtnColor="error"
                         submitBtnText="Delete"
                         reserveBtn

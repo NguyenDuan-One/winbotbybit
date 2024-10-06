@@ -365,7 +365,7 @@ function TreeParent({
             {openDeleteTreeSymbolGroup &&
 
                 <DialogCustom
-                    dialogTitle='The action requires confirmation'
+                    dialogTitle='Cảnh báo'
                     reserveBtn
                     open={openDeleteTreeSymbolGroup}
                     onClose={closeDeleteDialog}

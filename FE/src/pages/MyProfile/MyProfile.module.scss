@@ -1,6 +1,6 @@
 @mixin boxStyleItem {
     padding: 16px;
-    background-color: #f6f9ff;
+    background-color: #fff;
 }
 
 .myProfile {
@@ -24,8 +24,6 @@
 
     .overview {
         .text {
-            font-size: 1.2rem;
-            font-weight: 500;
             margin-right: 3px;
         }
 
@@ -43,15 +41,14 @@
 
                 &Item {
                     display: flex;
-                    margin-top: 24px;
+                    margin-top: 14px;
                     word-break: break-word;
                     flex-wrap: wrap;
 
                     .label {
-                        color: var(--blueColor);
-                        min-width: 180px;
-                        opacity: .7;
-                        font-weight: 600;
+                        min-width: 150px;
+                        opacity: .9;
+                        font-weight: 500;
                     }
 
                     .icon {
@@ -79,7 +76,6 @@
             flex-basis: 100%;
             margin-right: 0;
             margin-bottom: 12px;
-
         }
 
         .overview {

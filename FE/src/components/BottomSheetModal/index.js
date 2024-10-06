@@ -10,7 +10,7 @@ const BottomSheetModal = ({
   onClose,
   reserveBtn = false,
   dialogTitle = "",
-  submitBtnColor = "success",
+  submitBtnColor = `var(--btnSubmitColor)`,
   submitBtnText = "Submit",
   hideCloseBtn = false,
   hideActionBtn = false,
@@ -32,9 +32,9 @@ const BottomSheetModal = ({
         // onClick={onClose}
         >
           <div className={'bg-white h-[' + height + '%] w-full border-solid border-spacing-6 overflow-auto border-blue-700 rounded-t-2xl pb-10'}>
-            <div className='hearder bg-cyan-200 flex py-5 px-3 items-center justify-between sticky top-0 z-10'>
+            <div className='hearder flex py-5 px-3 items-center justify-between sticky top-0 z-10 text-white' style={{background:`var(--modalHearderFooter)`}}>
               <span className='text-xl font-bold'>{dialogTitle}</span>
-              <CancelIcon className='text-stone-600' onClick={onClose}></CancelIcon>
+              <CancelIcon className='text-white' onClick={onClose}></CancelIcon>
             </div>
             {/* <p className="mt-4">This is a more professional bottom sheet modal.</p> */}
 
@@ -50,20 +50,20 @@ const BottomSheetModal = ({
                     }}
                     onClick={onClose}
                   >Hủy</Button>}
-                  {addMore && <Button
+                  {addMore && <button
                     variant="contained"
-                    color="info"
+                    color="#DC5F00"
                     style={{
                       marginRight: "12px"
                     }}
                     onClick={addMoreFuntion}
-                  >Add More</Button>}
+                  >Add More</button>}
                   {
                     !loading ?
-                      <Button variant="contained" color={submitBtnColor} onClick={() => {
+                      <button className='px-3 py-2 rounded-lg text-white' style={{background: `var(--btnSubmitColor)`}} onClick={() => {
                         onSubmit()
                         // onClose()
-                      }}>{submitBtnText}</Button>
+                      }}>{submitBtnText}</button>
                       :
                       <CircularProgress style={{
                         width: "32px",

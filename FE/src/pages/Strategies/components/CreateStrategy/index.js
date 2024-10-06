@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import DialogCustom from "../../../../components/DialogCustom";
+import IOSSwitch from "../../../../components/SwitchCustomer";
 import styles from "./CreateStrategy.module.scss"
 import { Autocomplete, Button, Checkbox, FormControl, FormControlLabel, FormLabel, MenuItem, Radio, RadioGroup, Select, Switch, TextField } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
@@ -195,7 +196,7 @@ function CreateStrategy({
 
     return (
         <BottomSheetModal
-            dialogTitle="Create Strategy"
+            dialogTitle="Create Config"
             open={true}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitCreate)}
@@ -264,8 +265,8 @@ function CreateStrategy({
                     {isSubmitted && !botList.length && <p className="formControlErrorLabel">The Bot field is required.</p>}
 
                 </FormControl>
-                <div  style={{ alignItems:"center", display:"flex" }}>
-                    <FormControl className={styles.formControl} style={{ flexBasis: "48%" }}>
+                <div style={{ alignItems: "center", display: "flex" }}>
+                    <FormControl className={styles.formControl} style={{ flexBasis: "56%" }}>
                         <RadioGroup
                             defaultValue="Symbol"
                             onChange={handleChangeRatio}
@@ -279,23 +280,23 @@ function CreateStrategy({
                         </RadioGroup>
                     </FormControl>
 
-                    <div style={{ flexBasis: "48%", alignItems:"center", display:"flex" }}>
-                        <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
-                            <FormControlLabel control={<Switch
+                    <div style={{ flexBasis: "40%", alignItems: "center", display: "flex" }}>
+                        <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%", marginRight: "10px" }}>
+                            <FormControlLabel control={<IOSSwitch
                                 defaultChecked
                                 title="IsActive"
                                 {...register("IsActive")}
                             />} label="Active"></FormControlLabel>
-                            
+
                         </FormControl>
 
                         <FormControl className={clsx(styles.formControl)} style={{ flexBasis: "48%" }}>
-                            <FormControlLabel control={<Switch
+                            <FormControlLabel control={<IOSSwitch
                                 title="Nhớ"
                                 {...register("Remember")}
 
                             />} label="Nhớ"></FormControlLabel>
-                            
+
                         </FormControl>
                     </div>
                 </div>
@@ -361,10 +362,10 @@ function CreateStrategy({
                     <FormControl
                         className={clsx(styles.formControl, styles.formMainDataItem)}
                     >
+                        <FormLabel className={styles.label}>Position side</FormLabel>
                         <TextField
                             select
-                            label="Position side"
-                            variant="outlined"
+                            hiddenLabel
                             defaultValue={positionSideList[0].value}
                             size="small"
                             {...register("PositionSide", { required: true, })}
@@ -378,9 +379,10 @@ function CreateStrategy({
                         </TextField>
                     </FormControl>
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <FormLabel className={styles.label}>Candlestick</FormLabel>
                         <TextField
                             select
-                            label="Candlestick"
+                            hiddenLabel
                             defaultValue={candlestickList[0].value}
                             size="small"
                             {...register("Candlestick", { required: true, })}
@@ -395,9 +397,10 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <FormLabel className={styles.label}>Order change</FormLabel>
                         <TextField
                             type='number'
-                            label="Order change"
+                            hiddenLabel
                             variant="outlined"
                             defaultValue={4}
                             size="small"
@@ -409,9 +412,10 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <FormLabel className={styles.label}>Order change</FormLabel>
                         <TextField
+                            hiddenLabel
                             type='number'
-                            label="Extended OC percent"
                             variant="outlined"
                             defaultValue={80}
                             size="small"
@@ -423,9 +427,9 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <FormLabel className={styles.label}>Take profit</FormLabel>
                         <TextField
                             type='number'
-                            label="Take profit"
                             variant="outlined"
                             defaultValue={50}
                             size="small"
@@ -437,9 +441,9 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                        <FormLabel className={styles.label}>Reduce take profit</FormLabel>
                         <TextField
                             type='number'
-                            label="Reduce take profit"
                             variant="outlined"
                             defaultValue={45}
                             size="small"
@@ -451,9 +455,9 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                    <FormLabel className={styles.label}>Amount</FormLabel>
                         <TextField
                             type='number'
-                            label="Amount"
                             variant="outlined"
                             defaultValue={100}
                             size="small"
@@ -465,9 +469,9 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                    <FormLabel className={styles.label}>Ignore</FormLabel>
                         <TextField
                             type='number'
-                            label="Ignore"
                             variant="outlined"
                             defaultValue={85}
                             size="small"
@@ -479,9 +483,9 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                    <FormLabel className={styles.label}>Entry Trailing</FormLabel>
                         <TextField
                             type='number'
-                            label="Entry Trailing"
                             variant="outlined"
                             size="small"
                             {...register("EntryTrailing", { min: formControlMinValue })}
@@ -491,9 +495,9 @@ function CreateStrategy({
                     </FormControl>
 
                     <FormControl className={clsx(styles.formControl, styles.formMainDataItem)}>
+                    <FormLabel className={styles.label}>Stop Lose</FormLabel>
                         <TextField
                             type='number'
-                            label="Stop Lose"
                             variant="outlined"
                             defaultValue={50}
                             size="small"

@@ -44,7 +44,7 @@ function DeleteBot({
             open={open}
             onClose={onClose}
             onSubmit={handleSubmitDeleteBot}
-            dialogTitle="The action requires confirmation"
+            dialogTitle="Cảnh báo"
             submitBtnColor="error"
             submitBtnText="Delete"
             reserveBtn

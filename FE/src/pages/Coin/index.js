@@ -25,14 +25,16 @@ function Coin() {
     return (
         <div>
             <AddBreadcrumbs list={["Coin"]} />
-            <Tabs value={tabNumber} onChange={handleChangeTab}>
+            {/* <Tabs value={tabNumber} onChange={handleChangeTab}>
                 <Tab label="Coin" value="Coin" ></Tab>
                 <Tab label="Group" value="Group"></Tab>
-            </Tabs>
+            </Tabs> */}
             <div style={{
-                marginTop: "24px"
+                 marginTop: "10px",
+                 paddingBottom:"55px"
             }}>
-                {handleTabContent()}
+                {/* {handleTabContent()} */}
+                <CoinContent />
             </div>
         </div>
     );

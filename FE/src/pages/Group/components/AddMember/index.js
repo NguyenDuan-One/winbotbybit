@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAllUserByUserIDList, getAllUserLowerGroup, getAllUserWithoutGroup } from "../../../../services/userService";
-import DialogCustom from "../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../components/BottomSheetModal";
 import { Checkbox, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import styles from "./AddMember.module.scss"
 
@@ -53,7 +53,7 @@ function AddMember({
     }, []);
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             dialogTitle="Add Member"
             open={true}
             onClose={closeDialog}
@@ -163,7 +163,7 @@ function AddMember({
                     }
                 </TableBody>
             </Table>
-        </DialogCustom>
+        </BottomSheetModal>
     );
 }
 
