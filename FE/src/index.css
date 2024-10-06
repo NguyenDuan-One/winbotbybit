@@ -1,0 +1,114 @@
+/* @import "rsuite/dist/rsuite.css"; */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* src/styles.css */
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('./assets/fonts/PlaywriteDEGrund-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-size: 21px;
+}
+
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('./assets/fonts/Montserrat-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+/* Example of applying the custom font */
+body {
+  font-family: 'MyCustomFont', sans-serif;
+}
+
+* {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* user-select: none; */
+  font-family: 'MyCustomFont', sans-serif !important;
+  --bgColor: #f6f9ff;
+  --blueColor: #012970;
+  --yellowColor: #edc655;
+  --blueLightColor: #4154f1;
+  --borderColor: rgb(231 231 231);
+   scrollbar-width: thin;
+   scrollbar-color: #4154f1;
+   --textMoney:#ec821f;
+   --modalHearderFooter:#4154f1;
+   --tabColor:#4164f1;
+   --tabBorder:#dedddc;
+   --btnSubmitColor:#4154f1;
+  --btnCancelColor:#ec821f;
+  --headerColor:#4154f1;
+  --headerTable:#4154f1;
+  --activeFooter:#4164f1;
+}
+
+*::-webkit-scrollbar{
+  width: 15px;
+}
+
+*::-webkit-scrollbar-track{
+  background: #4154f1;
+  border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb{
+  background-color: var(--blueLightColor);
+  border-radius: 50px;
+  border: 3px solid var(--blueLightColor);
+}
+.own-bot {
+  background-color: #b3ccfb3b;
+}
+
+.formControlErrorLabel {
+  color: rgb(177, 31, 31);
+  margin-top: 6px;
+}
+
+a,
+a:hover,
+a:active,
+a:focus {
+  text-decoration: none;
+  color: #000;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rs-check-tree .rs-check-tree-node-label .rs-check-item .rs-checkbox-checker .rs-check-tree-node-label-content,
+.rs-check-tree-node .rs-check-item {
+  min-width: 100%;
+}
+
+.css-1ex1afd-MuiTableCell-root {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+/* .rs-check-tree-group {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.rs-check-tree {
+  overflow: hidden !important;
+  max-height: fit-content !important;
+  height: auto !important;
+} */
+
+@media (max-width: 740px) {
+  * {
+    font-size: 14.5px;
+  }
+}

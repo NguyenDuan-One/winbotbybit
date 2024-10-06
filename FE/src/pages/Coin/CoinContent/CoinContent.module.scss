@@ -1,0 +1,13 @@
+.coinContent {
+    .coinInput {
+        width: 30%;
+        margin-bottom: 10px;
+    }
+}
+@media (max-width: 740px) {
+    .coinContent {
+        .coinInput {
+            width: 50%;
+        }
+    }
+}
