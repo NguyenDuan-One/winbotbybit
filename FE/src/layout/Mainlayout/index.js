@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import Heading from "./components/Heading";
 import SideBar from "./components/SideBar";
 import styles from "./Mainlayout.module.scss"
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet";  
 import HomeIcon from '@mui/icons-material/Home';
 import { memo, useMemo, useEffect, useState } from "react";
 import clsx from "clsx";
