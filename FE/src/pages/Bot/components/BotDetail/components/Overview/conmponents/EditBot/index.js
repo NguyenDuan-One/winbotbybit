@@ -2,7 +2,7 @@ import { FormControl, FormLabel, TextField } from "@mui/material";
 import styles from "./EditBot.module.scss"
 import { useForm } from "react-hook-form";
 import { memo, useRef } from "react";
-import DialogCustom from "../../../../../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../../../../../components/BottomSheetModal";
 import { updateBot } from "../../../../../../../../services/botService";
 import { useDispatch } from "react-redux";
 import { addMessageToast } from "../../../../../../../../store/slices/Toast";
@@ -75,11 +75,11 @@ function EditBot({
     }
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={open}
             onClose={closeDialog}
             onSubmit={handleSubmit(handleSubmitEditBot)}
-            dialogTitle="Edit Bot"
+            dialogTitle="Cập nhật Bot"
         >
 
             <form className={styles.dialogForm} onChange={e => {
@@ -127,7 +127,7 @@ function EditBot({
                 </FormControl>
 
             </form>
-        </DialogCustom >
+        </BottomSheetModal >
     );
 }
 
