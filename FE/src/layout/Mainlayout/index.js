@@ -22,7 +22,7 @@ function MainLayout({ children }) {
     const [active, setActive] = useState(0)
     const Menus = [
         { name: "Home", icon: <HomeIcon></HomeIcon>, dis: "translate-x-0", linK: "/" },
-        { name: "Server", icon: <DnsIcon></DnsIcon>, dis: "translate-x-16", linK: "/Bots" },
+        { name: "Bots", icon: <DnsIcon></DnsIcon>, dis: "translate-x-16", linK: "/Bots" },
         { name: "Config", icon: <SettingsIcon></SettingsIcon>, dis: "translate-x-32", linK: "/Strategies" },
         { name: "Position", icon: <MonetizationOnIcon></MonetizationOnIcon>, dis: "translate-x-48", linK: "/PositionV1" },
         { name: "Menu", icon: <MenuIcon></MenuIcon>, dis: "translate-x-64", linK: "/Menu" }
@@ -64,7 +64,7 @@ function MainLayout({ children }) {
                         listBreadcrumbs.map((value, index) => {
                             if (index === 0) {
                                 return <Link
-                                    to="/"
+                                    to="/Bots"
                                     style={{ fontSize: ".9rem", opacity: .6 }}
                                     key={index}
                                 >
@@ -74,7 +74,7 @@ function MainLayout({ children }) {
                                         <HomeIcon style={{
                                             marginRight: "5px",
                                             marginTop: "-2px"
-                                        }}></HomeIcon> Home
+                                        }}></HomeIcon> Main
                                     </div>
 
                                 </Link>

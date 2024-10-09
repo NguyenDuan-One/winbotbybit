@@ -13,19 +13,18 @@
 
     &Info {
         display: flex;
-        justify-content: center;
 
         &List {
-            flex-basis: 48%;
+           
 
             &Item {
                 display: flex;
-                margin-top: 24px;
+                margin-top: 20px;
                 word-break: break-word;
-
                 .label {
-                    min-width: 100px;
-                    font-weight: 400;
+                    min-width: 120px;
+                    opacity: 0.8;
+                    font-weight: 500;
                 }
 
                 .icon {

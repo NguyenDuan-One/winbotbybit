@@ -13,7 +13,7 @@ import { getBotByID, updateBot } from '../../../../../../services/botService';
 import { useDispatch } from 'react-redux';
 import { addMessageToast } from '../../../../../../store/slices/Toast';
 import { useParams } from 'react-router-dom';
-
+import Wallet from "../../components/Wallet";
 function Overview() {
 
     const dispatch = useDispatch();
@@ -99,69 +99,70 @@ function Overview() {
 
 
     return (
-        <div className="flex flex-col lg:w-[50%] border-2 py-3 px-5 shadow-soft-xl rounded-2xl bg-clip-border m-auto">
-            <div className="flex justify-between lg:px-52 rounded-lg py-2 items-center">
-                <p className="font-bold">Bot chi tiết: </p>
-                <button className='px-2 py-1 rounded-lg ml-2' style={{ background: "var(--btnSubmitColor)" }} onClick={() => {
-                    setOpenEditBot(editBot => (
-                        {
-                            ...editBot,
-                            isOpen: true,
-                        }
-                    ))
-                }}>
-                    <EditIcon className='text-white'/>
-                </button>
-            </div>
-
-            <div className={styles.overviewInfo}>
-           
-                <div className={styles.overviewInfoList}>
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Tên bots: </p>
-                        <div>
-                            <span>{botData?.botName}</span>
-                            {botData?.botName && <Tooltip title={toolTipText} placement='top' onMouseOut={setToolTipDefault}>
-                                <button className="px-1 ml-2 rounded-lg text-white" style={{ background: 'var(--btnSubmitColor)' }} onClick={() => { copyToClipboard(botData?.botName) }} >copy</button>
-                            </Tooltip>}
-                        </div>
-                    </div>
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>ID: </p>
-                        <div>
-                            <span>{botData?.id}</span>
-                            {botData?.id && <Tooltip title={toolTipText} placement='top' onMouseOut={setToolTipDefault}>
-                                <button className="px-1 ml-2 rounded-lg text-white" style={{ background: 'var(--btnSubmitColor)' }} onClick={() => { copyToClipboard(botData?.id) }} >copy</button>
-                            </Tooltip>}
-                        </div>
-                    </div>
-                    {botData?.telegramID &&
-                        <div className={styles.overviewNotif}>
-                            <div className={styles.overviewInfoListItem}>
-                                <p className={styles.label}>Telegram ID: </p>
-                                <div>
-                                    <span>{botData?.telegramID}</span>
-                                    <Tooltip title={toolTipText} placement='top' onMouseOut={setToolTipDefault}>
-                                        <button className="px-1 ml-2 rounded-lg text-white" style={{ background: 'var(--btnSubmitColor)' }} onClick={() => { copyToClipboard(botData?.telegramID) }} >copy</button>
-                                    </Tooltip>
-                                </div>
-                            </div>
-                        </div>}
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Loại bot: </p>
-                        <span>{botData?.botType}</span>
-                    </div>
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Trạng thái: </p>
-                        <span>{botData?.Status}</span>
-                    </div>
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Ghi chú: </p>
-                        <span>{botData?.note}</span>
-                    </div>
-
+        <div className="xs:block  lg:flex flex justify-around border-2 py-3 px-5 shadow-soft-xl rounded-2xl bg-clip-border m-auto">
+            <div className='xs:w-[90vw] lg:w-1/3 w-full'>
+                <div className="flex  rounded-lg py-2 items-center">
+                    <p className="font-bold">Bot chi tiết: </p>
+                    <button className='px-2 py-1 rounded-lg ml-2' style={{ background: "var(--btnSubmitColor)" }} onClick={() => {
+                        setOpenEditBot(editBot => (
+                            {
+                                ...editBot,
+                                isOpen: true,
+                            }
+                        ))
+                    }}>
+                        <EditIcon className='text-white' />
+                    </button>
                 </div>
-                {/* <div className={styles.overviewInfoList}>
+
+                <div className={styles.overviewInfo}>
+
+                    <div className={styles.overviewInfoList}>
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Tên bots: </p>
+                            <div>
+                                <span>{botData?.botName}</span>
+                                {botData?.botName && <Tooltip title={toolTipText} placement='top' onMouseOut={setToolTipDefault}>
+                                    <button className="px-1 ml-2 rounded-lg text-white" style={{ background: 'var(--btnSubmitColor)' }} onClick={() => { copyToClipboard(botData?.botName) }} >copy</button>
+                                </Tooltip>}
+                            </div>
+                        </div>
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>ID: </p>
+                            <div className='text-wrap'>
+                                <span >{botData?.id}</span>
+                                {botData?.id && <Tooltip title={toolTipText} placement='top' onMouseOut={setToolTipDefault}>
+                                    <button className="px-1 ml-2 rounded-lg text-white" style={{ background: 'var(--btnSubmitColor)' }} onClick={() => { copyToClipboard(botData?.id) }} >copy</button>
+                                </Tooltip>}
+                            </div>
+                        </div>
+                        {botData?.telegramID &&
+                            <div className={styles.overviewNotif}>
+                                <div className={styles.overviewInfoListItem}>
+                                    <p className={styles.label}>Telegram ID: </p>
+                                    <div>
+                                        <span>{botData?.telegramID}</span>
+                                        <Tooltip title={toolTipText} placement='top' onMouseOut={setToolTipDefault}>
+                                            <button className="px-1 ml-2 rounded-lg text-white" style={{ background: 'var(--btnSubmitColor)' }} onClick={() => { copyToClipboard(botData?.telegramID) }} >copy</button>
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                            </div>}
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Loại bot: </p>
+                            <span>{botData?.botType}</span>
+                        </div>
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Trạng thái: </p>
+                            <span>{botData?.Status}</span>
+                        </div>
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Ghi chú: </p>
+                            <span>{botData?.note}</span>
+                        </div>
+
+                    </div>
+                    {/* <div className={styles.overviewInfoList}>
                     <div className={styles.overviewInfoListItem}>
                         <p className={styles.label}>Version</p>
                         <span>{botData?.Version}</span>
@@ -183,6 +184,7 @@ function Overview() {
                         <span>{botData?.Proxy}</span>
                     </div>
                 </div> */}
+                </div>
             </div>
 
             {/* <div className={styles.overviewBtnAction}>
@@ -214,7 +216,9 @@ function Overview() {
                 }
 
             </div> */}
-
+            <div className='xs:w-[90vw] lg:w-2/3 w-full xs:mt-3'>
+                <Wallet />
+            </div>
 
 
 

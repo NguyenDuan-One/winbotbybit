@@ -193,24 +193,25 @@ function Wallet() {
     }, [openTransfer]);
 
     return (
-        <div className={styles.overview}>
-            <div className={styles.overviewHeader}>
-                <p className={styles.text}>Balance : {formatNumber(futureAvailable + spotTotal)} $</p>
-            </div>
+        <div>
+            <div className={styles.overview}>
+                <div className={styles.overviewHeader}>
+                    <p className="font-extrabold " style={{color:"var(--textMoney)"}}>Tổng tiền : {formatNumber(futureAvailable + spotTotal)} $</p>
+                </div>
 
-            <div className={styles.overviewInfo}>
-                <div className={styles.overviewInfoList}>
+                <div className={styles.overviewInfo}>
+                    <div className={styles.overviewInfoList}>
 
 
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Spot Available</p>
-                        <p>{formatNumber(spotAvailable.current.dataBalance || (spotAvailable.current.dataFirst.spotTotal - spotAvailable.current.dataFirst.spotSavings))} $</p>
-                    </div>
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Spot Available</p>
+                            <p>{formatNumber(spotAvailable.current.dataBalance || (spotAvailable.current.dataFirst.spotTotal - spotAvailable.current.dataFirst.spotSavings))} $</p>
+                        </div>
 
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Spot Savings</p>
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Spot Savings</p>
 
-                        {/* <CurrencyFormat
+                            {/* <CurrencyFormat
                             value={spotSaving}
                             thousandSeparator={true}
                             isAllowed={({ floatValue }) => {
@@ -233,80 +234,74 @@ function Wallet() {
                                 +value <= spotTotal ? setSpotSaving(+value) : setSpotSaving(spotTotal)
                             }}
                         /> */}
-                        <TextField
-                            size="small"
-                            value={spotSaving}
-                            type='number'
-                            onChange={e => {
-                                const value = e.target.value;
-                                value <= spotTotal ? setSpotSaving(value) : setSpotSaving(spotTotal)
-                            }}
-                        />
-                    </div>
+                            <TextField
+                                size="small"
+                                value={spotSaving}
+                                type='number'
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    value <= spotTotal ? setSpotSaving(value) : setSpotSaving(spotTotal)
+                                }}
+                            />
+                        </div>
 
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Spot Total</p>
-                        <p>{formatNumber(spotTotal)} $</p>
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Spot Total</p>
+                            <p>{formatNumber(spotTotal)} $</p>
+                        </div>
+                    </div>
+                    <div className={styles.overviewInfoList}>
+
+
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Futures Available</p>
+                            <p>{formatNumber(futureAvailable)} $</p>
+                        </div>
+
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Futures Total</p>
+                            <p>0 $</p>
+                        </div>
+
+                        <div className={styles.overviewInfoListItem}>
+                            <p className={styles.label}>Funding</p>
+                            <p>0 $</p>
+                        </div>
                     </div>
                 </div>
-                <div className={styles.overviewInfoList}>
 
-
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Futures Available</p>
-                        <p>{formatNumber(futureAvailable)} $</p>
-                    </div>
-
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Futures Total</p>
-                        <p>0 $</p>
-                    </div>
-
-                    <div className={styles.overviewInfoListItem}>
-                        <p className={styles.label}>Funding</p>
-                        <p>0 $</p>
-                    </div>
+                <div className="flex mt-5">
+                    <button
+                    className='px-3 py-2 rounded-lg text-white bg-blue-600 mr-3'
+                       
+                        onClick={() => {
+                            setOpenTransfer({
+                                isOpen: true,
+                                dataChange: true,
+                            })
+                        }}
+                    >
+                        Chuyển ví
+                    </button>
+                    <button
+                        className='px-3 py-2 rounded-lg text-white bg-blue-600'
+                        onClick={handleWalletBalance}
+                    >
+                        Savings
+                    </button>
                 </div>
-            </div>
 
-            <div className={styles.overviewBtnAction}>
-                <Button
-                    className={styles.btn}
-                    size="small"
-                    variant="contained"
-                    startIcon={<AccountBalanceWalletIcon />}
-                    onClick={() => {
-                        setOpenTransfer({
-                            isOpen: true,
-                            dataChange: true,
-                        })
+
+                {openTransfer.isOpen && <Transfer
+                    open={openTransfer}
+                    botID={botID}
+                    onClose={(data) => {
+                        setOpenTransfer(data)
                     }}
-                >
-                    Transfer
-                </Button>
-                <Button
-                    className={styles.btn}
-                    color='info'
-                    size="small"
-                    variant="contained"
-                    startIcon={<SavingsIcon />}
-                    onClick={handleWalletBalance}
-                >
-                    Savings
-                </Button>
-            </div>
-
-
-            {openTransfer.isOpen && <Transfer
-                open={openTransfer}
-                botID={botID}
-                onClose={(data) => {
-                    setOpenTransfer(data)
-                }}
-                spotAvailableMax={spotAvailable.current.dataBalance || (spotAvailable.current.dataFirst.spotTotal - spotAvailable.current.dataFirst.spotSavings)}
-                futureAvailableMax={futureAvailable}
-            />}
-            {/* 
+                    spotAvailableMax={spotAvailable.current.dataBalance || (spotAvailable.current.dataFirst.spotTotal - spotAvailable.current.dataFirst.spotSavings)}
+                    futureAvailableMax={futureAvailable}
+                />}
+                {/* 
             {openSavings && <Savings
                 open={openSavings}
                 onClose={() => {
@@ -314,7 +309,7 @@ function Wallet() {
                 }}
             />} */}
 
-            {/* {openEditSpotSavings &&
+                {/* {openEditSpotSavings &&
                 <DialogCustom
                     open={true}
                     onClose={closeDialogSotSaving}
@@ -346,6 +341,7 @@ function Wallet() {
                     </form>
                 </DialogCustom>
             } */}
+            </div>
         </div>
     );
 }
