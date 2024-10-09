@@ -2,7 +2,7 @@ import { FormControl, FormLabel, Switch, TextField } from "@mui/material";
 import styles from "./AddApi.module.scss"
 import { useForm } from "react-hook-form";
 import { memo } from "react";
-import DialogCustom from "../../../../../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../../../../../components/BottomSheetModal";
 import { addMessageToast } from "../../../../../../../../store/slices/Toast";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -68,7 +68,7 @@ function AddApi({
     }
 
     return (
-        <DialogCustom
+        <BottomSheetModal
             open={open}
             onClose={() => { closeDialog() }}
             onSubmit={handleSubmit(handleSubmitAddApi)}
@@ -106,7 +106,7 @@ function AddApi({
                 </FormControl>
 
             </form>
-        </DialogCustom >
+        </BottomSheetModal >
     );
 }
 
