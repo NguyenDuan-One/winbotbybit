@@ -9,14 +9,14 @@ import { addMessageToast } from "../../../../../../store/slices/Toast";
 import { useParams } from "react-router-dom";
 import DataGridCustom from "../../../../../../components/DataGridCustom";
 import { getBotByID } from "../../../../../../services/botService";
-import DialogCustom from "../../../../../../components/DialogCustom";
+import BottomSheetModal from "../../../../../../components/BottomSheetModal";
 
 function Api() {
 
     const tableColumns = [
         {
             field: 'stt',
-            headerName: '#',
+            headerName: 'STT',
             maxWidth: 50,
             type: "actions",
             renderCell: (params) => params.api.getAllRowIds().indexOf(params.id) + 1
@@ -33,7 +33,7 @@ function Api() {
         {
             field: 'SecretKey',
             headerName: 'SecretKey',
-            minWidth: 150,
+            minWidth: 200,
             flex: window.innerWidth <= 740 ? undefined : 1,
             renderCell: () => {
                 return "***** ***** *****"
@@ -96,10 +96,8 @@ function Api() {
                 {
                     apiData.length > 0
                         ?
-                        <Button
-                            size="small"
-                            variant="contained"
-                            color="info"
+                        <button
+                           className="px-3 py-2 rounded-lg text-white bg-blue-600"
                             onClick={() => {
                                 setOpenEditApi({
                                     ...openEditApi,
@@ -108,13 +106,11 @@ function Api() {
                                 })
                             }}
                         >
-                            Update Api
-                        </Button>
+                            Cập nhật
+                        </button>
                         :
-                        <Button
-                            size="small"
-                            variant="contained"
-                            startIcon={<AddIcon />}
+                        <button
+                            className="px-3 py-2 rounded-lg text-white bg-blue-600"
                             onClick={() => {
                                 setOpenAddApi({
                                     isOpen: true,
@@ -122,8 +118,8 @@ function Api() {
                                 })
                             }}
                         >
-                            Api
-                        </Button>
+                            Thêm mới
+                        </button>
                 }
             </div>
             <DataGridCustom
@@ -152,7 +148,7 @@ function Api() {
 
             {
                 openEditApi.isOpen && (
-                    <DialogCustom
+                    <BottomSheetModal
                         backdrop
                         open={true}
                         onClose={() => {
@@ -176,7 +172,7 @@ function Api() {
                         position="center"
                     >
                         <p style={{ textAlign: "center" }}>Bot is running - Do you want to update?</p>
-                    </DialogCustom >
+                    </BottomSheetModal >
                 )
             }
 

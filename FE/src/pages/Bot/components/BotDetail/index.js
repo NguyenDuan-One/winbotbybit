@@ -35,10 +35,10 @@ function BotDetail() {
 
 
     return (
-        <div className={styles.botDetail}>
+        <div className="pb-14">
             <AddBreadcrumbs list={["Bots", "Detail"]} />
 
-            <AppBar position="static" style={{ background: `var(--tabColor)`, borderRadius: '30px' }}>
+            {/* <AppBar position="static" style={{ background: `var(--tabColor)`, borderRadius: '30px' }}>
                 <Tabs
                     centered
                     indicatorColor="secondary"
@@ -93,11 +93,15 @@ function BotDetail() {
                         },
                     }} label="Api" value="Api"></Tab>
                 </Tabs>
-            </AppBar>
+            </AppBar> */}
+             <Overview />
             <div style={{
-                marginTop: "24px"
+                marginTop: "14px"
             }}>
-                {handleTabContent()}
+                {/* {handleTabContent()} */}
+               
+               
+                <Api /> 
             </div>
 
         </div>
