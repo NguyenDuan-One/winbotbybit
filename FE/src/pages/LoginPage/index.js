@@ -137,7 +137,7 @@ function LoginPage() {
                         <Button
                             onClick={handleSubmit(handleLogin)}
                             variant="contained"
-                            style={{ marginTop: "16px",background:"rgb(26, 28, 29)" }}>
+                            style={{ marginTop: "16px",background:"#5d6fff" }}>
                             Đăng nhập
                         </Button>
                     </div>
