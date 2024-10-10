@@ -101,7 +101,7 @@ function MyProfile({
                         <div className={styles.overviewInfo}>
                             <div className={styles.overviewInfoList}>
                                 <div className={styles.overviewInfoListItem} style={{ alignItems: "center" }}>
-                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>Mật khẩu cũ</p>
+                                    <p className={styles.label} style={{ fontSize: "1.2rem",marginRight:"60px" }}>Mật khẩu cũ</p>
                                     <FormControl className={styles.formControl}>
                                         <TextField
                                             type="password"
@@ -116,7 +116,7 @@ function MyProfile({
                                 </div>
 
                                 <div className={styles.overviewInfoListItem} style={{ alignItems: "center" }}>
-                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>Mật khẩu mới</p>
+                                    <p className={styles.label} style={{ fontSize: "1.2rem",marginRight:"60px" }}>Mật khẩu mới</p>
                                     <FormControl className={styles.formControl}>
                                         <TextField
                                             type="password"
@@ -132,7 +132,7 @@ function MyProfile({
                                 </div>
 
                                 <div className={styles.overviewInfoListItem} style={{ alignItems: "center" }}>
-                                    <p className={styles.label} style={{ fontSize: "1.2rem" }}>Xác nhật mật khẩu.</p>
+                                    <p className={styles.label} style={{ fontSize: "1.2rem",marginRight:"20px" }}>Xác nhận mật khẩu</p>
                                     <FormControl className={styles.formControl}>
                                         <TextField
                                             type="password"

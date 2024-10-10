@@ -24,7 +24,7 @@ function MainLayout({ children }) {
         { name: "Home", icon: <HomeIcon></HomeIcon>, dis: "translate-x-0", linK: "/" },
         { name: "Bots", icon: <DnsIcon></DnsIcon>, dis: "translate-x-16", linK: "/Bots" },
         { name: "Config", icon: <SettingsIcon></SettingsIcon>, dis: "translate-x-32", linK: "/Strategies" },
-        { name: "Position", icon: <MonetizationOnIcon></MonetizationOnIcon>, dis: "translate-x-48", linK: "/PositionV1" },
+        { name: "Position", icon: <MonetizationOnIcon></MonetizationOnIcon>, dis: "translate-x-48", linK: "/PositionV3" },
         { name: "Menu", icon: <MenuIcon></MenuIcon>, dis: "translate-x-64", linK: "/Menu" }
     ]
     const location = useLocation()
@@ -56,10 +56,7 @@ function MainLayout({ children }) {
             }}>
             <div>
                 <Breadcrumbs
-                    aria-label="breadcrumb"
-
-                >
-
+                    aria-label="breadcrumb">
                     {
                         listBreadcrumbs.map((value, index) => {
                             if (index === 0) {
@@ -94,9 +91,6 @@ function MainLayout({ children }) {
                                     </div>
 
                                 </div>
-
-
-
                             }
                             else {
                                 return <Link

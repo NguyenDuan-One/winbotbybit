@@ -30,7 +30,7 @@ function Heading({
                 }}>
                 <MenuIcon></MenuIcon>
             </div>
-            <NavLink className={styles.headingLogo} to="/">
+            <NavLink className={styles.headingLogo} to="/Bots">
                 <img src={logoImage} />
                 <span className={styles.text}>WinBot</span>
             </NavLink>

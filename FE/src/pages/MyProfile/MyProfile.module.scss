@@ -4,15 +4,14 @@
 }
 
 .myProfile {
-    display: flex;
-    flex-wrap: wrap;
+   
 
     &Info {
         flex-basis:35%;
         margin-right: 12px;
         @include boxStyleItem;
-        display: flex;
-        flex-direction: column;
+        text-align: center;
+       
         align-items: center;
         justify-content: center;
     }
